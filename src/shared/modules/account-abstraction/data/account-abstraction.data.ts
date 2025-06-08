@@ -1,7 +1,7 @@
-export enum ExternalAccountSuccessMessage {
+export enum AccountAbstractionSuccessMessage {
   SUCCESS = 'SUCCESS',
 }
 
-export enum ExternalAccountErrorMessage {
+export enum AccountAbstractionErrorMessage {
   ERROR = 'ERROR',
 }
