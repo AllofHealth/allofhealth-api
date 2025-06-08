@@ -5,4 +5,7 @@ export default () => ({
     secret: process.env.JWT_SECRET,
     expiresIn: EXPIRES_IN,
   },
+  database: {
+    url: process.env.DATABASE_URL,
+  },
 });
