@@ -15,4 +15,14 @@ describe('ExternalAccountProvider', () => {
   it('should be defined', () => {
     expect(provider).toBeDefined();
   });
+
+  describe('Wallet creation', () => {
+    it('should create an ethereum wallet', () => {
+      const wallet = provider.createWallet();
+      console.log(wallet);
+      expect(wallet).toBeDefined();
+      expect(wallet.data?.walletAddress).toBeDefined();
+      expect(wallet.data?.privateKey).toBeDefined();
+    });
+  });
 });
