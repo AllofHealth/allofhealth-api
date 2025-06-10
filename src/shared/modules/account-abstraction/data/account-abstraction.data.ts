@@ -1,7 +1,7 @@
 export enum AccountAbstractionSuccessMessage {
-  SUCCESS = 'SUCCESS',
+  SMART_ACCOUNT_CREATED = 'Smart account created successfully',
 }
 
 export enum AccountAbstractionErrorMessage {
-  ERROR = 'ERROR',
+  ERROR_CREATING_SMART_ACCOUNT = 'Error creating smart account',
 }
