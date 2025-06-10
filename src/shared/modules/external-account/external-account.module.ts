@@ -4,5 +4,6 @@ import { ExternalAccountProvider } from './provider/external-account.provider';
 
 @Module({
   providers: [ExternalAccountService, ExternalAccountProvider],
+  exports: [ExternalAccountService],
 })
 export class ExternalAccountModule {}
