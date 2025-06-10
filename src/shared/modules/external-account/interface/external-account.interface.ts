@@ -1,5 +1,6 @@
 import { Result } from 'neverthrow';
 import {
+  CreateSignerError,
   ProviderError,
   WalletCreationError,
 } from '../errors/external-account.errors';
@@ -13,3 +14,4 @@ type WalletData = {
 
 export type TWalletResult = Result<WalletData, WalletCreationError>;
 export type TProviderResult = Result<ethers.JsonRpcProvider, ProviderError>;
+export type TCreateSignerResult = Result<ethers.Signer, CreateSignerError>;
