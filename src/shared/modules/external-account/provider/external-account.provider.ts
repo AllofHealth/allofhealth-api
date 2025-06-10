@@ -44,14 +44,19 @@ export class ExternalAccountProvider {
   }
 
   createSigner(): TCreateSignerResult {
-    return this.handleCreateWallet().andThen((wallet) =>
-      this.handleGetProvider().andThen((provider) =>
-        Result.fromThrowable(
-          () => new ethers.Wallet(wallet.privateKey, provider),
+    return this.handleCreateWallet().andThen((walletData) =>
+      this.handleGetProvider().andThen((provider) => {
+        const signerResult = Result.fromThrowable(
+          () => new ethers.Wallet(walletData.privateKey, provider),
           (error: Error) =>
             new CreateSignerError(`Failed to create signer: ${error}`),
-        )(),
-      ),
+        )();
+
+        return signerResult.map((signer) => ({
+          signer,
+          walletData,
+        }));
+      }),
     );
   }
 
