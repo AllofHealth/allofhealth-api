@@ -17,3 +17,12 @@ export class ProviderError extends Error {
     this.name = 'ProviderError';
   }
 }
+
+export class CreateSignerError extends Error {
+  constructor(
+    message: string = ExternalAccountErrorMessage.ERROR_CREATING_SIGNER,
+  ) {
+    super(message);
+    this.name = 'CreateSignerError';
+  }
+}
