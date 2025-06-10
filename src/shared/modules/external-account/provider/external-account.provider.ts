@@ -4,13 +4,15 @@ import {
 } from '@/shared/data/constants';
 import { Injectable } from '@nestjs/common';
 import { ethers } from 'ethers';
-import { err, fromThrowable, ok } from 'neverthrow';
+import { err, fromThrowable, ok, Result } from 'neverthrow';
 import { ExternalAccountErrorMessage } from '../data/external-account.data';
 import {
+  CreateSignerError,
   ProviderError,
   WalletCreationError,
 } from '../errors/external-account.errors';
 import {
+  TCreateSignerResult,
   TProviderResult,
   TWalletResult,
 } from '../interface/external-account.interface';
@@ -39,6 +41,18 @@ export class ExternalAccountProvider {
     );
 
     return createProvider(this.rpcUrl);
+  }
+
+  createSigner(): TCreateSignerResult {
+    return this.handleCreateWallet().andThen((wallet) =>
+      this.handleGetProvider().andThen((provider) =>
+        Result.fromThrowable(
+          () => new ethers.Wallet(wallet.privateKey, provider),
+          (error: Error) =>
+            new CreateSignerError(`Failed to create signer: ${error}`),
+        )(),
+      ),
+    );
   }
 
   handleCreateWallet(): TWalletResult {
