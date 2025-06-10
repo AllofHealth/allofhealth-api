@@ -32,4 +32,21 @@ export class ExternalAccountService {
       );
     }
   }
+
+  createNewSigner() {
+    const result = this.externalAccountProvider.createSigner();
+    if (result.isErr()) {
+      return this.errorHandler.handleError(
+        result.error,
+        ExternalAccountErrorMessage.ERROR_CREATING_SIGNER,
+      );
+    }
+
+    if (result.isOk()) {
+      return this.errorHandler.handleResult(
+        result,
+        ExternalAccountSuccessMessage.SIGNER_CREATED,
+      );
+    }
+  }
 }
