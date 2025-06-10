@@ -8,3 +8,18 @@ export const LISK_MAINNET_CHAINID = 1135;
 // Lisk testnet
 export const LISK_TESTNET_RPC_URL = 'https://rpc.sepolia-api.lisk.com';
 export const LISK_TESTNET_CHAINID = 4202;
+
+//Bundler
+export const LISK_TESTNET_BUNDLER_ID = process.env.LISK_TESTNET_BUNDLER_ID;
+export const LISK_TESTNET_BUNDLER_URL = process.env.LISK_TESTNET_BUNDLER_URL;
+export const LISK_TESTNET_BUNDLER_API_KEY =
+  process.env.LISK_TESTNET_BUNDLER_API_KEY;
+export const LISK_TESTNET_PAYMASTER_API_KEY =
+  process.env.LISK_TESTNET_PAYMASTER_API_KEY;
+
+export const LISK_MAINNET_BUNDLER_ID = process.env.LISK_MAINNET_BUNDLER_ID;
+export const LISK_MAINNET_BUNDLER_URL = process.env.LISK_MAINNET_BUNDLER_URL;
+export const LISK_MAINNET_BUNDLER_API_KEY =
+  process.env.LISK_MAINNET_BUNDLER_API_KEY;
+export const LISK_MAINNET_PAYMASTER_API_KEY =
+  process.env.LISK_MAINNET_PAYMASTER_API_KEY;
