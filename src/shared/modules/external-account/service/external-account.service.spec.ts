@@ -21,8 +21,22 @@ describe('ExternalAccountService', () => {
     it('should create a wallet', () => {
       const result = service.createExternalWallet();
 
-      console.log(result);
       expect(result).toBeDefined();
+      expect(result.isOk()).toBe(true);
+
+      if (result.isOk()) {
+        console.log(result.value);
+      }
+    });
+
+    it('should create signer', () => {
+      const result = service.createNewSigner();
+      expect(result).toBeDefined();
+      expect(result.isOk()).toBe(true);
+
+      if (result.isOk()) {
+        console.log(result.value);
+      }
     });
   });
 });
