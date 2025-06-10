@@ -28,4 +28,12 @@ export class BiconomyConfig {
   @IsNotEmpty()
   @Value('LISK_MAINNET_BUNDLER_ID')
   LISK_MAINNET_BUNDLER_ID: string;
+
+  @IsNotEmpty()
+  @Value('LISK_MAINNET_PAYMASTER_API_KEY')
+  LISK_MAINNET_PAYMASTER_API_KEY: string;
+
+  @IsNotEmpty()
+  @Value('LISK_TESTNET_PAYMASTER_API_KEY')
+  LISK_TESTNET_PAYMASTER_API_KEY: string;
 }
