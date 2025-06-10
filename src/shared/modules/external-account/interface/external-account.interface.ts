@@ -12,6 +12,11 @@ type WalletData = {
   walletAddress: string;
 };
 
+type SignerResult = {
+  signer: ethers.Signer;
+  walletData: WalletData;
+};
+
 export type TWalletResult = Result<WalletData, WalletCreationError>;
 export type TProviderResult = Result<ethers.JsonRpcProvider, ProviderError>;
-export type TCreateSignerResult = Result<ethers.Signer, CreateSignerError>;
+export type TCreateSignerResult = Result<SignerResult, CreateSignerError>;
