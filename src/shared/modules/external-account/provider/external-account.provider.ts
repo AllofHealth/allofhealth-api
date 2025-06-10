@@ -6,10 +6,16 @@ import { ethers } from 'ethers';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { IHandleReturn } from '@/shared/interface/shared.interface';
+import { ExternalAccountErrorMessage } from '../data/external-account.data';
+import { Result, ok, err, fromThrowable } from 'neverthrow';
 import {
-  ExternalAccountErrorMessage,
-  ExternalAccountSuccessMessage,
-} from '../data/external-account.data';
+  TProviderResult,
+  TWalletResult,
+} from '../interface/external-account.interface';
+import {
+  ProviderError,
+  WalletCreationError,
+} from '../errors/external-account.errors';
 
 @Injectable()
 export class ExternalAccountProvider {
@@ -20,6 +26,21 @@ export class ExternalAccountProvider {
       process.env.NODE_ENV === 'production'
         ? LISK_MAINNET_RPC_URL
         : LISK_TESTNET_RPC_URL;
+  }
+
+  handleResult<T, E extends Error>(
+    result: Result<T, E>,
+    successMessage: string,
+  ) {
+    return result.match(
+      (data) =>
+        this.handleReturn({
+          status: HttpStatus.OK,
+          message: successMessage,
+          data,
+        }),
+      (error) => this.handleError(error, error.message),
+    );
   }
 
   handleError(error: any, context: string) {
@@ -42,7 +63,9 @@ export class ExternalAccountProvider {
     };
   }
 
-  handleReturn<T, D = undefined, M = undefined>(args: IHandleReturn<T, D, M>) {
+  private handleReturn<T, D = undefined, M = undefined>(
+    args: IHandleReturn<T, D, M>,
+  ) {
     return {
       status: args.status,
       message: args.message,
@@ -51,24 +74,43 @@ export class ExternalAccountProvider {
     };
   }
 
-  getProvider() {
-    return new ethers.JsonRpcProvider(this.rpcUrl);
-  }
-
-  createWallet() {
-    const wallet = ethers.Wallet.createRandom();
-    if (!wallet) {
-      throw new Error(ExternalAccountErrorMessage.FAILED_TO_CREATE_WALLET);
+  handleGetProvider(): TProviderResult {
+    if (!this.rpcUrl) {
+      return err(
+        new ProviderError(ExternalAccountErrorMessage.INVALID_RPC_URL),
+      );
     }
 
-    return this.handleReturn({
-      status: HttpStatus.OK,
-      message: ExternalAccountSuccessMessage.WALLET_CREATED,
-      data: {
+    const createProvider = fromThrowable(
+      (url: string) => new ethers.JsonRpcProvider(url),
+      (error: Error) =>
+        new ProviderError(`Failed to create provider: ${error}`),
+    );
+
+    return createProvider(this.rpcUrl);
+  }
+
+  handleCreateWallet(): TWalletResult {
+    const createRandonWallet = fromThrowable(
+      () => ethers.Wallet.createRandom(),
+      (error: Error) =>
+        new WalletCreationError(`Failed to create wallet: ${error}`),
+    );
+
+    return createRandonWallet().andThen((wallet) => {
+      if (!wallet) {
+        return err(
+          new WalletCreationError(
+            ExternalAccountErrorMessage.FAILED_TO_CREATE_WALLET,
+          ),
+        );
+      }
+
+      return ok({
         publicKey: wallet.publicKey,
         privateKey: wallet.privateKey,
         walletAddress: wallet.address,
-      },
+      });
     });
   }
 }
