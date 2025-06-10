@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExternalAccountProvider } from './external-account.provider';
 import { ExternalAccountSuccessMessage } from '../data/external-account.data';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
 
 describe('ExternalAccountProvider', () => {
   let provider: ExternalAccountProvider;
@@ -19,11 +20,12 @@ describe('ExternalAccountProvider', () => {
 
   describe('Wallet creation', () => {
     it('should create an ethereum wallet', () => {
+      const errorHandler = new ErrorHandler();
       const result = provider.handleCreateWallet();
 
       expect(result.isOk()).toBe(true);
 
-      const wallet = provider.handleResult(
+      const wallet = errorHandler.handleResult(
         result,
         ExternalAccountSuccessMessage.WALLET_CREATED,
       );
