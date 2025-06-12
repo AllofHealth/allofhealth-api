@@ -1,17 +1,17 @@
+import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import { Inject, Injectable } from '@nestjs/common';
-import { err, ok, Result, ResultAsync } from 'neverthrow';
-import * as schema from '@/schemas/schema';
 import { eq } from 'drizzle-orm';
-import { UserError } from '../error/user.error';
+import { err, ok, ResultAsync } from 'neverthrow';
 import { USER_ERROR_MESSAGES } from '../data/user.data';
+import { UserError } from '../error/user.error';
 
 @Injectable()
 export class UserProvider {
   constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {}
 
-  private async validateEmailAddress(emailAddress: string) {
+  async validateEmailAddress(emailAddress: string) {
     const result = await ResultAsync.fromThrowable(
       () => this.findUserByEmail(emailAddress),
       (error: Error) =>
