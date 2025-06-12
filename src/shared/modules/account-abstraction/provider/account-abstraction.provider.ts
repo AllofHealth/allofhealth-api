@@ -4,6 +4,10 @@ import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
 import { err, ResultAsync } from 'neverthrow';
 import { createSmartAccountClient } from '@biconomy/account';
 import { CreateSmartAccountError } from '../error/account-abstraction.error';
+import {
+  LISK_MAINNET_CHAINID,
+  LISK_TESTNET_CHAINID,
+} from '@/shared/data/constants';
 
 @Injectable()
 export class AccountAbstractionProvider {
@@ -17,6 +21,14 @@ export class AccountAbstractionProvider {
       return this.biconomyConfig.LISK_MAINNET_BUNDLER_URL;
     } else {
       return this.biconomyConfig.LISK_TESTNET_BUNDLER_URL;
+    }
+  }
+
+  private provideChainId() {
+    if (process.env.NODE_ENV === 'production') {
+      return LISK_MAINNET_CHAINID;
+    } else {
+      return LISK_TESTNET_CHAINID;
     }
   }
 
@@ -41,7 +53,8 @@ export class AccountAbstractionProvider {
     const accountConfig = {
       signer: signerResult.value.signer,
       bundlerUrl: this.provideBundleUrl(),
-      paymasterUrl: this.providerPayMaster(),
+      chainId: this.provideChainId(),
+      biconomyPaymasterApiKey: this.providerPayMaster(),
     };
 
     return await ResultAsync.fromPromise(
@@ -53,7 +66,7 @@ export class AccountAbstractionProvider {
     )
       .andThen((client) =>
         ResultAsync.fromPromise(
-          client.getAddress(),
+          client.getAccountAddress(),
           (error: Error) =>
             new CreateSmartAccountError(
               `Error fetching smart account address ${error}`,
