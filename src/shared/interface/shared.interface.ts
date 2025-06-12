@@ -6,3 +6,5 @@ export interface IHandleReturn<T, D = undefined, M = undefined> {
   data?: D;
   meta?: M;
 }
+
+export type TRole = 'PATIENT' | 'DOCTOR' | 'ADMIN' | 'INSTITUTE' | 'PHARMACIST';
