@@ -5,6 +5,8 @@ import {
   AccountAbstractionSuccessMessage,
 } from '../data/account-abstraction.data';
 import { AccountAbstractionProvider } from '../provider/account-abstraction.provider';
+import { OnEvent } from '@nestjs/event-emitter';
+import { SharedEvents } from '@/shared/events/shared.events';
 
 @Injectable()
 export class AccountAbstractionService {
@@ -13,6 +15,7 @@ export class AccountAbstractionService {
     this.errorHandler = new ErrorHandler();
   }
 
+  @OnEvent(SharedEvents.CREATE_SMART_ACCOUNT, { async: true })
   async createSmartAccount() {
     const result = await this.provider.createSmartAccount();
     if (result.isErr()) {
