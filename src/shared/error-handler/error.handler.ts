@@ -1,13 +1,13 @@
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { HttpStatus } from '@nestjs/common';
-import { Result } from 'neverthrow';
+import { Result, ResultAsync } from 'neverthrow';
 import { IHandleReturn } from '../interface/shared.interface';
 
 export class ErrorHandler {
   private readonly logger = new MyLoggerService(ErrorHandler.name);
 
   handleResult<T, E extends Error>(
-    result: Result<T, E>,
+    result: Result<T, E> | ResultAsync<T, E>,
     successMessage: string,
   ) {
     return result.match(
