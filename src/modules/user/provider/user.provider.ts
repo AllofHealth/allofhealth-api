@@ -11,24 +11,19 @@ import { UserError } from '../error/user.error';
 export class UserProvider {
   constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {}
 
-  async validateEmailAddress(emailAddress: string) {
-    const result = await ResultAsync.fromThrowable(
-      () => this.findUserByEmail(emailAddress),
-      (error: Error) =>
-        new UserError(`Failed to validate email ${error.message}`),
-    )().andThen((user) => {
-      if (!user) {
-        return ok(false);
-      }
-
-      return ok(true);
-    });
-
-    return result;
+  validateEmailAddress(emailAddress: string) {
+    this.findUserByEmail(emailAddress)
+      .map(() => true)
+      .orElse((error) => {
+        if (error.message.includes(USER_ERROR_MESSAGES.USER_NOT_FOUND)) {
+          return ok(false);
+        }
+        return err(error);
+      });
   }
 
-  async findUserByEmail(emailAddress: string) {
-    const result = await ResultAsync.fromPromise(
+  findUserByEmail(emailAddress: string) {
+    const result = ResultAsync.fromPromise(
       this.db
         .select()
         .from(schema.user)
@@ -46,8 +41,8 @@ export class UserProvider {
     return result;
   }
 
-  async findUserById(id: string) {
-    const result = await ResultAsync.fromPromise(
+  findUserById(id: string) {
+    return ResultAsync.fromPromise(
       this.db.select().from(schema.user).where(eq(schema.user.id, id)),
       (error: Error) =>
         new UserError(`Failed to find user by id ${error.message}`),
@@ -58,7 +53,5 @@ export class UserProvider {
 
       return ok(user[0]);
     });
-
-    return result;
   }
 }
