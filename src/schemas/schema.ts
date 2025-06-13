@@ -1,6 +1,5 @@
 import { PLACEHOLDER } from '@/shared/data/constants';
 import {
-  pgEnum,
   pgTable,
   uuid,
   varchar,
@@ -9,16 +8,6 @@ import {
   jsonb,
   integer,
 } from 'drizzle-orm/pg-core';
-
-const ROLE_ENUM = pgEnum('role', [
-  'DOCTOR',
-  'PATIENT',
-  'PHARMACIST',
-  'INSTITUTE',
-  'ADMIN',
-]);
-
-const STATUS_ENUM = pgEnum('status', ['PENDING', 'VERIFIED']);
 
 export const user = pgTable('users', {
   id: uuid('id').notNull().primaryKey().unique().defaultRandom(),
@@ -29,8 +18,8 @@ export const user = pgTable('users', {
   phoneNumber: varchar('phone_number', { length: 20 }).notNull(),
   profilePicture: text('profile_picture').default(PLACEHOLDER),
   password: varchar('password', { length: 255 }).notNull(),
-  role: ROLE_ENUM('role').notNull().default('PATIENT'),
-  status: STATUS_ENUM('status').notNull().default('PENDING'),
+  role: text('role').notNull().default('PATIENT'),
+  status: text('status').notNull().default('PENDING'),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
 });
@@ -40,7 +29,7 @@ export const identity = pgTable('identities', {
   userId: uuid('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
-  role: ROLE_ENUM('role').notNull(),
+  role: text('role').notNull().default('PATIENT'),
   governmentId: text('government_id').notNull(),
   scannedLicense: text('scanned_license'),
 });
