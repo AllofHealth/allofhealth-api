@@ -4,3 +4,7 @@ export enum USER_ERROR_MESSAGES {
   USER_NOT_FOUND = 'User not found',
   USER_EXISTS = 'User already exists',
 }
+
+export enum USER_SUCCESS_MESSAGE {
+  USER_CREATED = 'User created successfully',
+}
