@@ -1,17 +1,17 @@
+import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
+import { CreateDoctor, DeleteUser } from '@/shared/dtos/event.dto';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { AuthUtils } from '@/shared/utils/auth.utils';
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
 import { err, ok, ResultAsync } from 'neverthrow';
 import { USER_ERROR_MESSAGES } from '../data/user.data';
 import { UserError } from '../error/user.error';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { CreateUserType, ICreateUser } from '../interface/user.interface';
-import { AuthUtils } from '@/shared/utils/auth.utils';
-import { SharedEvents } from '@/shared/events/shared.events';
-import { CreateDoctor, DeleteUser } from '@/shared/dtos/event.dto';
-import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
 
 @Injectable()
 export class UserProvider {
@@ -20,6 +20,35 @@ export class UserProvider {
     private readonly authUtils: AuthUtils,
     private readonly eventEmitter: EventEmitter2,
   ) {}
+
+  private async emitEvent(ctx: ICreateDoctor) {
+    try {
+      await this.eventEmitter.emitAsync(
+        SharedEvents.CREATE_DOCTOR,
+        new CreateDoctor(
+          ctx.userId,
+          ctx.specialization,
+          ctx.medicalLicenseNumber,
+          ctx.scannedLicenseUrl,
+          ctx.yearsOfExperience,
+          ctx.certifications,
+          ctx.hospitalAssociation,
+          ctx.locationOfHospital,
+          ctx.languagesSpoken,
+          ctx.licenseExpirationDate,
+        ),
+      );
+
+      return ok(true);
+    } catch (error) {
+      //handle rollback
+      this.eventEmitter.emit(
+        SharedEvents.DELETE_USER,
+        new DeleteUser(ctx.userId),
+      );
+      return err(new Error(`Failed to emit event ${error}`));
+    }
+  }
 
   validateEmailAddress(emailAddress: string) {
     return this.findUserByEmail(emailAddress)
@@ -74,35 +103,6 @@ export class UserProvider {
     ).andThen(() => {
       return ok(true);
     });
-  }
-
-  private async emitEvent(ctx: ICreateDoctor) {
-    try {
-      await this.eventEmitter.emitAsync(
-        SharedEvents.CREATE_DOCTOR,
-        new CreateDoctor(
-          ctx.userId,
-          ctx.specialization,
-          ctx.medicalLicenseNumber,
-          ctx.scannedLicenseUrl,
-          ctx.yearsOfExperience,
-          ctx.certifications,
-          ctx.hospitalAssociation,
-          ctx.locationOfHospital,
-          ctx.languagesSpoken,
-          ctx.licenseExpirationDate,
-        ),
-      );
-
-      return ok(true);
-    } catch (error) {
-      //handle rollback
-      this.eventEmitter.emit(
-        SharedEvents.DELETE_USER,
-        new DeleteUser(ctx.userId),
-      );
-      return err(new Error(`Failed to emit event ${error}`));
-    }
   }
 
   async createUser(ctx: ICreateUser): CreateUserType {
