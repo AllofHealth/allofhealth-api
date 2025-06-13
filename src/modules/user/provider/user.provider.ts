@@ -7,7 +7,7 @@ import { err, ok, ResultAsync } from 'neverthrow';
 import { USER_ERROR_MESSAGES } from '../data/user.data';
 import { UserError } from '../error/user.error';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { ICreateUser } from '../interface/user.interface';
+import { CreateUserType, ICreateUser } from '../interface/user.interface';
 import { AuthUtils } from '@/shared/utils/auth.utils';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { CreateDoctor, DeleteUser } from '@/shared/dtos/event.dto';
@@ -105,7 +105,7 @@ export class UserProvider {
     }
   }
 
-  async createUser(ctx: ICreateUser) {
+  async createUser(ctx: ICreateUser): CreateUserType {
     const hashedPassword = await this.authUtils.hash(ctx.password);
     return this.validateEmailAddress(ctx.emailAddress).andThen((userExists) => {
       if (userExists) {
@@ -140,7 +140,14 @@ export class UserProvider {
 
         switch (ctx.role) {
           case 'PATIENT':
-            return ok(user);
+            return ok(user).map((user) => ({
+              userId: user.id,
+              fullName: user.fullName,
+              profilePicture: user.profilePicture as string,
+              email: user.emailAddress,
+              role: user.role,
+              gender: user.gender,
+            }));
           case 'DOCTOR':
             return ResultAsync.fromPromise(
               this.emitEvent({
@@ -161,7 +168,14 @@ export class UserProvider {
                 ),
             ).andThen((result) => {
               if (result.isOk()) {
-                return ok(insertedUser[0]);
+                return ok(insertedUser[0]).map((user) => ({
+                  userId: user.id,
+                  fullName: user.fullName,
+                  profilePicture: user.profilePicture as string,
+                  email: user.emailAddress,
+                  role: user.role,
+                  gender: user.gender,
+                }));
               } else {
                 return err(new UserError(result.error.message));
               }
