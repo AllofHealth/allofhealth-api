@@ -1,11 +1,11 @@
+import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import { Inject, Injectable } from '@nestjs/common';
-import { err, ok, ResultAsync } from 'neverthrow';
-import * as schema from '@/schemas/schema';
 import { and, eq } from 'drizzle-orm';
-import { DoctorError } from '../errors/doctor.errors';
+import { err, ok, ResultAsync } from 'neverthrow';
 import { DOCTOR_ERROR_MESSGAES } from '../data/doctor.data';
+import { DoctorError } from '../errors/doctor.errors';
 import { ICreateDoctor } from '../interface/doctor.interface';
 
 @Injectable()
