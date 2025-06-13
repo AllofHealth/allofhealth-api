@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ExternalAccountProvider } from '../../external-account/provider/external-account.provider';
 import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
 import { err, ResultAsync } from 'neverthrow';
@@ -8,12 +8,16 @@ import {
   LISK_MAINNET_CHAINID,
   LISK_TESTNET_CHAINID,
 } from '@/shared/data/constants';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import { Database } from '@/shared/drizzle/drizzle.types';
+import * as schema from '@/schemas/schema';
 
 @Injectable()
 export class AccountAbstractionProvider {
   constructor(
     private readonly eoaProvider: ExternalAccountProvider,
     private readonly biconomyConfig: BiconomyConfig,
+    @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
   ) {}
 
   private provideBundleUrl() {
@@ -40,7 +44,7 @@ export class AccountAbstractionProvider {
     }
   }
 
-  async createSmartAccount() {
+  async createSmartAccount(userId: string) {
     const signerResult = this.eoaProvider.createSigner();
     if (signerResult.isErr()) {
       return err(
@@ -63,19 +67,35 @@ export class AccountAbstractionProvider {
         new CreateSmartAccountError(
           `Smart account creation failed ${error.message}`,
         ),
-    )
-      .andThen((client) =>
-        ResultAsync.fromPromise(
-          client.getAccountAddress(),
-          (error: Error) =>
-            new CreateSmartAccountError(
-              `Error fetching smart account address ${error}`,
-            ),
-        ),
-      )
-      .map((address) => ({
-        smartAddress: address,
-        walletData: signerResult.value.walletData,
-      }));
+    ).andThen((client) =>
+      ResultAsync.fromPromise(
+        client.getAccountAddress(),
+        (error: Error) =>
+          new CreateSmartAccountError(
+            `Error fetching smart account address ${error}`,
+          ),
+      ).andThen((address) => {
+        return ResultAsync.fromPromise(
+          this.db
+            .insert(schema.accounts)
+            .values({
+              externalAddress: signerResult.value.walletData.publicKey,
+              privateKey: signerResult.value.walletData.privateKey,
+              smartWalletAddress: address,
+              userId: userId,
+            })
+            .returning(),
+          (error: Error) => {
+            return new CreateSmartAccountError(
+              `Error inserting account data ${error.message}`,
+            );
+          },
+        ).map((account) => ({
+          userId: account[0].userId,
+          smartAddress: address,
+          walletData: signerResult.value.walletData,
+        }));
+      }),
+    );
   }
 }
