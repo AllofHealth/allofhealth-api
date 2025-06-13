@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { DoctorProvider } from '../provider/doctor.provider';
+import { CreateDoctor } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { ICreateDoctor } from '../interface/doctor.interface';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { DOCTOR_SUCCESS_MESSAGES } from '../data/doctor.data';
+import { DoctorProvider } from '../provider/doctor.provider';
 
 @Injectable()
 export class DoctorService {
@@ -11,7 +13,8 @@ export class DoctorService {
     this.errorHandler = new ErrorHandler();
   }
 
-  async createDoctor(ctx: ICreateDoctor) {
+  @OnEvent(SharedEvents.CREATE_DOCTOR, { async: true })
+  async createDoctor(ctx: CreateDoctor) {
     const result = this.doctorProvider.createDoctor(ctx);
     return await this.errorHandler.handleResult(
       result,
