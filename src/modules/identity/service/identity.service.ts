@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { IdentityProvider } from '../provider/identity.provider';
+import { StoreId } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { IStoreIdentification } from '../interface/identity.interface';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { IDENTITY_SUCCESS_MESSAGES } from '../data/identity.data';
+import { IdentityProvider } from '../provider/identity.provider';
 
 @Injectable()
 export class IdentityService {
@@ -11,7 +13,8 @@ export class IdentityService {
     this.handler = new ErrorHandler();
   }
 
-  storeIdentity(ctx: IStoreIdentification) {
+  @OnEvent(SharedEvents.STORE_IDENTIFICATION)
+  storeIdentity(ctx: StoreId) {
     const result = this.identityProvider.storeId(ctx);
     return this.handler.handleResult(
       result,
