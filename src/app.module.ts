@@ -11,6 +11,7 @@ import { DoctorModule } from './modules/doctor/doctor.module';
 import { UserModule } from './modules/user/user.module';
 import { MyLoggerModule } from './modules/my-logger/my-logger.module';
 import { BullModule } from '@nestjs/bull';
+import { DrizzleModule } from './shared/drizzle/drizzle.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { BullModule } from '@nestjs/bull';
     DoctorModule,
     UserModule,
     MyLoggerModule,
+    DrizzleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
