@@ -10,7 +10,7 @@ export const drizzleProvider: Provider[] = [
     provide: DRIZZLE_PROVIDER,
     inject: [ConfigService],
     useFactory: (configService: ConfigService) => {
-      const uri = configService.get<string>('database.uri');
+      const uri = configService.get<string>('database.url');
       if (!uri) {
         throw new Error('Database URI is not defined, check config');
       }
