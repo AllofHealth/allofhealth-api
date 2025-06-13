@@ -6,6 +6,11 @@ import config from '@/shared/config/config';
 import { ConfigifyModule } from '@itgorillaz/configify';
 import { JwtModule } from '@nestjs/jwt';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { IdentityModule } from './modules/identity/identity.module';
+import { DoctorModule } from './modules/doctor/doctor.module';
+import { UserModule } from './modules/user/user.module';
+import { MyLoggerModule } from './modules/my-logger/my-logger.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -26,7 +31,23 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       global: true,
       inject: [ConfigService],
     }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        redis: {
+          host: configService.get('redis.host'),
+          port: configService.get('redis.port'),
+          username: configService.get('redis.username'),
+          password: configService.get('redis.password'),
+        },
+      }),
+    }),
     EventEmitterModule.forRoot(),
+    IdentityModule,
+    DoctorModule,
+    UserModule,
+    MyLoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
