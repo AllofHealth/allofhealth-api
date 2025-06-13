@@ -1,3 +1,4 @@
+import { PLACEHOLDER } from '@/shared/data/constants';
 import {
   pgEnum,
   pgTable,
@@ -26,7 +27,7 @@ export const user = pgTable('users', {
   dateOfBirth: date('date_of_birth').notNull(),
   gender: varchar('gender', { length: 10 }).notNull(),
   phoneNumber: varchar('phone_number', { length: 20 }).notNull(),
-  profilePicture: text('profile_picture'),
+  profilePicture: text('profile_picture').default(PLACEHOLDER),
   password: varchar('password', { length: 255 }).notNull(),
   role: ROLE_ENUM('role').notNull().default('PATIENT'),
   status: STATUS_ENUM('status').notNull().default('PENDING'),
