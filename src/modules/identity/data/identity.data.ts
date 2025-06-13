@@ -1,4 +1,4 @@
-export enum IDENTTIY_ERROR_MESSAGES {
+export enum IDENTITY_ERROR_MESSAGES {
   ERROR_STORING_IDENTIFICATION = 'Error storing identification',
 }
 
