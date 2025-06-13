@@ -5,6 +5,8 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { AccountAbstractionSuccessMessage } from '../data/account-abstraction.data';
 import { AccountAbstractionProvider } from '../provider/account-abstraction.provider';
+import { ResultAsync } from 'neverthrow';
+import { CreateSmartAccountError } from '../error/account-abstraction.error';
 
 @Injectable()
 export class AccountAbstractionService {
@@ -15,7 +17,10 @@ export class AccountAbstractionService {
 
   @OnEvent(SharedEvents.CREATE_SMART_ACCOUNT, { async: true })
   async createSmartAccount(ctx: CreateSmartAccount) {
-    const result = await this.provider.createSmartAccount(ctx.userId);
+    const result = ResultAsync.fromPromise(
+      this.provider.createSmartAccount(ctx.userId),
+      (error: Error) => new CreateSmartAccountError(error.message),
+    );
 
     return this.errorHandler.handleResult(
       result,
