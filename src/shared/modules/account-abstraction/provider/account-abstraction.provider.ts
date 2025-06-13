@@ -11,12 +11,14 @@ import {
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import * as schema from '@/schemas/schema';
+import { AuthUtils } from '@/shared/utils/auth.utils';
 
 @Injectable()
 export class AccountAbstractionProvider {
   constructor(
     private readonly eoaProvider: ExternalAccountProvider,
     private readonly biconomyConfig: BiconomyConfig,
+    private readonly authUtils: AuthUtils,
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
   ) {}
 
@@ -54,6 +56,10 @@ export class AccountAbstractionProvider {
       );
     }
 
+    const hashedPrivateKey = await this.authUtils.hash(
+      signerResult.value.walletData.privateKey,
+    );
+
     const accountConfig = {
       signer: signerResult.value.signer,
       bundlerUrl: this.provideBundleUrl(),
@@ -61,7 +67,7 @@ export class AccountAbstractionProvider {
       biconomyPaymasterApiKey: this.providerPayMaster(),
     };
 
-    return await ResultAsync.fromPromise(
+    ResultAsync.fromPromise(
       createSmartAccountClient(accountConfig),
       (error: Error) =>
         new CreateSmartAccountError(
@@ -80,7 +86,7 @@ export class AccountAbstractionProvider {
             .insert(schema.accounts)
             .values({
               externalAddress: signerResult.value.walletData.publicKey,
-              privateKey: signerResult.value.walletData.privateKey,
+              privateKey: hashedPrivateKey,
               smartWalletAddress: address,
               userId: userId,
             })
