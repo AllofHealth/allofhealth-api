@@ -27,3 +27,7 @@ export class StoreId {
     readonly scannedLicenseUrl?: string,
   ) {}
 }
+
+export class CreateSmartAccount {
+  constructor(readonly userId: string) {}
+}
