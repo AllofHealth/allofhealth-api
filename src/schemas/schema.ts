@@ -20,7 +20,7 @@ const ROLE_ENUM = pgEnum('role', [
 const STATUS_ENUM = pgEnum('status', ['PENDING', 'VERIFIED']);
 
 export const user = pgTable('users', {
-  id: uuid('id').notNull().primaryKey().unique(),
+  id: uuid('id').notNull().primaryKey().unique().defaultRandom(),
   fullName: varchar('full_name', { length: 255 }).notNull(),
   emailAddress: varchar('email_address', { length: 255 }).notNull().unique(),
   dateOfBirth: date('date_of_birth').notNull(),
@@ -35,7 +35,7 @@ export const user = pgTable('users', {
 });
 
 export const identity = pgTable('identities', {
-  id: uuid('id').notNull().primaryKey().unique(),
+  id: uuid('id').notNull().primaryKey().unique().defaultRandom(),
   userId: uuid('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
@@ -45,7 +45,7 @@ export const identity = pgTable('identities', {
 });
 
 export const doctors = pgTable('doctors', {
-  id: uuid('id').notNull().primaryKey().unique(),
+  id: uuid('id').notNull().primaryKey().unique().defaultRandom(),
   userId: uuid('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
@@ -66,7 +66,7 @@ export const doctors = pgTable('doctors', {
 });
 
 export const accounts = pgTable('accounts', {
-  id: uuid('id').notNull().primaryKey().unique(),
+  id: uuid('id').notNull().primaryKey().unique().defaultRandom(),
   userId: uuid('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
