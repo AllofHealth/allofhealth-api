@@ -2,13 +2,13 @@ import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { CreateDoctor, DeleteUser } from '@/shared/dtos/event.dto';
+import { CreateDoctor, DeleteUser, StoreId } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { AuthUtils } from '@/shared/utils/auth.utils';
 import { Inject, Injectable } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
-import { err, ok, ResultAsync } from 'neverthrow';
+import { err, ok, Result, ResultAsync } from 'neverthrow';
 import { USER_ERROR_MESSAGES } from '../data/user.data';
 import { UserError } from '../error/user.error';
 import { CreateUserType, ICreateUser } from '../interface/user.interface';
@@ -47,6 +47,30 @@ export class UserProvider {
         new DeleteUser(ctx.userId),
       );
       return err(new Error(`Failed to emit event ${error}`));
+    }
+  }
+
+  private emitStoreIdentity(ctx: StoreId) {
+    try {
+      this.eventEmitter.emit(
+        SharedEvents.STORE_IDENTIFICATION,
+        new StoreId(
+          ctx.userId,
+          ctx.governmentId,
+          ctx.role,
+          ctx.scannedLicenseUrl,
+        ),
+      );
+      return ok(true);
+    } catch (error) {
+      ResultAsync.fromPromise(
+        this.db
+          .delete(schema.identity)
+          .where(eq(schema.identity.userId, ctx.userId)),
+        (error: Error) =>
+          new UserError(`Error deleting identity: ${error.message}`),
+      );
+      return err(new UserError(`Failed to emit event to store id ${error}`));
     }
   }
 
@@ -140,14 +164,29 @@ export class UserProvider {
 
         switch (ctx.role) {
           case 'PATIENT':
-            return ok(user).map((user) => ({
-              userId: user.id,
-              fullName: user.fullName,
-              profilePicture: user.profilePicture as string,
-              email: user.emailAddress,
-              role: user.role,
-              gender: user.gender,
-            }));
+            return Result.fromThrowable(
+              () =>
+                this.emitStoreIdentity({
+                  userId: user.id,
+                  role: 'PATIENT',
+                  governmentId: ctx.governmentIdUrl,
+                }),
+              (error: Error) => new UserError(error.message),
+            )().andThen((result) => {
+              if (result.isOk()) {
+                return ok({
+                  userId: user.id,
+                  fullName: user.fullName,
+                  profilePicture: user.profilePicture as string,
+                  email: user.emailAddress,
+                  role: user.role,
+                  gender: user.gender,
+                });
+              } else {
+                return err(new UserError(result.error.message));
+              }
+            });
+
           case 'DOCTOR':
             return ResultAsync.fromPromise(
               this.emitEvent({
@@ -168,6 +207,16 @@ export class UserProvider {
                 ),
             ).andThen((result) => {
               if (result.isOk()) {
+                Result.fromThrowable(
+                  () =>
+                    this.emitStoreIdentity({
+                      userId: user.id,
+                      role: 'DOCTOR',
+                      governmentId: ctx.governmentIdUrl,
+                      scannedLicenseUrl: ctx.scannedLicenseUrl!,
+                    }),
+                  (error: Error) => new UserError(error.message),
+                );
                 return ok(insertedUser[0]).map((user) => ({
                   userId: user.id,
                   fullName: user.fullName,
