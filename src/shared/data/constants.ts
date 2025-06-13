@@ -1,3 +1,9 @@
+import { config } from 'dotenv';
+config();
+
+//Auth
+export const SALT_ROUNDS = 12;
+
 export const EXPIRES_IN = '7d';
 export const PORT = 3000;
 
@@ -23,3 +29,7 @@ export const LISK_MAINNET_BUNDLER_API_KEY =
   process.env.LISK_MAINNET_BUNDLER_API_KEY;
 export const LISK_MAINNET_PAYMASTER_API_KEY =
   process.env.LISK_MAINNET_PAYMASTER_API_KEY;
+
+// Profile
+export const PLACEHOLDER =
+  'https://www.kravemarketingllc.com/wp-content/uploads/2018/09/placeholder-user-500x500.png';
