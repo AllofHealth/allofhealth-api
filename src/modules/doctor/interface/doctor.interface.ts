@@ -1,4 +1,5 @@
 export interface ICreateDoctor {
+  userId: string;
   specialization: string;
   medicalLicenseNumber: string;
   scannedLicenseUrl: string;
@@ -7,4 +8,5 @@ export interface ICreateDoctor {
   hospitalAssociation: string;
   locationOfHospital: string;
   languagesSpoken: string[];
+  licenseExpirationDate: Date;
 }
