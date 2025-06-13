@@ -12,3 +12,7 @@ export class CreateDoctor {
     readonly licenseExpirationDate: Date,
   ) {}
 }
+
+export class DeleteUser {
+  constructor(readonly userId: string) {}
+}
