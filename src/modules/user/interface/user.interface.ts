@@ -9,6 +9,7 @@ export interface ICreateDoctor {
   hospitalAssociation: string;
   locationOfHospital: string;
   languagesSpoken: string[];
+  licenseExpirationDate: Date;
 }
 
 export interface ICreateUser {
@@ -17,6 +18,7 @@ export interface ICreateUser {
   dateOfBirth: Date;
   gender: string;
   phoneNumber: string;
+  password: string;
   governmentIdUrl: string;
   specialization?: string;
   medicalLicenseNumber?: string;
@@ -26,5 +28,6 @@ export interface ICreateUser {
   hospitalAssociation?: string;
   locationOfHospital?: string;
   languagesSpoken?: string[];
+  licenseExpirationDate?: Date;
   role: TRole;
 }
