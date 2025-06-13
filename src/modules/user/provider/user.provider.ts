@@ -2,7 +2,12 @@ import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { CreateDoctor, DeleteUser, StoreId } from '@/shared/dtos/event.dto';
+import {
+  CreateDoctor,
+  CreateSmartAccount,
+  DeleteUser,
+  StoreId,
+} from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { AuthUtils } from '@/shared/utils/auth.utils';
 import { Inject, Injectable } from '@nestjs/common';
@@ -12,6 +17,7 @@ import { err, ok, Result, ResultAsync } from 'neverthrow';
 import { USER_ERROR_MESSAGES } from '../data/user.data';
 import { UserError } from '../error/user.error';
 import { CreateUserType, ICreateUser } from '../interface/user.interface';
+import { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
 
 @Injectable()
 export class UserProvider {
@@ -19,6 +25,7 @@ export class UserProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
     private readonly eventEmitter: EventEmitter2,
+    private readonly createSmartAccountQueue: CreateSmartAccountQueue,
   ) {}
 
   private async emitEvent(ctx: ICreateDoctor) {
@@ -174,6 +181,12 @@ export class UserProvider {
               (error: Error) => new UserError(error.message),
             )().andThen((result) => {
               if (result.isOk()) {
+                ResultAsync.fromPromise(
+                  this.createSmartAccountQueue.createSmartAccountJob(
+                    new CreateSmartAccount(user.id),
+                  ),
+                  (error: Error) => new UserError(error.message),
+                );
                 return ok({
                   userId: user.id,
                   fullName: user.fullName,
@@ -215,6 +228,12 @@ export class UserProvider {
                       governmentId: ctx.governmentIdUrl,
                       scannedLicenseUrl: ctx.scannedLicenseUrl!,
                     }),
+                  (error: Error) => new UserError(error.message),
+                );
+                ResultAsync.fromPromise(
+                  this.createSmartAccountQueue.createSmartAccountJob(
+                    new CreateSmartAccount(user.id),
+                  ),
                   (error: Error) => new UserError(error.message),
                 );
                 return ok(insertedUser[0]).map((user) => ({
