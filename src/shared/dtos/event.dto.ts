@@ -1,3 +1,5 @@
+import { TRole } from '../interface/shared.interface';
+
 export class CreateDoctor {
   constructor(
     readonly userId: string,
@@ -15,4 +17,13 @@ export class CreateDoctor {
 
 export class DeleteUser {
   constructor(readonly userId: string) {}
+}
+
+export class StoreId {
+  constructor(
+    readonly userId: string,
+    readonly governmentId: string,
+    readonly role: TRole,
+    readonly scannedLicenseUrl?: string,
+  ) {}
 }
