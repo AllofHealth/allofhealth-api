@@ -1,4 +1,6 @@
 import { TRole } from '@/shared/interface/shared.interface';
+import { Result } from 'neverthrow';
+import { UserError } from '../error/user.error';
 
 export interface ICreateDoctor {
   specialization: string;
@@ -31,3 +33,14 @@ export interface ICreateUser {
   licenseExpirationDate?: Date;
   role: TRole;
 }
+
+export interface IUserSnippet {
+  userId: string;
+  fullName: string;
+  email: string;
+  profilePicture: string;
+  role: string;
+  gender: string;
+}
+
+export type CreateUserType = Promise<Result<IUserSnippet, UserError>>;
