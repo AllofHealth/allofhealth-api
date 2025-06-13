@@ -1,3 +1,4 @@
+import { CreateSmartAccount } from '@/shared/dtos/event.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
@@ -9,8 +10,8 @@ export class CreateSmartAccountQueue {
     private readonly createSmartAccountQueue: Queue,
   ) {}
 
-  async createSmartAccountJob() {
-    await this.createSmartAccountQueue.add('create-smart-account', {
+  async createSmartAccountJob(data: CreateSmartAccount) {
+    await this.createSmartAccountQueue.add('create-smart-account', data, {
       attempts: 3,
       backoff: {
         type: 'exponential',
