@@ -70,3 +70,18 @@ export const accounts = pgTable('accounts', {
     length: 255,
   }).notNull(),
 });
+
+export const refresh_tokens = pgTable('refresh_tokens', {
+  id: uuid('id').notNull().primaryKey().defaultRandom(),
+  userId: uuid('user')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),
+  token: text('token').notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  replacedByToken: text('replaced_by_token'),
+});
