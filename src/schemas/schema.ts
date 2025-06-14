@@ -92,6 +92,5 @@ export const refresh_tokens = pgTable('refresh_tokens', {
     .defaultNow(),
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
   replacedByToken: text('replaced_by_token'),
-  createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
 });
