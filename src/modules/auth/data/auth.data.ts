@@ -1,0 +1,30 @@
+export enum AuthSuccessMessage {
+  LOGGED_IN = 'Logged In Successfully',
+  LOGGED_OUT = 'Logged Out Successfully',
+  SIGN_UP = 'Signed Up Successfully',
+  TOKEN_REFRESH_SUCCESS = 'Token Refresh Successful',
+  REGISTRATION_SUCCESS = 'Registration Successful',
+  GOOGLE_AUTH_SUCCESS = 'Google authentication successful',
+  GOOGLE_LOGIN_INITIATED = 'Google login initiated',
+  DISCORD_AUTH_SUCCESSFUL = 'Discord authentication successful',
+  DISCORD_LOGIN_INITIATED = 'Discord login initiated',
+  LOGOUT_SUCCESS = 'Logout successful',
+}
+
+export enum AuthErrorMessage {
+  INVALID_CREDENTIALS = 'Invalid Credentials',
+  USER_NOT_FOUND = 'User Not Found',
+  TOKEN_REFRESH_FAILED = 'Token Refresh Failed',
+  INVALID_REFRESH_TOKEN = 'Invalid Refresh Token',
+  INVALID_TOKEN_TYPE = 'Invalid Token Type',
+  TOKEN_NOT_FOUND = 'Token Not Found or expired',
+  REGISTRATION_FAILED = 'Registration Failed',
+  LOGIN_FAILED = 'Login Failed',
+  NO_USER_DATA = 'No user data',
+  GOOGLE_AUTH_FAILED = 'Google authentication failed: No user data',
+  INCOMPLETE_USER_DATA = 'Incomplete user data',
+  DISCORD_AUTH_FAILED = 'Discord authentication failed: No code or role',
+  LOGOUT_FAILED = 'Logout failed',
+  USER_ALREADY_EXISTS = 'User already exists',
+  TOKEN_GENERATION_FAILED = 'Token generation failed',
+}
