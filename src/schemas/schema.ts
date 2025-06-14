@@ -21,6 +21,7 @@ export const user = pgTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   role: text('role').notNull().default('PATIENT'),
   status: text('status').notNull().default('PENDING'),
+  authProvider: varchar('auth_provider', { length: 255 }),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
 });
@@ -33,6 +34,8 @@ export const identity = pgTable('identities', {
   role: text('role').notNull().default('PATIENT'),
   governmentId: text('government_id').notNull(),
   scannedLicense: text('scanned_license'),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: date('updated_at').notNull().defaultNow(),
 });
 
 export const doctors = pgTable('doctors', {
@@ -54,6 +57,8 @@ export const doctors = pgTable('doctors', {
   }).notNull(),
   yearsOfExperience: integer('years_of_experience').notNull(),
   languagesSpoken: jsonb('languages_spoken').default('[]'),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: date('updated_at').notNull().defaultNow(),
 });
 
 export const accounts = pgTable('accounts', {
@@ -70,6 +75,8 @@ export const accounts = pgTable('accounts', {
   privateKey: varchar('private_key', {
     length: 255,
   }).notNull(),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: date('updated_at').notNull().defaultNow(),
 });
 
 export const refresh_tokens = pgTable('refresh_tokens', {
@@ -85,4 +92,6 @@ export const refresh_tokens = pgTable('refresh_tokens', {
     .defaultNow(),
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
   replacedByToken: text('replaced_by_token'),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: date('updated_at').notNull().defaultNow(),
 });
