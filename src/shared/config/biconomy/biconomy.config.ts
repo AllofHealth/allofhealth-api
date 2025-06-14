@@ -3,7 +3,6 @@ import { Configuration, Value } from '@itgorillaz/configify';
 
 @Configuration()
 export class BiconomyConfig {
-  // Testnet Config
   @IsNotEmpty()
   @Value('LISK_TESTNET_BUNDLER_API_KEY')
   LISK_TESTNET_BUNDLER_API_KEY: string;
