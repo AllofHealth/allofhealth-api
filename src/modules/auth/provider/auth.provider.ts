@@ -131,4 +131,26 @@ export class AuthProvider {
       return this.handler.handleError(error, AEM.TOKEN_REFRESH_FAILED);
     }
   }
+
+  async handleSignup(ctx: ICreateUser) {
+    try {
+      const result = await this.createUser({
+        ...ctx,
+        authProvider: 'CREDENTIALS',
+      });
+      if (result.status !== HttpStatus.OK) {
+        return {
+          status: result.status,
+          message: result.message,
+        };
+      }
+
+      return {
+        status: HttpStatus.OK,
+        message: ASM.REGISTRATION_SUCCESS,
+      };
+    } catch (error) {
+      return this.handler.handleError(error, AEM.REGISTRATION_FAILED);
+    }
+  }
 }
