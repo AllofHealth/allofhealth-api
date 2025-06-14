@@ -14,6 +14,7 @@ import { BullModule } from '@nestjs/bull';
 import { DrizzleModule } from './shared/drizzle/drizzle.module';
 import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { ExternalAccountModule } from './shared/modules/external-account/externa
     DrizzleModule,
     AccountAbstractionModule,
     ExternalAccountModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
