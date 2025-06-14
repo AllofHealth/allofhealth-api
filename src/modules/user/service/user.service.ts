@@ -9,4 +9,8 @@ export class UserService {
   async createUser(ctx: ICreateUser) {
     return await this.userProvider.createUser(ctx);
   }
+
+  async findUser(userId: string) {
+    return await this.userProvider.findUserById(userId);
+  }
 }
