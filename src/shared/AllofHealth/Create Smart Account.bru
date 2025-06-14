@@ -1,0 +1,15 @@
+meta {
+  name: Create Smart Account
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/api/account-abstraction/createAccount?userId=4b72e454-3358-4ee0-a51e-2f0042315b9c
+  body: none
+  auth: inherit
+}
+
+params:query {
+  userId: 4b72e454-3358-4ee0-a51e-2f0042315b9c
+}
