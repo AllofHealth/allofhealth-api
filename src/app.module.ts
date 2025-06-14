@@ -12,6 +12,8 @@ import { UserModule } from './modules/user/user.module';
 import { MyLoggerModule } from './modules/my-logger/my-logger.module';
 import { BullModule } from '@nestjs/bull';
 import { DrizzleModule } from './shared/drizzle/drizzle.module';
+import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
+import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
 
 @Module({
   imports: [
@@ -50,6 +52,8 @@ import { DrizzleModule } from './shared/drizzle/drizzle.module';
     UserModule,
     MyLoggerModule,
     DrizzleModule,
+    AccountAbstractionModule,
+    ExternalAccountModule,
   ],
   controllers: [AppController],
   providers: [AppService],
