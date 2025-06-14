@@ -201,6 +201,7 @@ export class UserProvider {
         gender: ctx.gender,
         password: hashedPassword,
         phoneNumber: ctx.phoneNumber,
+        authProvider: ctx.authProvider,
         role: ctx.role,
       })
       .returning();
