@@ -1,9 +1,6 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { ExternalAccountProvider } from '../../external-account/provider/external-account.provider';
 import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
-import { err } from 'neverthrow';
 import { createSmartAccountClient } from '@biconomy/account';
-import { CreateSmartAccountError } from '../error/account-abstraction.error';
 import {
   LISK_MAINNET_CHAINID,
   LISK_TESTNET_CHAINID,
@@ -17,12 +14,13 @@ import {
   AccountAbstractionSuccessMessage as ASM,
   AccountAbstractionErrorMessage as AEM,
 } from '../data/account-abstraction.data';
+import { ExternalAccountService } from '../../external-account/service/external-account.service';
 
 @Injectable()
 export class AccountAbstractionProvider {
   private handler: ErrorHandler;
   constructor(
-    private readonly eoaProvider: ExternalAccountProvider,
+    private readonly eoaProvider: ExternalAccountService,
     private readonly biconomyConfig: BiconomyConfig,
     private readonly authUtils: AuthUtils,
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
@@ -55,21 +53,14 @@ export class AccountAbstractionProvider {
   }
 
   async createSmartAccount(userId: string) {
-    const signerResult = this.eoaProvider.createSigner();
-    if (signerResult.isErr()) {
-      return err(
-        new CreateSmartAccountError(
-          `Signer creation failed ${signerResult.error.message}`,
-        ),
-      );
-    }
+    const signerResult = this.eoaProvider.createNewSigner();
 
     const hashedPrivateKey = await this.authUtils.hash(
-      signerResult.value.walletData.privateKey,
+      signerResult.walletData.privateKey,
     );
 
     const accountConfig = {
-      signer: signerResult.value.signer,
+      signer: signerResult.signer,
       bundlerUrl: this.provideBundleUrl(),
       chainId: this.provideChainId(),
       biconomyPaymasterApiKey: this.providerPayMaster(),
@@ -88,7 +79,7 @@ export class AccountAbstractionProvider {
       const account = await this.db
         .insert(schema.accounts)
         .values({
-          externalAddress: signerResult.value.walletData.publicKey,
+          externalAddress: signerResult.walletData.walletAddress,
           privateKey: hashedPrivateKey,
           smartWalletAddress: smartAddress,
           userId: userId,
@@ -98,7 +89,7 @@ export class AccountAbstractionProvider {
       const data = {
         userId: account[0].userId,
         smartAddress,
-        walletData: signerResult.value.walletData,
+        walletData: signerResult.walletData,
       };
 
       return this.handler.handleReturn({
