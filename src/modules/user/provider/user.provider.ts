@@ -8,25 +8,37 @@ import {
   DeleteUser,
   StoreId,
 } from '@/shared/dtos/event.dto';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
+import { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
-import { err, ok, Result, ResultAsync } from 'neverthrow';
-import { USER_ERROR_MESSAGES } from '../data/user.data';
+import {
+  USER_ERROR_MESSAGES as UEM,
+  USER_SUCCESS_MESSAGE as USM,
+} from '../data/user.data';
 import { UserError } from '../error/user.error';
-import { CreateUserType, ICreateUser } from '../interface/user.interface';
-import { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
+import { ICreateUser, IUserSnippet } from '../interface/user.interface';
 
 @Injectable()
 export class UserProvider {
+  private handler: ErrorHandler;
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
     private readonly eventEmitter: EventEmitter2,
     private readonly createSmartAccountQueue: CreateSmartAccountQueue,
-  ) {}
+  ) {
+    this.handler = new ErrorHandler();
+  }
 
   private async emitEvent(ctx: ICreateDoctor) {
     try {
@@ -45,19 +57,17 @@ export class UserProvider {
           ctx.licenseExpirationDate,
         ),
       );
-
-      return ok(true);
     } catch (error) {
       //handle rollback
       this.eventEmitter.emit(
         SharedEvents.DELETE_USER,
         new DeleteUser(ctx.userId),
       );
-      return err(new Error(`Failed to emit event ${error}`));
+      return this.handler.handleError(error, 'Failed to emit event');
     }
   }
 
-  private emitStoreIdentity(ctx: StoreId) {
+  private async emitStoreIdentity(ctx: StoreId) {
     try {
       this.eventEmitter.emit(
         SharedEvents.STORE_IDENTIFICATION,
@@ -68,191 +78,214 @@ export class UserProvider {
           ctx.scannedLicenseUrl,
         ),
       );
-      return ok(true);
     } catch (error) {
-      ResultAsync.fromPromise(
-        this.db
-          .delete(schema.identity)
-          .where(eq(schema.identity.userId, ctx.userId)),
-        (error: Error) =>
-          new UserError(`Error deleting identity: ${error.message}`),
+      await this.db
+        .delete(schema.identity)
+        .where(eq(schema.identity.userId, ctx.userId));
+      return this.handler.handleError(
+        error,
+        'Failed to emit event to store identity',
       );
-      return err(new UserError(`Failed to emit event to store id ${error}`));
     }
   }
 
-  validateEmailAddress(emailAddress: string) {
-    return this.findUserByEmail(emailAddress)
-      .map(() => true)
-      .orElse((error) => {
-        if (error.message.includes(USER_ERROR_MESSAGES.USER_NOT_FOUND)) {
-          return ok(false);
-        }
-        return err(error);
-      });
+  async validateEmailAddress(emailAddress: string) {
+    const user = await this.findUserByEmail(emailAddress);
+    if (user.status === HttpStatus.OK) {
+      return true;
+    }
+
+    return false;
   }
 
-  findUserByEmail(emailAddress: string) {
-    const result = ResultAsync.fromPromise(
-      this.db
+  async findUserByEmail(emailAddress: string) {
+    try {
+      const user = await this.db
         .select()
         .from(schema.user)
-        .where(eq(schema.user.emailAddress, emailAddress)),
-      (error: Error) =>
-        new UserError(`Failed to find user by email ${error.message}`),
-    ).andThen((users) => {
-      if (!users || users.length === 0) {
-        return err(new UserError(USER_ERROR_MESSAGES.USER_NOT_FOUND));
+        .where(eq(schema.user.emailAddress, emailAddress));
+
+      if (!user || user.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: UEM.USER_NOT_FOUND,
+          data: null,
+        });
       }
 
-      return ok(users[0]);
-    });
+      const usersnippet = {
+        userId: user[0].id,
+        fullName: user[0].fullName,
+        email: user[0].emailAddress,
+        gender: user[0].gender,
+        profilePicture: user[0].profilePicture,
+        role: user[0].role,
+      } as IUserSnippet;
 
-    return result;
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.USER_FETCHED_SUCCESSFULLY,
+        data: usersnippet,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
+    }
   }
 
-  findUserById(id: string) {
-    return ResultAsync.fromPromise(
-      this.db.select().from(schema.user).where(eq(schema.user.id, id)),
-      (error: Error) =>
-        new UserError(`Failed to find user by id ${error.message}`),
-    ).andThen((user) => {
-      if (!user) {
-        return err(new UserError(USER_ERROR_MESSAGES.USER_NOT_FOUND));
-      }
+  async findUserById(id: string) {
+    try {
+      const user = await this.db
+        .select()
+        .from(schema.user)
+        .where(eq(schema.user.id, id));
 
-      return ok(user[0]);
-    });
+      const parsedUser = {
+        userId: user[0].id,
+        fullName: user[0].fullName,
+        email: user[0].emailAddress,
+        gender: user[0].gender,
+        profilePicture: user[0].profilePicture,
+        role: user[0].role,
+      } as IUserSnippet;
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.USER_FETCHED_SUCCESSFULLY,
+        data: parsedUser,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
+    }
   }
 
   @OnEvent(SharedEvents.DELETE_USER)
-  deleteUser(ctx: DeleteUser) {
-    return ResultAsync.fromPromise(
-      this.db.delete(schema.user).where(eq(schema.user.id, ctx.userId)),
-      (error: Error) =>
-        new UserError(`Failed to delete user by id ${error.message}`),
-    ).andThen(() => {
-      return ok(true);
-    });
+  async deleteUser(ctx: DeleteUser) {
+    try {
+      await this.db.delete(schema.user).where(eq(schema.user.id, ctx.userId));
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.USER_DELETED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_DELETING_USER);
+    }
   }
 
-  async createUser(ctx: ICreateUser): CreateUserType {
+  async createUser(ctx: ICreateUser) {
+    console.log('provider is hitting');
+
     const hashedPassword = await this.authUtils.hash(ctx.password);
-    return this.validateEmailAddress(ctx.emailAddress).andThen((userExists) => {
-      if (userExists) {
-        return err(new UserError(USER_ERROR_MESSAGES.USER_EXISTS));
-      }
 
-      const dateOfBirthString = ctx.dateOfBirth.toISOString().split('T')[0];
+    const emailExists = await this.validateEmailAddress(ctx.emailAddress);
 
-      return ResultAsync.fromPromise(
-        this.db
-          .insert(schema.user)
-          .values({
-            fullName: ctx.fullName,
-            emailAddress: ctx.emailAddress,
-            dateOfBirth: dateOfBirthString,
-            gender: ctx.gender,
-            password: hashedPassword,
-            phoneNumber: ctx.phoneNumber,
-            role: ctx.role,
-          })
-          .returning(),
-        (error: Error) =>
-          new UserError(
-            `${USER_ERROR_MESSAGES.ERROR_CREATE_USER} ${error.message}`,
-          ),
-      ).andThen((insertedUser) => {
-        if (!insertedUser[0]) {
-          return err(new UserError(USER_ERROR_MESSAGES.ERROR_CREATE_USER));
-        }
-
-        const user = insertedUser[0];
-
-        switch (ctx.role) {
-          case 'PATIENT':
-            return Result.fromThrowable(
-              () =>
-                this.emitStoreIdentity({
-                  userId: user.id,
-                  role: 'PATIENT',
-                  governmentId: ctx.governmentIdUrl,
-                }),
-              (error: Error) => new UserError(error.message),
-            )().andThen((result) => {
-              if (result.isOk()) {
-                ResultAsync.fromPromise(
-                  this.createSmartAccountQueue.createSmartAccountJob(
-                    new CreateSmartAccount(user.id),
-                  ),
-                  (error: Error) => new UserError(error.message),
-                );
-                return ok({
-                  userId: user.id,
-                  fullName: user.fullName,
-                  profilePicture: user.profilePicture as string,
-                  email: user.emailAddress,
-                  role: user.role,
-                  gender: user.gender,
-                });
-              } else {
-                return err(new UserError(result.error.message));
-              }
-            });
-
-          case 'DOCTOR':
-            return ResultAsync.fromPromise(
-              this.emitEvent({
-                userId: insertedUser[0].id,
-                certifications: ctx.certifications!,
-                hospitalAssociation: ctx.hospitalAssociation!,
-                languagesSpoken: ctx.languagesSpoken!,
-                licenseExpirationDate: ctx.licenseExpirationDate!,
-                locationOfHospital: ctx.locationOfHospital!,
-                medicalLicenseNumber: ctx.medicalLicenseNumber!,
-                scannedLicenseUrl: ctx.scannedLicenseUrl!,
-                specialization: ctx.specialization!,
-                yearsOfExperience: ctx.yearsOfExperience!,
-              }),
-              (error: Error) =>
-                new UserError(
-                  `${USER_ERROR_MESSAGES.ERROR_CREATE_USER} ${error.message}`,
-                ),
-            ).andThen((result) => {
-              if (result.isOk()) {
-                Result.fromThrowable(
-                  () =>
-                    this.emitStoreIdentity({
-                      userId: user.id,
-                      role: 'DOCTOR',
-                      governmentId: ctx.governmentIdUrl,
-                      scannedLicenseUrl: ctx.scannedLicenseUrl!,
-                    }),
-                  (error: Error) => new UserError(error.message),
-                );
-                ResultAsync.fromPromise(
-                  this.createSmartAccountQueue.createSmartAccountJob(
-                    new CreateSmartAccount(user.id),
-                  ),
-                  (error: Error) => new UserError(error.message),
-                );
-                return ok(insertedUser[0]).map((user) => ({
-                  userId: user.id,
-                  fullName: user.fullName,
-                  profilePicture: user.profilePicture as string,
-                  email: user.emailAddress,
-                  role: user.role,
-                  gender: user.gender,
-                }));
-              } else {
-                return err(new UserError(result.error.message));
-              }
-            });
-
-          default:
-            return err(new UserError('Handlers for other roles not available'));
-        }
+    if (emailExists) {
+      return this.handler.handleReturn({
+        status: HttpStatus.FOUND,
+        message: UEM.USER_EXISTS,
       });
-    });
+    }
+
+    const dateOfBirthString = ctx.dateOfBirth.toISOString().split('T')[0];
+    const user = await this.db
+      .insert(schema.user)
+      .values({
+        fullName: ctx.fullName,
+        emailAddress: ctx.emailAddress,
+        dateOfBirth: dateOfBirthString,
+        gender: ctx.gender,
+        password: hashedPassword,
+        phoneNumber: ctx.phoneNumber,
+        role: ctx.role,
+      })
+      .returning();
+
+    if (!user[0]) {
+      throw new HttpException(
+        UEM.ERROR_CREATE_USER,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const insertedUser = user[0];
+    let parsedUser: IUserSnippet = {
+      userId: '',
+      fullName: '',
+      email: '',
+      profilePicture: '',
+      gender: '',
+      role: '',
+    };
+
+    switch (ctx.role) {
+      case 'PATIENT':
+        await this.emitStoreIdentity({
+          userId: insertedUser.id,
+          role: 'PATIENT',
+          governmentId: ctx.governmentIdUrl,
+        });
+
+        await this.createSmartAccountQueue.createSmartAccountJob(
+          new CreateSmartAccount(insertedUser.id),
+        );
+
+        parsedUser = {
+          userId: insertedUser.id,
+          fullName: ctx.fullName,
+          email: ctx.emailAddress,
+          profilePicture: insertedUser.profilePicture as string,
+          gender: ctx.gender,
+          role: ctx.role,
+        };
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: USM.USER_CREATED,
+          data: parsedUser,
+        });
+      case 'DOCTOR':
+        await this.emitEvent({
+          userId: insertedUser.id,
+          certifications: ctx.certifications!,
+          hospitalAssociation: ctx.hospitalAssociation!,
+          languagesSpoken: ctx.languagesSpoken!,
+          licenseExpirationDate: ctx.licenseExpirationDate!,
+          locationOfHospital: ctx.locationOfHospital!,
+          medicalLicenseNumber: ctx.medicalLicenseNumber!,
+          scannedLicenseUrl: ctx.scannedLicenseUrl!,
+          specialization: ctx.specialization!,
+          yearsOfExperience: ctx.yearsOfExperience!,
+        });
+
+        await this.emitStoreIdentity({
+          userId: insertedUser.id,
+          role: 'PATIENT',
+          governmentId: ctx.governmentIdUrl,
+          scannedLicenseUrl: ctx.scannedLicenseUrl!,
+        });
+
+        await this.createSmartAccountQueue.createSmartAccountJob(
+          new CreateSmartAccount(insertedUser.id),
+        );
+
+        parsedUser = {
+          userId: insertedUser.id,
+          fullName: ctx.fullName,
+          email: ctx.emailAddress,
+          profilePicture: insertedUser.profilePicture as string,
+          gender: ctx.gender,
+          role: ctx.role,
+        };
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: USM.USER_CREATED,
+          data: parsedUser,
+        });
+
+      default:
+        throw new BadRequestException(
+          new UserError('Role not implemented', HttpStatus.BAD_REQUEST),
+        );
+    }
   }
 }
