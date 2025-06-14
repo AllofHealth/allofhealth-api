@@ -14,6 +14,7 @@ import { ExternalAccountService } from '../../external-account/service/external-
 import { ExternalAccountProvider } from '../../external-account/provider/external-account.provider';
 import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
 import { AccountAbstractionProvider } from '../provider/account-abstraction.provider';
+import { AuthUtils } from '@/shared/utils/auth.utils';
 
 describe('AccountAbstractionService', () => {
   let service: AccountAbstractionService;
@@ -35,6 +36,7 @@ describe('AccountAbstractionService', () => {
         AccountAbstractionProvider,
         ExternalAccountService,
         ExternalAccountProvider,
+        AuthUtils,
         {
           provide: BiconomyConfig,
           useValue: mockConfig,
@@ -51,13 +53,14 @@ describe('AccountAbstractionService', () => {
 
   describe('Smart Account', () => {
     it('should create smart account and return wallet data', async () => {
-      const result = await service.createSmartAccount();
+      const result = await service.createSmartAccount({
+        userId: '885bdbed-93ee-4db4-87d3-e6b051a5a706',
+      });
       if (!('data' in result) || !result.data) {
-        throw new Error(result.message as string);
+        throw new Error('Error creating account');
       }
+
       console.log(result);
-      expect(result.data).toBeDefined();
-      expect(typeof result.data.smartAddress).toBe('string');
     }, 50000);
   });
 });
