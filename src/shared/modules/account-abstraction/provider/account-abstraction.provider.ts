@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ExternalAccountProvider } from '../../external-account/provider/external-account.provider';
 import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
-import { err, ResultAsync } from 'neverthrow';
+import { err } from 'neverthrow';
 import { createSmartAccountClient } from '@biconomy/account';
 import { CreateSmartAccountError } from '../error/account-abstraction.error';
 import {
@@ -12,15 +12,23 @@ import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import * as schema from '@/schemas/schema';
 import { AuthUtils } from '@/shared/utils/auth.utils';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import {
+  AccountAbstractionSuccessMessage as ASM,
+  AccountAbstractionErrorMessage as AEM,
+} from '../data/account-abstraction.data';
 
 @Injectable()
 export class AccountAbstractionProvider {
+  private handler: ErrorHandler;
   constructor(
     private readonly eoaProvider: ExternalAccountProvider,
     private readonly biconomyConfig: BiconomyConfig,
     private readonly authUtils: AuthUtils,
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
-  ) {}
+  ) {
+    this.handler = new ErrorHandler();
+  }
 
   private provideBundleUrl() {
     if (process.env.NODE_ENV === 'production') {
@@ -67,41 +75,39 @@ export class AccountAbstractionProvider {
       biconomyPaymasterApiKey: this.providerPayMaster(),
     };
 
-    ResultAsync.fromPromise(
-      createSmartAccountClient(accountConfig),
-      (error: Error) =>
-        new CreateSmartAccountError(
-          `Smart account creation failed ${error.message}`,
-        ),
-    ).andThen((client) =>
-      ResultAsync.fromPromise(
-        client.getAccountAddress(),
-        (error: Error) =>
-          new CreateSmartAccountError(
-            `Error fetching smart account address ${error}`,
-          ),
-      ).andThen((address) => {
-        return ResultAsync.fromPromise(
-          this.db
-            .insert(schema.accounts)
-            .values({
-              externalAddress: signerResult.value.walletData.publicKey,
-              privateKey: hashedPrivateKey,
-              smartWalletAddress: address,
-              userId: userId,
-            })
-            .returning(),
-          (error: Error) => {
-            return new CreateSmartAccountError(
-              `Error inserting account data ${error.message}`,
-            );
-          },
-        ).map((account) => ({
-          userId: account[0].userId,
-          smartAddress: address,
-          walletData: signerResult.value.walletData,
-        }));
-      }),
-    );
+    try {
+      const client = await createSmartAccountClient(accountConfig);
+      if (!client) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: AEM.ERROR_CREATING_SMART_ACCOUNT_CLIENT,
+          data: null,
+        });
+      }
+      const smartAddress = await client.getAddress();
+      const account = await this.db
+        .insert(schema.accounts)
+        .values({
+          externalAddress: signerResult.value.walletData.publicKey,
+          privateKey: hashedPrivateKey,
+          smartWalletAddress: smartAddress,
+          userId: userId,
+        })
+        .returning();
+
+      const data = {
+        userId: account[0].userId,
+        smartAddress,
+        walletData: signerResult.value.walletData,
+      };
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SMART_ACCOUNT_CREATED,
+        data,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_CREATING_SMART_ACCOUNT);
+    }
   }
 }
