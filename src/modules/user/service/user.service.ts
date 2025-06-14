@@ -13,4 +13,8 @@ export class UserService {
   async findUser(userId: string) {
     return await this.userProvider.findUserById(userId);
   }
+
+  async findUserByEmail(email: string) {
+    return await this.userProvider.findUserByEmail(email);
+  }
 }
