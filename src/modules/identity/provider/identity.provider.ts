@@ -1,72 +1,85 @@
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
-import { err, ResultAsync } from 'neverthrow';
-import { IdentityError } from '../error/identity.error';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { IStoreIdentification } from '../interface/identity.interface';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import {
+  IDENTITY_ERROR_MESSAGES as IEM,
+  IDENTITY_SUCCESS_MESSAGES as ISM,
+} from '../data/identity.data';
+import { IdentityError } from '../error/identity.error';
 
 @Injectable()
 export class IdentityProvider {
-  constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {}
-
-  private fetchUser(userId: string) {
-    return ResultAsync.fromPromise(
-      this.db
-        .select()
-        .from(schema.user)
-        .where(eq(schema.user.id, userId))
-        .limit(1),
-      (error: Error) => new IdentityError(error.message),
-    );
+  private handler: ErrorHandler;
+  constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {
+    this.handler = new ErrorHandler();
   }
 
-  storeId(ctx: IStoreIdentification) {
-    return this.fetchUser(ctx.userId).andThen((user) => {
-      if (user.length === 0) {
-        return err(new IdentityError(`user not found`));
-      }
-
+  async storeId(ctx: IStoreIdentification) {
+    try {
       switch (ctx.role) {
+        case 'PATIENT':
+          await this.db.insert(schema.identity).values({
+            userId: ctx.userId,
+            governmentId: ctx.governmentId,
+            role: ctx.role,
+          });
+
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: ISM.SUCCESS_STORING_IDENTIFICATION,
+          });
         case 'DOCTOR':
-          if (!ctx.scannedLicense) {
-            return err(new IdentityError('scanned license is required'));
+          if (ctx.scannedLicense) {
+            throw new BadRequestException(
+              new IdentityError(
+                'Please provide a copy of your medical license',
+                HttpStatus.BAD_REQUEST,
+              ),
+            );
           }
 
-          return ResultAsync.fromPromise(
-            this.db
-              .insert(schema.identity)
-              .values({
-                userId: ctx.userId,
-                governmentId: ctx.governmentId,
-                scannedLicense: ctx.scannedLicense,
-                role: 'DOCTOR',
-              })
-              .returning(),
-            (error: Error) => new IdentityError(error.message),
-          ).map((identity) => ({
-            id: identity[0].id,
-          }));
+          await this.db.insert(schema.identity).values({
+            userId: ctx.userId,
+            governmentId: ctx.governmentId,
+            role: ctx.role,
+          });
 
-        case 'PATIENT':
-          return ResultAsync.fromPromise(
-            this.db
-              .insert(schema.identity)
-              .values({
-                userId: ctx.userId,
-                governmentId: ctx.governmentId,
-                role: 'PATIENT',
-              })
-              .returning(),
-            (error: Error) => new IdentityError(error.message),
-          ).map((identity) => ({
-            id: identity[0].id,
-          }));
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: ISM.SUCCESS_STORING_IDENTIFICATION,
+          });
+        case 'ADMIN':
+          if (ctx.scannedLicense) {
+            throw new BadRequestException(
+              new IdentityError(
+                'Please provide a copy of your medical license',
+                HttpStatus.BAD_REQUEST,
+              ),
+            );
+          }
 
-        default:
-          return err(new IdentityError(`invalid role`));
+          await this.db.insert(schema.identity).values({
+            userId: ctx.userId,
+            governmentId: ctx.governmentId,
+            scannedLicense: ctx.scannedLicense!,
+            role: ctx.role,
+          });
+
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: ISM.SUCCESS_STORING_IDENTIFICATION,
+          });
       }
-    });
+    } catch (e) {
+      return this.handler.handleError(e, IEM.ERROR_STORING_IDENTIFICATION);
+    }
   }
 }
