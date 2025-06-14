@@ -103,9 +103,11 @@ export class UserProvider {
       const user = await this.db
         .select()
         .from(schema.user)
-        .where(eq(schema.user.emailAddress, emailAddress));
+        .where(eq(schema.user.emailAddress, emailAddress))
+        .limit(1);
 
       if (!user || user.length === 0) {
+        console.log(`user not found`);
         return this.handler.handleReturn({
           status: HttpStatus.NOT_FOUND,
           message: UEM.USER_NOT_FOUND,
@@ -137,7 +139,8 @@ export class UserProvider {
       const user = await this.db
         .select()
         .from(schema.user)
-        .where(eq(schema.user.id, id));
+        .where(eq(schema.user.id, id))
+        .limit(1);
 
       const parsedUser = {
         userId: user[0].id,
@@ -185,7 +188,10 @@ export class UserProvider {
       });
     }
 
-    const dateOfBirthString = ctx.dateOfBirth.toISOString().split('T')[0];
+    const dateOfBirthString =
+      typeof ctx.dateOfBirth === 'string'
+        ? ctx.dateOfBirth
+        : ctx.dateOfBirth.toISOString().split('T')[0];
     const user = await this.db
       .insert(schema.user)
       .values({
@@ -258,7 +264,7 @@ export class UserProvider {
 
         await this.emitStoreIdentity({
           userId: insertedUser.id,
-          role: 'PATIENT',
+          role: 'DOCTOR',
           governmentId: ctx.governmentIdUrl,
           scannedLicenseUrl: ctx.scannedLicenseUrl!,
         });
