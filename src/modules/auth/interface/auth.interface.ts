@@ -1,1 +1,29 @@
-export interface Auth {}
+import { TAuthProvider } from '@/modules/user/interface/user.interface';
+import { TRole } from '@/shared/interface/shared.interface';
+
+export interface IhandleLogin {
+  email: string;
+  password: string;
+}
+
+export interface IRegisterUser {
+  userId: string;
+  fullName: string;
+  email: string;
+  profilePicture: string;
+  gender: string;
+  role: TRole;
+}
+
+export interface IJwtPayload {
+  userId: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
+export interface IUpdateLastLogin {
+  userId: string;
+  date: Date;
+  authProvider: TAuthProvider;
+}
