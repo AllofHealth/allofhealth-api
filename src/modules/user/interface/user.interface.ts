@@ -33,7 +33,7 @@ export interface ICreateUser {
   locationOfHospital?: string;
   languagesSpoken?: string[];
   licenseExpirationDate?: Date;
-  authProvider: TAuthProvider;
+  authProvider?: TAuthProvider;
   role: TRole;
 }
 
