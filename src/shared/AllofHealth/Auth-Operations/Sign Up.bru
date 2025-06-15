@@ -1,0 +1,24 @@
+meta {
+  name: Sign Up
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/{{AUTH_PATH}}/signUp
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "fullName": "chikezie egbu",
+    "emailAddress": "preciousegbu@gmail.com",
+    "dateOfBirth": "1996-04-23",
+    "gender": "Male",
+    "phoneNumber": "+2349122145480",
+    "password": "taylorgang",
+    "governmentIdUrl": "https://example.com/government-id.jpg",
+    "role": "PATIENT"
+  }
+}
