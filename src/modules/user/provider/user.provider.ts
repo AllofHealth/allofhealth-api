@@ -26,7 +26,11 @@ import {
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
 import { UserError } from '../error/user.error';
-import { ICreateUser, IUserSnippet } from '../interface/user.interface';
+import {
+  ICreateUser,
+  IUpdateUser,
+  IUserSnippet,
+} from '../interface/user.interface';
 
 @Injectable()
 export class UserProvider {
@@ -297,6 +301,85 @@ export class UserProvider {
       }
     } catch (e) {
       return this.handler.handleError(e, UEM.ERROR_CREATE_USER);
+    }
+  }
+
+  async updateUser(ctx: IUpdateUser) {
+    const {
+      id,
+      fullName,
+      dateOfBirth,
+      emailAddress,
+      gender,
+      hospitalAssociation,
+      locationOfHospital,
+      medicalLicenseNumber,
+      password,
+      phoneNumber,
+      specialization,
+      lastLogin,
+      lastActivity,
+      authProvider,
+    } = ctx;
+    try {
+      const userResult = await this.findUserById(id);
+      if (!('data' in userResult) || !(userResult.data && userResult)) {
+        throw new HttpException(UEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      if (
+        hospitalAssociation ||
+        locationOfHospital ||
+        medicalLicenseNumber ||
+        specialization
+      ) {
+        if (userResult.data.role !== 'DOCTOR') {
+          return this.handler.handleReturn({
+            status: HttpStatus.BAD_REQUEST,
+            message: UEM.INVALID_ROLE,
+          });
+        }
+      }
+
+      const dataToUpdate: Record<string, any> = {};
+      if (fullName) dataToUpdate.fullName = fullName;
+      if (emailAddress) dataToUpdate.emailAddress = emailAddress;
+      if (dateOfBirth) dataToUpdate.dateOfBirth = dateOfBirth;
+      if (gender) dataToUpdate.gender = gender;
+      if (password) dataToUpdate.password = password;
+      if (phoneNumber) dataToUpdate.phoneNumber = phoneNumber;
+      if (hospitalAssociation)
+        dataToUpdate.hospitalAssociation = hospitalAssociation;
+      if (locationOfHospital)
+        dataToUpdate.locationOfHospital = locationOfHospital;
+      if (medicalLicenseNumber)
+        dataToUpdate.medicalLicenseNumber = medicalLicenseNumber;
+      if (specialization) dataToUpdate.specialization = specialization;
+      if (lastLogin) dataToUpdate.lastLogin = lastLogin;
+      if (lastActivity) dataToUpdate.lastActivity = lastActivity;
+      if (authProvider) dataToUpdate.authProvider = authProvider;
+
+      if (emailAddress && emailAddress !== userResult.data.email) {
+        const emailExists = await this.validateEmailAddress(emailAddress);
+        if (emailExists) {
+          return this.handler.handleReturn({
+            status: HttpStatus.CONFLICT,
+            message: UEM.EMAIL_EXIST,
+          });
+        }
+      }
+
+      await this.db
+        .update(schema.user)
+        .set(dataToUpdate)
+        .where(eq(schema.user.id, id));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: UEM.USER_UPDATED,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_UPDATING_USER);
     }
   }
 }
