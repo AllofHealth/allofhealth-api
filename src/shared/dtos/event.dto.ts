@@ -1,3 +1,4 @@
+import { TAuthProvider } from '@/modules/user/interface/user.interface';
 import { TRole } from '../interface/shared.interface';
 
 export class CreateDoctor {
@@ -30,4 +31,31 @@ export class StoreId {
 
 export class CreateSmartAccount {
   constructor(readonly userId: string) {}
+}
+export class EUpdateUser {
+  constructor(
+    readonly id: string,
+    readonly fullName?: string,
+    readonly emailAddress?: string,
+    readonly dateOfBirth?: Date,
+    readonly gender?: string,
+    readonly phoneNumber?: string,
+    readonly password?: string,
+    readonly specialization?: string,
+    readonly medicalLicenseNumber?: string,
+    readonly hospitalAssociation?: string,
+    readonly locationOfHospital?: string,
+    readonly lastLogin?: Date,
+    readonly lastActivity?: Date,
+    readonly authProvider?: TAuthProvider,
+  ) {}
+}
+
+export class EOnUserLogin {
+  constructor(
+    readonly id: string,
+    readonly lastLogin?: Date,
+    readonly lastActivity?: Date,
+    readonly authProvider?: TAuthProvider,
+  ) {}
 }
