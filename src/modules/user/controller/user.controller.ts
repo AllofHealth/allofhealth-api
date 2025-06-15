@@ -1,6 +1,13 @@
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { SuccessResponseDto } from '@/shared/dtos/shared.dto';
-import { Body, Controller, HttpStatus, Ip, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Ip,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
@@ -17,6 +24,9 @@ import { UpdateUserDto } from '../dto/user.dto';
 import { UserError } from '../error/user.error';
 import { UserService } from '../service/user.service';
 
+import { OwnerGuard } from '../guard/user.guard';
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+
 @ApiTags('User Operations')
 @Controller('user')
 export class UserController {
@@ -24,6 +34,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('updateUser')
+  @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: 'Updates an existing user' })
   @ApiOkResponse({
     description: 'User updated successfully',
