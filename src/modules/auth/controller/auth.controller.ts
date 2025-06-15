@@ -29,14 +29,6 @@ export class AuthController {
     example: {
       status: HttpStatus.OK,
       message: ASM.REGISTRATION_SUCCESS,
-      data: {
-        userId: '',
-        fullName: '',
-        email: '',
-        profilePicture: '',
-        gender: '',
-        role: '',
-      },
     },
   })
   @ApiInternalServerErrorResponse({
