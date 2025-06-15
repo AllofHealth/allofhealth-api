@@ -126,7 +126,9 @@ export class UserProvider {
         gender: user[0].gender,
         profilePicture: user[0].profilePicture,
         role: user[0].role,
-      } as IUserSnippet;
+        password: user[0].password,
+        isFirstimeUser: user[0].isFirstTime,
+      };
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
