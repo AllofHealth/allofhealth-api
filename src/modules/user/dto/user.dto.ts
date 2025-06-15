@@ -208,3 +208,98 @@ export class UserSnippetDto {
   @IsString()
   gender: string;
 }
+
+export class UpdateUserDto {
+  @ApiProperty({
+    description: 'The users identifier',
+    example: '1234567890',
+    required: true,
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiPropertyOptional({
+    description: 'The full name of the user',
+    example: 'John Doe',
+  })
+  @IsOptional()
+  @IsString()
+  fullName?: string;
+
+  @ApiPropertyOptional({
+    description: 'The email address of the user',
+    example: 'john.doe@example.com',
+  })
+  @IsOptional()
+  @IsEmail()
+  emailAddress?: string;
+
+  @ApiPropertyOptional({
+    description: 'The date of birth of the user',
+    example: '1990-01-01',
+  })
+  @IsOptional()
+  @IsDateString()
+  dateOfBirth?: Date;
+
+  @ApiPropertyOptional({
+    description: 'The gender of the user',
+    example: 'Male',
+  })
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @ApiPropertyOptional({
+    description: 'The phone number of the user',
+    example: '+1234567890',
+  })
+  @IsOptional()
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiPropertyOptional({
+    description: 'The password of the user',
+    example: 'password123',
+  })
+  @IsOptional()
+  @IsString()
+  password?: string;
+
+  @ApiPropertyOptional({
+    description: 'The specialization of the doctor',
+    example: 'Cardiologist',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  specialization?: string;
+
+  @ApiPropertyOptional({
+    description: 'The medical license number of the doctor',
+    example: '123456789',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  medicalLicenseNumber?: string;
+
+  @ApiPropertyOptional({
+    description: 'The hospital association of the doctor',
+    example: 'Association 1',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  hospitalAssociation?: string;
+
+  @ApiPropertyOptional({
+    description: 'The location of the hospital of the doctor',
+    example: 'Location 1',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  locationOfHospital?: string;
+}
