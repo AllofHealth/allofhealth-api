@@ -2,14 +2,18 @@ import { TokenService } from '@/modules/token/service/token.service';
 import { ICreateUser } from '@/modules/user/interface/user.interface';
 import { UserService } from '@/modules/user/service/user.service';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
   AuthErrorMessage as AEM,
   AuthSuccessMessage as ASM,
 } from '../data/auth.data';
 import { AuthError } from '../error/auth.error';
-import { IJwtPayload } from '../interface/auth.interface';
+import { IJwtPayload, ILogin } from '../interface/auth.interface';
+import { AuthUtils } from '@/shared/utils/auth.utils';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { EOnUserLogin } from '@/shared/dtos/event.dto';
 
 @Injectable()
 export class AuthProvider {
@@ -18,6 +22,8 @@ export class AuthProvider {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
+    private readonly authUtils: AuthUtils,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.handler = new ErrorHandler();
   }
@@ -51,6 +57,10 @@ export class AuthProvider {
 
   private async findUserById(userId: string) {
     return await this.userService.findUser(userId);
+  }
+
+  private async findUserByEmail(emailAddress: string) {
+    return await this.userService.findUserByEmail(emailAddress);
   }
 
   async createUser(ctx: ICreateUser) {
@@ -151,6 +161,66 @@ export class AuthProvider {
       };
     } catch (error) {
       return this.handler.handleError(error, AEM.REGISTRATION_FAILED);
+    }
+  }
+
+  async handleLogin(ctx: ILogin) {
+    const { email, password } = ctx;
+    try {
+      const result = await this.findUserByEmail(email);
+      if (
+        result.status !== HttpStatus.OK ||
+        !('data' in result && result.data)
+      ) {
+        return {
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.USER_NOT_FOUND,
+        };
+      }
+
+      const userProfile = result.data;
+
+      const isPasswordValid = await this.authUtils.compare({
+        hashedPassword: userProfile.password,
+        password,
+      });
+
+      if (!isPasswordValid) {
+        throw new UnauthorizedException(
+          new AuthError(AEM.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED),
+        );
+      }
+
+      const tokens = await this.generateTokens({
+        userId: userProfile.userId,
+        email: userProfile.email,
+      });
+
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(
+          userProfile.userId,
+          new Date(),
+          new Date(),
+          'CREDENTIALS',
+        ),
+      );
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.LOGGED_IN,
+        data: {
+          userId: userProfile.userId,
+          fullName: userProfile.fullName,
+          email: userProfile.email,
+          role: userProfile.role,
+          profilePicture: userProfile.profilePicture,
+          isFirstTime: userProfile.isFirstimeUser,
+          ...tokens,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.LOGIN_FAILED);
     }
   }
 }
