@@ -27,3 +27,8 @@ export interface IUpdateLastLogin {
   date: Date;
   authProvider: TAuthProvider;
 }
+
+export interface ILogin {
+  email: string;
+  password: string;
+}
