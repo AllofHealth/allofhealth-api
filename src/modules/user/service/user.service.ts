@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ICreateUser, IUpdateUser } from '../interface/user.interface';
 import { UserProvider } from '../provider/user.provider';
+import { OnEvent } from '@nestjs/event-emitter';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { EOnUserLogin } from '@/shared/dtos/event.dto';
 
 @Injectable()
 export class UserService {
@@ -11,6 +14,11 @@ export class UserService {
   }
 
   async updateUser(ctx: IUpdateUser) {
+    return await this.userProvider.updateUser(ctx);
+  }
+
+  @OnEvent(SharedEvents.UPDATE_USER_LOGIN)
+  async onUserLogin(ctx: EOnUserLogin) {
     return await this.userProvider.updateUser(ctx);
   }
 
