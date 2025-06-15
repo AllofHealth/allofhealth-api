@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserProvider } from './provider/user.provider';
 import { UserService } from './service/user.service';
 import { UserController } from './controller/user.controller';
 import { AuthUtils } from '@/shared/utils/auth.utils';
 import { AccountQueueModule } from '@/shared/queues/account/account-queue.module';
+import { TokenModule } from '../token/token.module';
 
 @Module({
-  imports: [AccountQueueModule],
+  imports: [AccountQueueModule, forwardRef(() => TokenModule)],
   providers: [UserProvider, UserService, AuthUtils],
   controllers: [UserController],
   exports: [UserService],
