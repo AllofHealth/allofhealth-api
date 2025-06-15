@@ -308,7 +308,7 @@ export class UserProvider {
 
   async updateUser(ctx: IUpdateUser) {
     const {
-      id,
+      userId,
       fullName,
       dateOfBirth,
       emailAddress,
@@ -324,7 +324,7 @@ export class UserProvider {
       authProvider,
     } = ctx;
     try {
-      const userResult = await this.findUserById(id);
+      const userResult = await this.findUserById(userId);
       if (!('data' in userResult) || !(userResult.data && userResult)) {
         throw new HttpException(UEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
@@ -374,11 +374,11 @@ export class UserProvider {
       await this.db
         .update(schema.user)
         .set(dataToUpdate)
-        .where(eq(schema.user.id, id));
+        .where(eq(schema.user.id, userId));
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
-        message: UEM.USER_UPDATED,
+        message: USM.USER_UPDATED,
       });
     } catch (e) {
       return this.handler.handleError(e, UEM.ERROR_UPDATING_USER);
