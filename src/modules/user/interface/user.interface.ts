@@ -37,7 +37,7 @@ export interface ICreateUser {
 }
 
 export interface IUpdateUser {
-  id: string;
+  userId: string;
   fullName?: string;
   emailAddress?: string;
   dateOfBirth?: Date;
