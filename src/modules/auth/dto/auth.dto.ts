@@ -208,3 +208,13 @@ export class UserSnippetDto {
   @IsString()
   gender: string;
 }
+
+export class SignInDto {
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  @IsString()
+  password: string;
+}
