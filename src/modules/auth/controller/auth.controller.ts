@@ -47,8 +47,8 @@ export class AuthController {
     },
   })
   @ApiFoundResponse({
-    description: AEM.USER_ALREADY_EXISTS,
     example: {
+      description: AEM.USER_ALREADY_EXISTS,
       status: HttpStatus.FOUND,
       message: AEM.USER_ALREADY_EXISTS,
     },
