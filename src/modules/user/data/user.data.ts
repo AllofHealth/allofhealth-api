@@ -5,6 +5,9 @@ export enum USER_ERROR_MESSAGES {
   USER_EXISTS = 'User already exists',
   ERROR_FETCHING_USER = 'Error fetching user',
   ERROR_DELETING_USER = 'Error deleting user',
+  ERROR_UPDATING_USER = 'Error updating user',
+  INVALID_ROLE = 'Invalid role',
+  USER_UPDATED = 'User updated successfully',
 }
 
 export enum USER_SUCCESS_MESSAGE {
