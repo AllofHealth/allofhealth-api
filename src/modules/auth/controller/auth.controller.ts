@@ -4,16 +4,19 @@ import { Body, Controller, HttpStatus, Ip, Post } from '@nestjs/common';
 import {
   ApiFoundResponse,
   ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
   AuthErrorMessage as AEM,
   AuthSuccessMessage as ASM,
 } from '../data/auth.data';
 import { AuthService } from '../service/auth.service';
-import { SignUpDto } from '../dto/auth.dto';
+import { SignInDto, SignUpDto } from '../dto/auth.dto';
+import { AuthError } from '../error/auth.error';
 
 @ApiTags('Auth Operations')
 @Controller('auth')
@@ -48,5 +51,44 @@ export class AuthController {
   async signUp(@Ip() ip: string, @Body() ctx: SignUpDto) {
     this.logger.log(`Sign up request from ${ip}`);
     return await this.authService.handleRegister(ctx);
+  }
+
+  @Post('signIn')
+  @ApiOperation({ summary: 'Sign in an existing user' })
+  @ApiNotFoundResponse({
+    description: AEM.USER_NOT_FOUND,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: AEM.USER_NOT_FOUND,
+    },
+  })
+  @ApiUnauthorizedResponse({
+    type: AuthError,
+    example: {
+      status: HttpStatus.UNAUTHORIZED,
+      message: AEM.INVALID_CREDENTIALS,
+    },
+  })
+  @ApiOkResponse({
+    description: ASM.LOGGED_IN,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.LOGGED_IN,
+      data: {
+        userId: '',
+        fullName: '',
+        email: '',
+        role: 'PATIENT',
+        profilePicture: '',
+        isFirstTime: true,
+        refreshToken: '',
+        accessToken: '',
+      },
+    },
+  })
+  async signIn(@Ip() ip: string, @Body() ctx: SignInDto) {
+    this.logger.log(`Sign in request from ${ip}`);
+    return await this.authService.handleLogin(ctx);
   }
 }
