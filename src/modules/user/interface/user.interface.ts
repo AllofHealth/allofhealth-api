@@ -1,7 +1,6 @@
 import { TRole } from '@/shared/interface/shared.interface';
 import { Result } from 'neverthrow';
 import { UserError } from '../error/user.error';
-
 export type TAuthProvider = 'GOOGLE' | 'CREDENTIALS';
 
 export interface ICreateDoctor {
@@ -35,6 +34,23 @@ export interface ICreateUser {
   licenseExpirationDate?: Date;
   authProvider?: TAuthProvider;
   role: TRole;
+}
+
+export interface IUpdateUser {
+  id: string;
+  fullName?: string;
+  emailAddress?: string;
+  dateOfBirth?: Date;
+  gender?: string;
+  phoneNumber?: string;
+  password?: string;
+  specialization?: string;
+  medicalLicenseNumber?: string;
+  hospitalAssociation?: string;
+  locationOfHospital?: string;
+  lastLogin?: Date;
+  lastActivity?: Date;
+  authProvider?: TAuthProvider;
 }
 
 export interface IUserSnippet {
