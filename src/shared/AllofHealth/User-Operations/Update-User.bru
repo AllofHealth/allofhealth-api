@@ -1,0 +1,22 @@
+meta {
+  name: Update-User
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/{{USER_PATH}}/updateUser
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1YTM2OTQ4OC1hYmMwLTQyMWUtYTMzNy0yOGFiNjAxOWNhMGUiLCJlbWFpbCI6InByZWNpb3VzZWdidUBnbWFpbC5jb20iLCJ0b2tlblR5cGUiOiJyZWZyZXNoIiwiaWF0IjoxNzUwMDIwMDUyLCJleHAiOjE3NTA2MjQ4NTJ9.ViD0lVGtQOASHnxC26XtoyI_T2eHYqj0U85rC4BMtdA
+}
+
+body:json {
+  {
+    "userId": "5a369488-abc0-421e-a337-28ab6019ca0e",
+    "fullName": "precious egbu"
+  }
+}
