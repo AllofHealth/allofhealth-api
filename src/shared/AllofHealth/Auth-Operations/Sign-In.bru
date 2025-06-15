@@ -1,0 +1,22 @@
+meta {
+  name: Sign-In
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:3000/{{AUTH_PATH}}/signIn
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+body:json {
+  {
+    "email": "preciousegbu@gmail.com",
+    "password": "taylorgang"
+  }
+}
