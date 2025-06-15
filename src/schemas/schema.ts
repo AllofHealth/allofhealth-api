@@ -8,6 +8,7 @@ import {
   jsonb,
   integer,
   timestamp,
+  boolean,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('users', {
@@ -24,6 +25,9 @@ export const user = pgTable('users', {
   authProvider: varchar('auth_provider', { length: 255 }),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
+  lastLogin: timestamp('last_login', { withTimezone: true }),
+  isFirstTime: boolean('is_first_time').default(true).notNull(),
+  lastActivity: timestamp('last_activity', { withTimezone: true }),
 });
 
 export const identity = pgTable('identities', {
@@ -57,8 +61,11 @@ export const doctors = pgTable('doctors', {
   }).notNull(),
   yearsOfExperience: integer('years_of_experience').notNull(),
   languagesSpoken: jsonb('languages_spoken').default('[]'),
+  lastLogin: timestamp('last_login', { withTimezone: true }),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
+  isFirstTime: boolean('is_first_time').default(true).notNull(),
+  lastActivity: timestamp('last_activity', { withTimezone: true }),
 });
 
 export const accounts = pgTable('accounts', {
