@@ -1,12 +1,19 @@
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { Body, Controller, Ip, Post } from '@nestjs/common';
+import { SuccessResponseDto } from '@/shared/dtos/shared.dto';
+import { Body, Controller, HttpStatus, Ip, Post } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
+  ApiConflictResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateUserDto, UserSnippetDto } from '../dto/user.dto';
+import {
+  USER_ERROR_MESSAGES as UEM,
+  USER_SUCCESS_MESSAGE as USM,
+} from '../data/user.data';
+import { UpdateUserDto } from '../dto/user.dto';
 import { UserError } from '../error/user.error';
 import { UserService } from '../service/user.service';
 
@@ -16,35 +23,40 @@ export class UserController {
   private readonly logger = new MyLoggerService(UserController.name);
   constructor(private readonly userService: UserService) {}
 
-  @Post('createUser')
-  @ApiOperation({ summary: 'Creates a new user' })
+  @Post('updateUser')
+  @ApiOperation({ summary: 'Updates an existing user' })
   @ApiOkResponse({
-    description: 'User created successfully',
-    type: UserSnippetDto,
+    description: 'User updated successfully',
+    type: SuccessResponseDto,
     example: {
       status: 200,
-      message: 'User created successfully',
-      data: {
-        id: '1234567890',
-        fullName: 'John Doe',
-        email: 'user@example.com',
-        profilePicture: 'https://example.com/profile.jpg',
-        gender: 'Male',
-        role: 'PATIENT',
-      },
+      message: USM.USER_UPDATED,
     },
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
     type: UserError,
     example: {
-      status: 500,
-      message: 'Internal server error',
-      error: 'Internal Server Error',
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: UEM.ERROR_UPDATING_USER,
     },
   })
-  async createUser(@Ip() ip: string, @Body() ctx: CreateUserDto) {
-    this.logger.log(`Create user request from ${ip}`);
-    return await this.userService.createUser(ctx);
+  @ApiConflictResponse({
+    description: UEM.EMAIL_EXIST,
+    example: {
+      status: HttpStatus.CONFLICT,
+      message: UEM.EMAIL_EXIST,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: UEM.INVALID_ROLE,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: UEM.INVALID_ROLE,
+    },
+  })
+  async updateUser(@Ip() ip: string, @Body() ctx: UpdateUserDto) {
+    this.logger.log(`Updating user ${ctx.userId} from ${ip} `);
+    return this.userService.updateUser(ctx);
   }
 }
