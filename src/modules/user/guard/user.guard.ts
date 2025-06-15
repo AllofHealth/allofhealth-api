@@ -52,8 +52,8 @@ export class OwnerGuard implements CanActivate {
       request.user = { userId: tokenUserId };
 
       await this.userService.updateUser({
-        id: tokenUserId,
-        lastActivityDate: new Date(),
+        userId: tokenUserId,
+        lastActivity: new Date(),
       });
 
       return true;
