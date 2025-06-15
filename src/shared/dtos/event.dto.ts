@@ -34,7 +34,7 @@ export class CreateSmartAccount {
 }
 export class EUpdateUser {
   constructor(
-    readonly id: string,
+    readonly userId: string,
     readonly fullName?: string,
     readonly emailAddress?: string,
     readonly dateOfBirth?: Date,
@@ -53,7 +53,7 @@ export class EUpdateUser {
 
 export class EOnUserLogin {
   constructor(
-    readonly id: string,
+    readonly userId: string,
     readonly lastLogin?: Date,
     readonly lastActivity?: Date,
     readonly authProvider?: TAuthProvider,
