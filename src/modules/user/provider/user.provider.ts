@@ -177,122 +177,126 @@ export class UserProvider {
   async createUser(ctx: ICreateUser) {
     console.log('provider is hitting');
 
-    const hashedPassword = await this.authUtils.hash(ctx.password);
+    try {
+      const hashedPassword = await this.authUtils.hash(ctx.password);
 
-    const emailExists = await this.validateEmailAddress(ctx.emailAddress);
+      const emailExists = await this.validateEmailAddress(ctx.emailAddress);
 
-    if (emailExists) {
-      return this.handler.handleReturn({
-        status: HttpStatus.FOUND,
-        message: UEM.USER_EXISTS,
-      });
-    }
-
-    const dateOfBirthString =
-      typeof ctx.dateOfBirth === 'string'
-        ? ctx.dateOfBirth
-        : ctx.dateOfBirth.toISOString().split('T')[0];
-    const user = await this.db
-      .insert(schema.user)
-      .values({
-        fullName: ctx.fullName,
-        emailAddress: ctx.emailAddress,
-        dateOfBirth: dateOfBirthString,
-        gender: ctx.gender,
-        password: hashedPassword,
-        phoneNumber: ctx.phoneNumber,
-        authProvider: ctx.authProvider,
-        role: ctx.role,
-      })
-      .returning();
-
-    if (!user[0]) {
-      throw new HttpException(
-        UEM.ERROR_CREATE_USER,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    const insertedUser = user[0];
-    let parsedUser: IUserSnippet = {
-      userId: '',
-      fullName: '',
-      email: '',
-      profilePicture: '',
-      gender: '',
-      role: '',
-    };
-
-    switch (ctx.role) {
-      case 'PATIENT':
-        await this.emitStoreIdentity({
-          userId: insertedUser.id,
-          role: 'PATIENT',
-          governmentId: ctx.governmentIdUrl,
-        });
-
-        await this.createSmartAccountQueue.createSmartAccountJob(
-          new CreateSmartAccount(insertedUser.id),
-        );
-
-        parsedUser = {
-          userId: insertedUser.id,
-          fullName: ctx.fullName,
-          email: ctx.emailAddress,
-          profilePicture: insertedUser.profilePicture as string,
-          gender: ctx.gender,
-          role: ctx.role,
-        };
-
+      if (emailExists) {
         return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: USM.USER_CREATED,
-          data: parsedUser,
+          status: HttpStatus.FOUND,
+          message: UEM.USER_EXISTS,
         });
-      case 'DOCTOR':
-        await this.emitEvent({
-          userId: insertedUser.id,
-          certifications: ctx.certifications!,
-          hospitalAssociation: ctx.hospitalAssociation!,
-          languagesSpoken: ctx.languagesSpoken!,
-          licenseExpirationDate: ctx.licenseExpirationDate!,
-          locationOfHospital: ctx.locationOfHospital!,
-          medicalLicenseNumber: ctx.medicalLicenseNumber!,
-          scannedLicenseUrl: ctx.scannedLicenseUrl!,
-          specialization: ctx.specialization!,
-          yearsOfExperience: ctx.yearsOfExperience!,
-        });
+      }
 
-        await this.emitStoreIdentity({
-          userId: insertedUser.id,
-          role: 'DOCTOR',
-          governmentId: ctx.governmentIdUrl,
-          scannedLicenseUrl: ctx.scannedLicenseUrl!,
-        });
-
-        await this.createSmartAccountQueue.createSmartAccountJob(
-          new CreateSmartAccount(insertedUser.id),
-        );
-
-        parsedUser = {
-          userId: insertedUser.id,
+      const dateOfBirthString =
+        typeof ctx.dateOfBirth === 'string'
+          ? ctx.dateOfBirth
+          : ctx.dateOfBirth.toISOString().split('T')[0];
+      const user = await this.db
+        .insert(schema.user)
+        .values({
           fullName: ctx.fullName,
-          email: ctx.emailAddress,
-          profilePicture: insertedUser.profilePicture as string,
+          emailAddress: ctx.emailAddress,
+          dateOfBirth: dateOfBirthString,
           gender: ctx.gender,
+          password: hashedPassword,
+          phoneNumber: ctx.phoneNumber,
+          authProvider: ctx.authProvider,
           role: ctx.role,
-        };
+        })
+        .returning();
 
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: USM.USER_CREATED,
-          data: parsedUser,
-        });
-
-      default:
-        throw new BadRequestException(
-          new UserError('Role not implemented', HttpStatus.BAD_REQUEST),
+      if (!user[0]) {
+        throw new HttpException(
+          UEM.ERROR_CREATE_USER,
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
+      }
+
+      const insertedUser = user[0];
+      let parsedUser: IUserSnippet = {
+        userId: '',
+        fullName: '',
+        email: '',
+        profilePicture: '',
+        gender: '',
+        role: '',
+      };
+
+      switch (ctx.role) {
+        case 'PATIENT':
+          await this.emitStoreIdentity({
+            userId: insertedUser.id,
+            role: 'PATIENT',
+            governmentId: ctx.governmentIdUrl,
+          });
+
+          await this.createSmartAccountQueue.createSmartAccountJob(
+            new CreateSmartAccount(insertedUser.id),
+          );
+
+          parsedUser = {
+            userId: insertedUser.id,
+            fullName: ctx.fullName,
+            email: ctx.emailAddress,
+            profilePicture: insertedUser.profilePicture as string,
+            gender: ctx.gender,
+            role: ctx.role,
+          };
+
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: USM.USER_CREATED,
+            data: parsedUser,
+          });
+        case 'DOCTOR':
+          await this.emitEvent({
+            userId: insertedUser.id,
+            certifications: ctx.certifications!,
+            hospitalAssociation: ctx.hospitalAssociation!,
+            languagesSpoken: ctx.languagesSpoken!,
+            licenseExpirationDate: ctx.licenseExpirationDate!,
+            locationOfHospital: ctx.locationOfHospital!,
+            medicalLicenseNumber: ctx.medicalLicenseNumber!,
+            scannedLicenseUrl: ctx.scannedLicenseUrl!,
+            specialization: ctx.specialization!,
+            yearsOfExperience: ctx.yearsOfExperience!,
+          });
+
+          await this.emitStoreIdentity({
+            userId: insertedUser.id,
+            role: 'DOCTOR',
+            governmentId: ctx.governmentIdUrl,
+            scannedLicenseUrl: ctx.scannedLicenseUrl!,
+          });
+
+          await this.createSmartAccountQueue.createSmartAccountJob(
+            new CreateSmartAccount(insertedUser.id),
+          );
+
+          parsedUser = {
+            userId: insertedUser.id,
+            fullName: ctx.fullName,
+            email: ctx.emailAddress,
+            profilePicture: insertedUser.profilePicture as string,
+            gender: ctx.gender,
+            role: ctx.role,
+          };
+
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: USM.USER_CREATED,
+            data: parsedUser,
+          });
+
+        default:
+          throw new BadRequestException(
+            new UserError('Role not implemented', HttpStatus.BAD_REQUEST),
+          );
+      }
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_CREATE_USER);
     }
   }
 }
