@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    //eslint-disable-next-line
+
     const token = this.extractToken(request);
 
     if (!token) {
@@ -36,7 +36,6 @@ export class AuthGuard implements CanActivate {
         throw new UnauthorizedException('Invalid token payload');
       }
       const userTokenResult =
-        //eslint-disable-next-line
         await this.tokenService.fetchUserToken(userIdFromPayload);
 
       if (
