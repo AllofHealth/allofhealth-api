@@ -22,10 +22,10 @@ export interface ICreateUser {
   gender: string;
   phoneNumber: string;
   password: string;
-  governmentIdUrl: string;
+  governmentIdfilePath: string;
   specialization?: string;
   medicalLicenseNumber?: string;
-  scannedLicenseUrl?: string;
+  scannedLicensefilePath?: string;
   yearsOfExperience?: number;
   certifications?: string[];
   hospitalAssociation?: string;
