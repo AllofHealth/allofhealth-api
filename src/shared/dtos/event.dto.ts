@@ -23,9 +23,11 @@ export class DeleteUser {
 export class StoreId {
   constructor(
     readonly userId: string,
-    readonly governmentId: string,
     readonly role: TRole,
+    readonly governmentId?: string,
+    readonly governmentFileId?: string,
     readonly scannedLicenseUrl?: string,
+    readonly scannedLicenseFileId?: string,
   ) {}
 }
 
