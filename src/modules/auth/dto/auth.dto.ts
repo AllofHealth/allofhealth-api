@@ -8,7 +8,6 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUrl,
 } from 'class-validator';
 
 export class SignUpDto {
@@ -60,14 +59,6 @@ export class SignUpDto {
   @IsString()
   password: string;
 
-  @ApiProperty({
-    description: 'The URL of the government ID of the user',
-    example: 'https://example.com/government-id.jpg',
-  })
-  @IsNotEmpty()
-  @IsUrl()
-  governmentIdUrl: string;
-
   @ApiPropertyOptional({
     description: 'The specialization of the doctor',
     example: 'Cardiologist',
@@ -85,15 +76,6 @@ export class SignUpDto {
   @IsOptional()
   @IsString()
   medicalLicenseNumber?: string;
-
-  @ApiPropertyOptional({
-    description: 'The URL of the scanned medical license of the doctor',
-    example: 'https://example.com/medical-license.jpg',
-    required: false,
-  })
-  @IsOptional()
-  @IsUrl()
-  scannedLicenseUrl?: string;
 
   @ApiPropertyOptional({
     description: 'The years of experience of the doctor',
