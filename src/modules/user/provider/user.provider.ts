@@ -1,3 +1,5 @@
+import { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
+import { AssetService } from '@/modules/asset/service/asset.service';
 import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
@@ -6,7 +8,6 @@ import {
   CreateDoctor,
   CreateSmartAccount,
   DeleteUser,
-  StoreId,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -40,6 +41,7 @@ export class UserProvider {
     private readonly authUtils: AuthUtils,
     private readonly eventEmitter: EventEmitter2,
     private readonly createSmartAccountQueue: CreateSmartAccountQueue,
+    private readonly assetService: AssetService,
   ) {
     this.handler = new ErrorHandler();
   }
@@ -52,7 +54,6 @@ export class UserProvider {
           ctx.userId,
           ctx.specialization,
           ctx.medicalLicenseNumber,
-          ctx.scannedLicenseUrl,
           ctx.yearsOfExperience,
           ctx.certifications,
           ctx.hospitalAssociation,
@@ -71,17 +72,9 @@ export class UserProvider {
     }
   }
 
-  private async emitStoreIdentity(ctx: StoreId) {
+  private async emitStoreIdentity(ctx: IUploadIdentityFile) {
     try {
-      this.eventEmitter.emit(
-        SharedEvents.STORE_IDENTIFICATION,
-        new StoreId(
-          ctx.userId,
-          ctx.governmentId,
-          ctx.role,
-          ctx.scannedLicenseUrl,
-        ),
-      );
+      return await this.assetService.uploadIdentityAssets(ctx);
     } catch (error) {
       await this.db
         .delete(schema.identity)
@@ -235,7 +228,7 @@ export class UserProvider {
           await this.emitStoreIdentity({
             userId: insertedUser.id,
             role: 'PATIENT',
-            governmentId: ctx.governmentIdUrl,
+            governmentIdFilePath: ctx.governmentIdfilePath,
           });
 
           await this.createSmartAccountQueue.createSmartAccountJob(
@@ -265,7 +258,6 @@ export class UserProvider {
             licenseExpirationDate: ctx.licenseExpirationDate!,
             locationOfHospital: ctx.locationOfHospital!,
             medicalLicenseNumber: ctx.medicalLicenseNumber!,
-            scannedLicenseUrl: ctx.scannedLicenseUrl!,
             specialization: ctx.specialization!,
             yearsOfExperience: ctx.yearsOfExperience!,
           });
@@ -273,8 +265,8 @@ export class UserProvider {
           await this.emitStoreIdentity({
             userId: insertedUser.id,
             role: 'DOCTOR',
-            governmentId: ctx.governmentIdUrl,
-            scannedLicenseUrl: ctx.scannedLicenseUrl!,
+            governmentIdFilePath: ctx.governmentIdfilePath,
+            scannedLicenseFilePath: ctx.scannedLicensefilePath,
           });
 
           await this.createSmartAccountQueue.createSmartAccountJob(
