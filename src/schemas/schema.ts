@@ -36,7 +36,9 @@ export const identity = pgTable('identities', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
   role: text('role').notNull().default('PATIENT'),
-  governmentId: text('government_id').notNull(),
+  governmentFileId: varchar('government_file_id', { length: 255 }),
+  governmentId: text('government_id'),
+  scannedLicenseFileId: varchar('scanned_license_file_id', { length: 255 }),
   scannedLicense: text('scanned_license'),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
