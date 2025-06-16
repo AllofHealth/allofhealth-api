@@ -26,11 +26,21 @@ export class IdentityProvider {
     try {
       switch (ctx.role) {
         case 'PATIENT':
-          await this.db.insert(schema.identity).values({
-            userId: ctx.userId,
-            governmentId: ctx.governmentId,
-            role: ctx.role,
-          });
+          await this.db
+            .insert(schema.identity)
+            .values({
+              userId: ctx.userId,
+              governmentId: ctx.governmentId,
+              governmentFileId: ctx.governmentFileId,
+              role: ctx.role,
+            })
+            .onConflictDoUpdate({
+              target: schema.identity.userId,
+              set: {
+                governmentFileId: ctx.governmentFileId,
+                governmentId: ctx.governmentId,
+              },
+            });
 
           return this.handler.handleReturn({
             status: HttpStatus.OK,
@@ -46,11 +56,29 @@ export class IdentityProvider {
             );
           }
 
-          await this.db.insert(schema.identity).values({
-            userId: ctx.userId,
-            governmentId: ctx.governmentId,
-            role: ctx.role,
-          });
+          await this.db
+            .insert(schema.identity)
+            .values({
+              userId: ctx.userId,
+              governmentFileId: ctx.governmentFileId,
+              governmentId: ctx.governmentId,
+              scannedLicenseFileId: ctx.scannedLicenseFileId,
+              scannedLicense: ctx.scannedLicense,
+              role: ctx.role,
+            })
+            .onConflictDoUpdate({
+              target: schema.identity.userId,
+              set: {
+                governmentId: ctx.governmentId ? ctx.governmentId : null,
+                governmentFileId: ctx.governmentFileId
+                  ? ctx.governmentFileId
+                  : null,
+                scannedLicenseFileId: ctx.scannedLicenseFileId
+                  ? ctx.scannedLicenseFileId
+                  : null,
+                scannedLicense: ctx.scannedLicense ? ctx.scannedLicense : null,
+              },
+            });
 
           return this.handler.handleReturn({
             status: HttpStatus.OK,
