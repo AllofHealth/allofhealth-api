@@ -1,98 +1,298 @@
+# AllOf Health - Blockchain-Powered Digital Health Platform
+
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="https://via.placeholder.com/300x120/4A90E2/FFFFFF?text=AllOf+Health" alt="AllOf Health Logo" />
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <strong>A comprehensive blockchain-powered digital health platform built on the Lisk blockchain that revolutionizes medical record management, prescription handling, and healthcare collaboration.</strong>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#api-documentation">API Docs</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#contributing">Contributing</a>
+</p>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+## 🚀 Vision
+
+To create a unified, patient-controlled digital health ecosystem that eliminates data silos, empowers healthcare stakeholders, and improves patient outcomes through secure, transparent, and accessible medical record management.
+
+## ✨ Key Value Propositions
+
+- **🔐 Simplified Web3 Onboarding**: Streamlined user registration process that abstracts blockchain complexity
+- **👥 Multi-Role Access Control**: Tailored interfaces for patients, doctors, hospitals, pharmacies, and administrators
+- **🔗 Blockchain Security**: Immutable record storage with smart contract-based access permissions on Lisk blockchain
+- **🏥 Integrated Healthcare Ecosystem**: Complete platform combining medical records, telemedicine, and pharmacy coordination
+
+## 🎯 Target Users
+
+### Primary Personas
+- **👤 Patients**: Complete medical history access and data sharing control
+- **👨‍⚕️ Doctors**: Comprehensive patient data and efficient prescription management
+- **🏥 Hospital Administrators**: Streamlined operations and compliance management
+- **💊 Pharmacists**: Secure prescription verification and inventory management
+- **⚙️ System Administrators**: Platform security and user access management
+
+## 📋 Features
+
+### 🌟 Core Features (In Development)
+
+#### Authentication & User Management
+- ✅ Multi-role registration system (Patient, Doctor, Hospital, Pharmacy, Admin)
+- ✅ Document-based identity verification with file upload
+- ✅ Role-based access control (RBAC)
+- 🔄 OAuth 2.0 and JWT token-based authentication
+- 🔄 Web3 wallet integration (Lisk blockchain)
+
+#### Patient Portal
+- 🔄 Comprehensive medical records management
+- 🔄 Prescription tracking and history
+- 🔄 Appointment scheduling and management
+- 🔄 Healthcare provider directory
+- 🔄 Personal health journaling
+- 🔄 Care team management
+
+#### Doctor Interface
+- 🔄 Patient record access with permission system
+- 🔄 Digital prescription writing tools
+- 🔄 Telemedicine consultation platform
+- 🔄 Collaborative notes system
+- 🔄 Treatment plan management
+
+#### Pharmacy System
+- 🔄 One-time prescription key validation
+- 🔄 Real-time inventory tracking
+- 🔄 Prescription queue management
+- 🔄 Patient notification system
+
+### 🔮 Advanced Features (Planned)
+
+- **🔑 One-Time Prescription Keys**: Unique secure keys for prescription access with automatic expiration
+- **🤝 Real-Time Collaboration**: Live communication tools for healthcare teams
+- **📊 Health Analytics**: AI-powered health insights and recommendations
+- **🌐 Interoperability**: HL7 FHIR compliance for seamless data exchange
+- **📱 Mobile Applications**: React Native apps for iOS and Android
+
+## 🛠 Tech Stack
+
+### Backend
+- **Framework**: NestJS (Node.js)
+- **Database**: PostgreSQL (primary), MongoDB (medical records), Redis (caching)
+- **Blockchain**: Lisk SDK for custom blockchain functionality
+- **Authentication**: JWT, OAuth 2.0, 2FA (TOTP)
+- **File Storage**: Local disk storage (development), planned IPFS integration
+- **API**: RESTful APIs with comprehensive OpenAPI documentation
+
+### Frontend (Planned)
+- **Web**: React.js with TypeScript
+- **Mobile**: React Native
+- **State Management**: Redux Toolkit
+- **UI Framework**: Material-UI / Chakra UI
+
+### DevOps & Infrastructure
+- **Containerization**: Docker
+- **CI/CD**: GitHub Actions
+- **Cloud**: AWS/GCP (planned)
+- **Monitoring**: Prometheus + Grafana (planned)
+- **Security**: SSL/TLS, rate limiting, DDoS protection
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+- PostgreSQL
+- Redis (optional, for caching)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/allofhealth-api.git
+   cd allofhealth-api
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+   
+   # Edit .env with your configuration
+   # Database URLs, JWT secrets, ImageKit credentials, etc.
+   ```
+
+4. **Database Setup**
+   ```bash
+   # Run database migrations
+   npm run migration:run
+   
+   # Seed initial data (optional)
+   npm run seed
+   ```
+
+5. **Create uploads directory**
+   ```bash
+   mkdir uploads
+   ```
+
+### Running the Application
 
 ```bash
-$ npm install
+# Development mode with hot reload
+npm run start:dev
+
+# Production mode
+npm run start:prod
+
+# Watch mode
+npm run start
 ```
 
-## Compile and run the project
+The API will be available at `http://localhost:3000`
 
-```bash
-# development
-$ npm run start
+### API Documentation
 
-# watch mode
-$ npm run start:dev
+Access the interactive API documentation at:
+- **Swagger UI**: `http://localhost:3000/api`
+- **OpenAPI JSON**: `http://localhost:3000/api-json`
 
-# production mode
-$ npm run start:prod
+## 📚 API Endpoints
+
+### Authentication
+- `POST /auth/signUp` - User registration with document upload
+- `POST /auth/signIn` - User authentication
+
+### Asset Management
+- `POST /assets/upload` - Identity document upload to ImageKit
+
+*More endpoints will be documented as development progresses.*
+
+## 🏗 Architecture
+
+### System Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend API   │    │   Blockchain    │
+│   (Planned)     │◄──►│   (NestJS)     │◄──►│   (Lisk)       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌─────────────────┐
+                       │   Database      │
+                       │   (PostgreSQL)  │
+                       └─────────────────┘
 ```
 
-## Run tests
+### Security Features
+- **🔐 Multi-layer Encryption**: AES-256 for sensitive data
+- **🔑 Smart Contract Access Control**: Blockchain-based permission management
+- **🛡️ Zero-Knowledge Proofs**: Privacy-preserving authentication
+- **📋 Audit Trails**: Comprehensive logging for compliance
 
-```bash
-# unit tests
-$ npm run test
+## 🔧 Development Status
 
-# e2e tests
-$ npm run test:e2e
+### ✅ Completed
+- [x] Project setup and basic NestJS configuration
+- [x] Multi-role authentication system
+- [x] File upload with validation (government ID, medical license)
+- [x] Identity verification workflow
+- [x] ImageKit integration for secure file storage
+- [x] Role-based access control foundation
+- [x] API documentation with Swagger
 
-# test coverage
-$ npm run test:cov
-```
+### 🔄 In Progress
+- [ ] Patient portal development
+- [ ] Doctor interface implementation
+- [ ] Database schema optimization
+- [ ] Enhanced security features
+- [ ] Prescription management system
 
-## Deployment
+### 📋 Planned
+- [ ] Blockchain integration (Lisk)
+- [ ] One-time prescription keys
+- [ ] Telemedicine platform
+- [ ] Mobile applications
+- [ ] AI health insights
+- [ ] HIPAA compliance certification
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 📊 Success Metrics
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Technical KPIs
+- **System Uptime**: Target 99.9%
+- **API Response Time**: Target <200ms
+- **Registration Success Rate**: Target 85%
+- **Security Incidents**: Target 0
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+### User Engagement
+- **Monthly Active Users**: Target 10,000 in Year 1
+- **Feature Adoption Rate**: Target 70% for core features
+- **User Satisfaction**: Target 4.5/5
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 🔒 Security & Compliance
 
-## Resources
+### Data Protection
+- **HIPAA Compliance**: Healthcare data protection standards
+- **GDPR Ready**: European data protection regulation compliance
+- **Encryption**: End-to-end encryption for all sensitive data
+- **Access Control**: Granular permission system
 
-Check out a few resources that may come in handy when working with NestJS:
+### Audit & Monitoring
+- Comprehensive audit trails
+- Real-time security monitoring
+- Regular security assessments
+- Penetration testing (planned)
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🤝 Contributing
 
-## Support
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## Stay in touch
+### Code Standards
+- Follow TypeScript best practices
+- Maintain test coverage above 80%
+- Use conventional commit messages
+- Update documentation for new features
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 📄 License
 
-## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🙏 Acknowledgments
+
+- **Lisk Foundation** for blockchain infrastructure
+- **NestJS Team** for the excellent framework
+- **Healthcare Community** for valuable feedback and requirements
+
+## 📞 Support & Contact
+
+- **Documentation**: [Link to docs] (Coming soon)
+- **Issues**: [GitHub Issues](https://github.com/your-org/allofhealth-api/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/allofhealth-api/discussions)
+- **Email**: support@allofhealth.com
+
+---
+
+<p align="center">
+  <strong>AllOf Health - Transforming Healthcare Through Blockchain Technology</strong>
+</p>
+
+<p align="center">
+  Built with ❤️ by the AllOf Health Team
+</p>
