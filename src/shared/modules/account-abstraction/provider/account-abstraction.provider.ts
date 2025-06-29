@@ -55,9 +55,10 @@ export class AccountAbstractionProvider {
   async createSmartAccount(userId: string) {
     const signerResult = this.eoaProvider.createNewSigner();
 
-    const hashedPrivateKey = await this.authUtils.hash(
-      signerResult.walletData.privateKey,
-    );
+    const hashedPrivateKey = this.authUtils.encryptKey({
+      data: signerResult.walletData.privateKey,
+      key: this.biconomyConfig.ENCRYPTION_KEY,
+    });
 
     const accountConfig = {
       signer: signerResult.signer,
