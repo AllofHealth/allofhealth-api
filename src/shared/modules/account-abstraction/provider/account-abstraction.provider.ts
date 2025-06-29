@@ -16,19 +16,18 @@ import {
 } from '../data/account-abstraction.data';
 import { ExternalAccountService } from '../../external-account/service/external-account.service';
 import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
+import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class AccountAbstractionProvider {
-  private handler: ErrorHandler;
   constructor(
     private readonly eoaProvider: ExternalAccountService,
     private readonly biconomyConfig: BiconomyConfig,
     private readonly contractConfig: ContractConfig,
     private readonly authUtils: AuthUtils,
+    private readonly handler: ErrorHandler,
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
-  ) {
-    this.handler = new ErrorHandler();
-  }
+  ) {}
 
   private provideBundleUrl() {
     if (process.env.NODE_ENV === 'production') {
@@ -102,6 +101,31 @@ export class AccountAbstractionProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_CREATING_SMART_ACCOUNT);
+    }
+  }
+
+  async getSmartAddress(userId: string) {
+    try {
+      const result = await this.db.query.accounts.findFirst({
+        where: eq(schema.accounts.userId, userId),
+      });
+
+      if (!result || !result.smartWalletAddress) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.ERROR_SMART_ADDRESS_NOT_FOUND,
+        });
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SMART_ADDRESS_FOUND,
+        data: {
+          smartAddress: result.smartWalletAddress,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_GETTING_SMART_ADDRESS);
     }
   }
 }
