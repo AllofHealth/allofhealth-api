@@ -1,0 +1,15 @@
+meta {
+  name: Register-Patient
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:3000/{{CONTRACT_PATH}}/registerPatient?userId=46a89eaf-0053-44a4-999a-e40938a45580
+  body: none
+  auth: inherit
+}
+
+params:query {
+  userId: 46a89eaf-0053-44a4-999a-e40938a45580
+}
