@@ -15,6 +15,7 @@ import { DrizzleModule } from './shared/drizzle/drizzle.module';
 import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ContractModule } from './modules/contract/contract.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { AuthModule } from './modules/auth/auth.module';
     AccountAbstractionModule,
     ExternalAccountModule,
     AuthModule,
+    ContractModule,
   ],
   controllers: [AppController],
   providers: [AppService],
