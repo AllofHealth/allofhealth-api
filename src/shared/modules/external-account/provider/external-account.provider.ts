@@ -9,9 +9,10 @@ import { ethers } from 'ethers';
 import * as schema from '@/schemas/schema';
 import { eq } from 'drizzle-orm';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
+
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { ExternalAccountErrorMessage } from '../data/external-account.data';
+import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 
 @Injectable()
 export class ExternalAccountProvider {
@@ -19,7 +20,7 @@ export class ExternalAccountProvider {
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
-    private readonly config: BiconomyConfig,
+    private readonly config: ContractConfig,
     private readonly handlerService: ErrorHandler,
   ) {
     this.rpcUrl =
