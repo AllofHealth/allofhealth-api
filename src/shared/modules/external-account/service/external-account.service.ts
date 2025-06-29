@@ -14,4 +14,7 @@ export class ExternalAccountService {
   createNewSigner() {
     return this.externalAccountProvider.createSigner();
   }
+  async provideSigner(userId: string) {
+    return this.externalAccountProvider.provideSigner(userId);
+  }
 }
