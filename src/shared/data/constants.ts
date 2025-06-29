@@ -30,6 +30,10 @@ export const LISK_MAINNET_BUNDLER_API_KEY =
 export const LISK_MAINNET_PAYMASTER_API_KEY =
   process.env.LISK_MAINNET_PAYMASTER_API_KEY;
 
+export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+export const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS;
+export const SUPER_PRIVATE_KEY = process.env.SUPER_PRIVATE_KEY;
+
 // Profile
 export const PLACEHOLDER =
   'https://www.kravemarketingllc.com/wp-content/uploads/2018/09/placeholder-user-500x500.png';
