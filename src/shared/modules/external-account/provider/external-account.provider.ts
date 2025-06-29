@@ -93,6 +93,14 @@ export class ExternalAccountProvider {
     }
   }
 
+  provideAdminSigner() {
+    const signer = new ethers.Wallet(
+      this.config.SUPER_PRIVATE_KEY,
+      this.handleGetProvider(),
+    );
+    return signer;
+  }
+
   handleCreateWallet() {
     const wallet = ethers.Wallet.createRandom();
 
