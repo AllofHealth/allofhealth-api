@@ -8,6 +8,7 @@ import {
 } from '../data/contract.data';
 import { ethers } from 'ethers';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 
 @Injectable()
 export class ContractProvider {
@@ -15,6 +16,7 @@ export class ContractProvider {
     private readonly contractConfig: ContractConfig,
     private readonly eoaService: ExternalAccountService,
     private readonly handlerService: ErrorHandler,
+    private readonly aaService: AccountAbstractionService,
   ) {}
 
   private provideABI() {
@@ -71,6 +73,30 @@ export class ContractProvider {
       });
     } catch (e) {
       return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
+    }
+  }
+
+  async handleRegisterDoctor(userId: string) {
+    try {
+      const result = await this.aaService.getSmartAddress(userId);
+      if (!('data' in result) || !result.data) {
+        return this.handlerService.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: result.message,
+        });
+      }
+
+      const smartAddress = result.data.smartAddress;
+      const contract = await this.provideContract(userId);
+      const tx = await contract.createDoctor(smartAddress);
+      await tx.wait();
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.DOCTOR_REGISTERED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_DOCTOR);
     }
   }
 }
