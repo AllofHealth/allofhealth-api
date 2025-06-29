@@ -1,15 +1,16 @@
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { AccountQueueModule } from '@/shared/queues/account/account-queue.module';
+import { AuthUtils } from '@/shared/utils/auth.utils';
 import { forwardRef, Module } from '@nestjs/common';
+import { AssetModule } from '../asset/asset.module';
+import { TokenModule } from '../token/token.module';
+import { UserController } from './controller/user.controller';
 import { UserProvider } from './provider/user.provider';
 import { UserService } from './service/user.service';
-import { UserController } from './controller/user.controller';
-import { AuthUtils } from '@/shared/utils/auth.utils';
-import { AccountQueueModule } from '@/shared/queues/account/account-queue.module';
-import { TokenModule } from '../token/token.module';
-import { AssetModule } from '../asset/asset.module';
 
 @Module({
   imports: [AccountQueueModule, forwardRef(() => TokenModule), AssetModule],
-  providers: [UserProvider, UserService, AuthUtils],
+  providers: [UserProvider, UserService, AuthUtils, ErrorHandler],
   controllers: [UserController],
   exports: [UserService],
 })
