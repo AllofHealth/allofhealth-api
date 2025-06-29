@@ -8,4 +8,8 @@ export class ContractService {
   async systemAdminCount() {
     return await this.contractProvider.handleGetSystemAdminCount();
   }
+
+  async registerPatient(userId: string) {
+    return await this.contractProvider.handleRegisterPatient(userId);
+  }
 }
