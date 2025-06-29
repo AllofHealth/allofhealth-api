@@ -35,16 +35,14 @@ import {
 
 @Injectable()
 export class UserProvider {
-  private handler: ErrorHandler;
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
     private readonly eventEmitter: EventEmitter2,
     private readonly createSmartAccountQueue: CreateSmartAccountQueue,
     private readonly assetService: AssetService,
-  ) {
-    this.handler = new ErrorHandler();
-  }
+    private readonly handler: ErrorHandler,
+  ) {}
 
   private async emitEvent(ctx: ICreateDoctor) {
     try {
