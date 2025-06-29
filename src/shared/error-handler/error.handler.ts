@@ -1,7 +1,8 @@
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { HttpStatus } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { IHandleReturn } from '../interface/shared.interface';
 
+@Injectable()
 export class ErrorHandler {
   private readonly logger = new MyLoggerService(ErrorHandler.name);
   handleError(error: any, context: string) {
