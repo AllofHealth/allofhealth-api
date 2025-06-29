@@ -9,6 +9,8 @@ import {
 import { ethers } from 'ethers';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
+import { encodeFunctionData } from 'viem';
+import { PaymasterMode } from '@biconomy/account';
 
 @Injectable()
 export class ContractProvider {
@@ -25,6 +27,28 @@ export class ContractProvider {
 
   private async provideSigner(userId: string) {
     return this.eoaService.provideSigner(userId);
+  }
+
+  private registerPatientTx() {
+    return {
+      to: this.contractConfig.CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: this.provideABI(),
+        functionName: 'addPatient',
+      }),
+    };
+  }
+
+  private registerDoctorTx(smartAddress: string) {
+    const doctorAddress = smartAddress as `0x${string}`;
+    return {
+      to: this.contractConfig.CONTRACT_ADDRESS,
+      data: encodeFunctionData({
+        abi: this.provideABI(),
+        functionName: 'createDoctor',
+        args: [doctorAddress],
+      }),
+    };
   }
 
   provideAdminContractInstance() {
@@ -48,10 +72,11 @@ export class ContractProvider {
     try {
       const contract = this.provideAdminContractInstance();
       const count = await contract.systemAdminCount();
+      const data = Number(count);
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.TX_EXECUTED_SUCCESSFULLY,
-        data: Number(count),
+        data,
       });
     } catch (e) {
       return this.handlerService.handleError(
@@ -61,15 +86,41 @@ export class ContractProvider {
     }
   }
 
+  async handleGetPatientCount() {
+    try {
+      const contract = this.provideAdminContractInstance();
+      const count = await contract.patientCount();
+      const data = Number(count);
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.TX_EXECUTED_SUCCESSFULLY,
+        data,
+      });
+    } catch (e) {
+      return this.handlerService.handleError(
+        e,
+        CEM.ERROR_PROVIDING_PATIENT_COUNT,
+      );
+    }
+  }
+
   async handleRegisterPatient(userId: string) {
     try {
-      const contract = await this.provideContract(userId);
-      const tx = await contract.addPatient();
-      await tx.wait();
+      const smartWallet = await this.aaService.provideSmartWallet(userId);
+      const tx = this.registerPatientTx();
+
+      const opResponse = await smartWallet.sendTransaction(tx, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      });
+
+      const { transactionHash } = await opResponse.waitForTxHash();
 
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.PATIENT_REGISTERED_SUCCESSFULLY,
+        data: {
+          transactionHash,
+        },
       });
     } catch (e) {
       return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
@@ -78,6 +129,7 @@ export class ContractProvider {
 
   async handleRegisterDoctor(userId: string) {
     try {
+      const smartWallet = await this.aaService.provideSmartWallet(userId);
       const result = await this.aaService.getSmartAddress(userId);
       if (!('data' in result) || !result.data) {
         return this.handlerService.handleReturn({
@@ -87,13 +139,19 @@ export class ContractProvider {
       }
 
       const smartAddress = result.data.smartAddress;
-      const contract = await this.provideContract(userId);
-      const tx = await contract.createDoctor(smartAddress);
-      await tx.wait();
+      const tx = this.registerDoctorTx(smartAddress);
 
+      const opResponse = await smartWallet.sendTransaction(tx, {
+        paymasterServiceData: { mode: PaymasterMode.SPONSORED },
+      });
+
+      const { transactionHash } = await opResponse.waitForTxHash();
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.DOCTOR_REGISTERED_SUCCESSFULLY,
+        data: {
+          transactionHash,
+        },
       });
     } catch (e) {
       return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_DOCTOR);
