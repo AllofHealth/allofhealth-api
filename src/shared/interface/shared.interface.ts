@@ -8,3 +8,8 @@ export interface IHandleReturn<T, D = undefined, M = undefined> {
 }
 
 export type TRole = 'PATIENT' | 'DOCTOR' | 'ADMIN' | 'INSTITUTE' | 'PHARMACIST';
+
+export interface IEncrypt {
+  data: string;
+  key: string;
+}
