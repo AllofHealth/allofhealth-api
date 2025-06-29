@@ -4,4 +4,6 @@ export enum SharedEvents {
   STORE_IDENTIFICATION = 'store.identification',
   CREATE_SMART_ACCOUNT = 'create.smart.account',
   UPDATE_USER_LOGIN = 'update.user.login',
+  ADD_PATIENT_TO_CONTRACT = 'add.patient.to.contract',
+  ADD_DOCTOR_TO_CONTRACT = 'add.doctor.to.contract',
 }
