@@ -14,6 +14,6 @@ export class AccountAbstractionService {
   }
 
   async getSmartAddress(userId: string) {
-    return await this.getSmartAddress(userId);
+    return await this.provider.getSmartAddress(userId);
   }
 }
