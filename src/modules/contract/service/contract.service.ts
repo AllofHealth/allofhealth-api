@@ -1,4 +1,7 @@
+import { ERegisterEntity } from '@/shared/dtos/event.dto';
+import { SharedEvents } from '@/shared/events/shared.events';
 import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { ContractProvider } from '../provider/contract.provider';
 
 @Injectable()
@@ -9,11 +12,13 @@ export class ContractService {
     return await this.contractProvider.handleGetSystemAdminCount();
   }
 
-  async registerPatient(userId: string) {
-    return await this.contractProvider.handleRegisterPatient(userId);
+  @OnEvent(SharedEvents.ADD_PATIENT_TO_CONTRACT)
+  async registerPatient(ctx: ERegisterEntity) {
+    return await this.contractProvider.handleRegisterPatient(ctx.userId);
   }
 
-  async registerDoctor(userId: string) {
-    return await this.contractProvider.handleRegisterDoctor(userId);
+  @OnEvent(SharedEvents.ADD_DOCTOR_TO_CONTRACT)
+  async registerDoctor(ctx: ERegisterEntity) {
+    return await this.contractProvider.handleRegisterDoctor(ctx.userId);
   }
 }
