@@ -1,3 +1,7 @@
+export enum ContractErrorMessages {
+  ERROR_PROVIDING_CONTRACT = 'Error providing contract',
+}
+
 export const abi = [
   {
     inputs: [],
