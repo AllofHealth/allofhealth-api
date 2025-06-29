@@ -12,4 +12,8 @@ export class AccountAbstractionService {
   async createSmartAccount(ctx: CreateSmartAccount) {
     return this.provider.createSmartAccount(ctx.userId);
   }
+
+  async getSmartAddress(userId: string) {
+    return await this.getSmartAddress(userId);
+  }
 }
