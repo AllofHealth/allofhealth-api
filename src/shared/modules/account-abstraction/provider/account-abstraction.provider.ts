@@ -53,6 +53,19 @@ export class AccountAbstractionProvider {
     }
   }
 
+  private async provideAccountConfig(userId: string) {
+    const signer = await this.eoaProvider.provideSigner(userId);
+
+    const accountConfig = {
+      signer,
+      bundlerUrl: this.provideBundleUrl(),
+      chainId: this.provideChainId(),
+      biconomyPaymasterApiKey: this.providerPayMaster(),
+    };
+
+    return accountConfig;
+  }
+
   async createSmartAccount(userId: string) {
     const signerResult = this.eoaProvider.createNewSigner();
 
@@ -127,5 +140,10 @@ export class AccountAbstractionProvider {
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_GETTING_SMART_ADDRESS);
     }
+  }
+
+  async provideSmartWallet(userId: string) {
+    const accountConfig = await this.provideAccountConfig(userId);
+    return await createSmartAccountClient(accountConfig);
   }
 }
