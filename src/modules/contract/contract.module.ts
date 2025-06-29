@@ -1,12 +1,13 @@
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { ExternalAccountModule } from '@/shared/modules/external-account/external-account.module';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ContractController } from './controller/contract.controller';
 import { ContractProvider } from './provider/contract.provider';
 import { ContractService } from './service/contract.service';
+import { AccountAbstractionModule } from '@/shared/modules/account-abstraction/account-abstraction.module';
 
 @Module({
-  imports: [ExternalAccountModule],
+  imports: [ExternalAccountModule, forwardRef(() => AccountAbstractionModule)],
   providers: [ContractService, ContractProvider, ErrorHandler],
   controllers: [ContractController],
 })
