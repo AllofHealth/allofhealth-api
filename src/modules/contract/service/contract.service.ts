@@ -12,4 +12,8 @@ export class ContractService {
   async registerPatient(userId: string) {
     return await this.contractProvider.handleRegisterPatient(userId);
   }
+
+  async registerDoctor(userId: string) {
+    return await this.contractProvider.handleRegisterDoctor(userId);
+  }
 }
