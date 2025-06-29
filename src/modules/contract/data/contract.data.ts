@@ -1,10 +1,12 @@
 export enum ContractErrorMessages {
   ERROR_PROVIDING_CONTRACT = 'Error providing contract',
   ERROR_PROVIDING_SYSTEM_ADMIN_COUNT = 'Error providing system admin count',
+  ERROR_REGISTERING_PATIENT = 'Error registering patient',
 }
 
 export enum ContractSuccessMessages {
   TX_EXECUTED_SUCCESSFULLY = 'Transaction executed successfully',
+  PATIENT_REGISTERED_SUCCESSFULLY = 'Patient registered successfully',
 }
 
 export const ABI = [
