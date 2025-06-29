@@ -12,6 +12,10 @@ export class ContractService {
     return await this.contractProvider.handleGetSystemAdminCount();
   }
 
+  async getPatientCount() {
+    return await this.contractProvider.handleGetPatientCount();
+  }
+
   @OnEvent(SharedEvents.ADD_PATIENT_TO_CONTRACT)
   async registerPatient(ctx: ERegisterEntity) {
     return await this.contractProvider.handleRegisterPatient(ctx.userId);
