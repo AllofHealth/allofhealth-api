@@ -60,3 +60,7 @@ export class EOnUserLogin {
     readonly authProvider?: TAuthProvider,
   ) {}
 }
+
+export class ERegisterEntity {
+  constructor(readonly userId: string) {}
+}
