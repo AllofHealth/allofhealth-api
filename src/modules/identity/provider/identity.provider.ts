@@ -35,7 +35,7 @@ export class IdentityProvider {
               role: ctx.role,
             })
             .onConflictDoUpdate({
-              target: schema.identity.userId,
+              target: schema.identity.id,
               set: {
                 governmentFileId: ctx.governmentFileId,
                 governmentId: ctx.governmentId,
@@ -67,7 +67,7 @@ export class IdentityProvider {
               role: ctx.role,
             })
             .onConflictDoUpdate({
-              target: schema.identity.userId,
+              target: schema.identity.id,
               set: {
                 governmentId: ctx.governmentId ? ctx.governmentId : null,
                 governmentFileId: ctx.governmentFileId
