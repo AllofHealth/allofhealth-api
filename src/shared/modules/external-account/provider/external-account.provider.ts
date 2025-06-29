@@ -4,14 +4,19 @@ import {
 } from '@/shared/data/constants';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ethers } from 'ethers';
 import * as schema from '@/schemas/schema';
 import { eq } from 'drizzle-orm';
 import { AuthUtils } from '@/shared/utils/auth.utils';
 
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { ExternalAccountErrorMessage } from '../data/external-account.data';
 import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 
 @Injectable()
@@ -82,9 +87,8 @@ export class ExternalAccountProvider {
       );
       return signer;
     } catch (e) {
-      return this.handlerService.handleError(
-        e,
-        ExternalAccountErrorMessage.ERROR_PROVIDING_SIGNER,
+      throw new InternalServerErrorException(
+        `An error occurred while providing signer ${e}`,
       );
     }
   }
