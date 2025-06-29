@@ -1,5 +1,10 @@
 export enum ContractErrorMessages {
   ERROR_PROVIDING_CONTRACT = 'Error providing contract',
+  ERROR_PROVIDING_SYSTEM_ADMIN_COUNT = 'Error providing system admin count',
+}
+
+export enum ContractSuccessMessages {
+  TX_EXECUTED_SUCCESSFULLY = 'Transaction executed successfully',
 }
 
 export const ABI = [
