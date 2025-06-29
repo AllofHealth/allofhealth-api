@@ -15,6 +15,7 @@ import {
   AccountAbstractionErrorMessage as AEM,
 } from '../data/account-abstraction.data';
 import { ExternalAccountService } from '../../external-account/service/external-account.service';
+import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 
 @Injectable()
 export class AccountAbstractionProvider {
@@ -22,6 +23,7 @@ export class AccountAbstractionProvider {
   constructor(
     private readonly eoaProvider: ExternalAccountService,
     private readonly biconomyConfig: BiconomyConfig,
+    private readonly contractConfig: ContractConfig,
     private readonly authUtils: AuthUtils,
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
   ) {
@@ -57,7 +59,7 @@ export class AccountAbstractionProvider {
 
     const hashedPrivateKey = this.authUtils.encryptKey({
       data: signerResult.walletData.privateKey,
-      key: this.biconomyConfig.ENCRYPTION_KEY,
+      key: this.contractConfig.ENCRYPTION_KEY,
     });
 
     const accountConfig = {
