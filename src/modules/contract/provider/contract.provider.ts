@@ -3,8 +3,8 @@ import { ExternalAccountService } from '@/shared/modules/external-account/servic
 import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   ABI,
-  ContractErrorMessages,
-  ContractSuccessMessages,
+  ContractErrorMessages as CEM,
+  ContractSuccessMessages as CSM,
 } from '../data/contract.data';
 import { ethers } from 'ethers';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
@@ -48,14 +48,29 @@ export class ContractProvider {
       const count = await contract.systemAdminCount();
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
-        message: ContractSuccessMessages.TX_EXECUTED_SUCCESSFULLY,
+        message: CSM.TX_EXECUTED_SUCCESSFULLY,
         data: Number(count),
       });
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        ContractErrorMessages.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT,
+        CEM.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT,
       );
+    }
+  }
+
+  async handleRegisterPatient(userId: string) {
+    try {
+      const contract = await this.provideContract(userId);
+      const tx = await contract.addPatient();
+      await tx.wait();
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.PATIENT_REGISTERED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
     }
   }
 }
