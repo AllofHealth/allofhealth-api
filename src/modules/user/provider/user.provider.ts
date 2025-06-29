@@ -228,9 +228,12 @@ export class UserProvider {
             governmentIdFilePath: ctx.governmentIdfilePath,
           });
 
-          await this.createSmartAccountQueue.createSmartAccountJob(
+          await this.eventEmitter.emitAsync(
+            SharedEvents.CREATE_SMART_ACCOUNT,
             new CreateSmartAccount(insertedUser.id),
           );
+
+          await new Promise((resolve) => setTimeout(resolve, 3000));
 
           this.eventEmitter.emit(
             SharedEvents.ADD_PATIENT_TO_CONTRACT,
