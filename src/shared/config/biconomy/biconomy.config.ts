@@ -36,4 +36,8 @@ export class BiconomyConfig {
   @IsNotEmpty()
   @Value('LISK_TESTNET_PAYMASTER_API_KEY')
   LISK_TESTNET_PAYMASTER_API_KEY: string;
+
+  @IsNotEmpty()
+  @Value('ENCRYPTION_KEY')
+  ENCRYPTION_KEY: string;
 }
