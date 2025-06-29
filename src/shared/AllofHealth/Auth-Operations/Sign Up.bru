@@ -6,7 +6,7 @@ meta {
 
 post {
   url: http://localhost:3000/{{AUTH_PATH}}/signUp
-  body: json
+  body: multipartForm
   auth: inherit
 }
 
@@ -21,4 +21,15 @@ body:json {
     "governmentIdUrl": "https://example.com/government-id.jpg",
     "role": "PATIENT"
   }
+}
+
+body:multipart-form {
+  fullName: chisom prosper
+  emailAddress: prosper1@gmail.com
+  dateOfBirth: 1996-04-23
+  gender: male
+  phoneNumber: +2349122346450
+  password: taylorgang
+  role: PATIENT
+  governmentId: @file(/home/thrill/Pictures/Screenshots/Screenshot From 2025-03-11 16-39-50.png)
 }
