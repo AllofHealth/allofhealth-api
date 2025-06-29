@@ -174,8 +174,6 @@ export class UserProvider {
   }
 
   async createUser(ctx: ICreateUser) {
-    console.log('provider is hitting');
-
     try {
       const hashedPassword = await this.authUtils.hash(ctx.password);
 
