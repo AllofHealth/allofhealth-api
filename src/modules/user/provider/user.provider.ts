@@ -8,6 +8,7 @@ import {
   CreateDoctor,
   CreateSmartAccount,
   DeleteUser,
+  ERegisterEntity,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -231,6 +232,11 @@ export class UserProvider {
             new CreateSmartAccount(insertedUser.id),
           );
 
+          this.eventEmitter.emit(
+            SharedEvents.ADD_PATIENT_TO_CONTRACT,
+            new ERegisterEntity(insertedUser.id),
+          );
+
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -267,6 +273,11 @@ export class UserProvider {
 
           await this.createSmartAccountQueue.createSmartAccountJob(
             new CreateSmartAccount(insertedUser.id),
+          );
+
+          this.eventEmitter.emit(
+            SharedEvents.ADD_DOCTOR_TO_CONTRACT,
+            new ERegisterEntity(insertedUser.id),
           );
 
           parsedUser = {
