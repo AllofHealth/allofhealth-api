@@ -1,0 +1,43 @@
+meta {
+  name: Sign Up (Doctor)
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3000/{{AUTH_PATH}}/signUp
+  body: multipartForm
+  auth: inherit
+}
+
+body:json {
+  {
+    "fullName": "chikezie egbu",
+    "emailAddress": "preciousegbu@gmail.com",
+    "dateOfBirth": "1996-04-23",
+    "gender": "Male",
+    "phoneNumber": "+2349122145480",
+    "password": "taylorgang",
+    "governmentIdUrl": "https://example.com/government-id.jpg",
+    "role": "PATIENT"
+  }
+}
+
+body:multipart-form {
+  fullName: chisom prosper
+  emailAddress: prosper1@gmail.com
+  dateOfBirth: 1996-04-23
+  gender: male
+  phoneNumber: +2349122346450
+  password: taylorgang
+  role: PATIENT
+  governmentId: @file(/home/thrill/Pictures/Screenshots/Screenshot From 2025-03-11 16-39-50.png)
+  scannedLicense: @file(/home/thrill/Pictures/Screenshots/Screenshot From 2025-02-07 20-52-21.png)
+  specialization: surgeon
+  medicalLicenseNumber: NGN2021MSC
+  yearsOfExperience: 5
+  hospitalAssociation: r.jolad
+  locationOfHospital: gbagada
+  languagesSpoken: english
+  licenseExpirationDate: 2027-12-31
+}
