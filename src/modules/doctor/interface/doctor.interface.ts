@@ -5,7 +5,7 @@ export interface ICreateDoctor {
   specialization: string;
   medicalLicenseNumber: string;
   yearsOfExperience: number;
-  certifications: string[];
+  certifications?: string[];
   hospitalAssociation: string;
   locationOfHospital: string;
   languagesSpoken: string[];
