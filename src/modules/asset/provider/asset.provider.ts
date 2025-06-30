@@ -13,6 +13,7 @@ import {
 import {
   IHandleImageKitUpload,
   IUploadIdentityFile,
+  IUploadProfilePicture,
   TUploadContext,
 } from '../interface/asset.interface';
 import { AssetError } from '../error/asset.error';
@@ -143,6 +144,45 @@ export class AssetProvider {
     });
 
     await Promise.all(cleanupPromises);
+  }
+
+  async uploadProfilePicture(ctx: IUploadProfilePicture) {
+    const { userId, profilePictureFilePath } = ctx;
+    const folderPath = `/${userId}`;
+    const filesToCleanup: string[] = [];
+    try {
+      const result = await this.createFolder(userId);
+      if (!result) {
+        throw new BadRequestException(AEM.ERROR_CREATING_FOLDER);
+      }
+      if (result.status === HttpStatus.INTERNAL_SERVER_ERROR) {
+        return this.handler.handleReturn({
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: AEM.ERROR_CREATING_FOLDER,
+        });
+      }
+
+      filesToCleanup.push(profilePictureFilePath);
+      const profilePictureBuffer = fs.readFileSync(profilePictureFilePath);
+      const response = await this.handleImageKitUpload({
+        userId,
+        fileBuffer: profilePictureBuffer,
+        folderPath,
+        uploadContext: TUploadContext.PROFILE_PICTURE,
+      });
+
+      await this.cleanupLocalFiles(filesToCleanup);
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.FILE_UPLOADED,
+        data: {
+          url: response.url,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_UPLOADING_FILE);
+    }
   }
 
   async uploadFile(ctx: IUploadIdentityFile) {
