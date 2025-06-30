@@ -7,6 +7,8 @@ export enum USER_ERROR_MESSAGES {
   ERROR_DELETING_USER = 'Error deleting user',
   ERROR_UPDATING_USER = 'Error updating user',
   INVALID_ROLE = 'Invalid role',
+  ERROR_HANDLING_PATIENT_REGISTRATION = 'Error handling patient registration',
+  ERROR_HANDLING_DOCTOR_REGISTRATION = 'Error handling doctor registration',
 }
 
 export enum USER_SUCCESS_MESSAGE {
