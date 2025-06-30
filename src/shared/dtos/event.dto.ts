@@ -64,3 +64,10 @@ export class EOnUserLogin {
 export class ERegisterEntity {
   constructor(readonly userId: string) {}
 }
+
+export class EHandleRegisterPatient {
+  constructor(
+    readonly userId: string,
+    readonly governmentIdFilePath: string,
+  ) {}
+}
