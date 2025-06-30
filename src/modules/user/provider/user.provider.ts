@@ -56,11 +56,11 @@ export class UserProvider {
           ctx.specialization,
           ctx.medicalLicenseNumber,
           ctx.yearsOfExperience,
-          ctx.certifications,
           ctx.hospitalAssociation,
           ctx.locationOfHospital,
           ctx.languagesSpoken,
           ctx.licenseExpirationDate,
+          ctx.certifications,
         ),
       );
     } catch (error) {
@@ -317,7 +317,7 @@ export class UserProvider {
         case 'DOCTOR':
           await this.emitEvent({
             userId: insertedUser.id,
-            certifications: ctx.certifications!,
+            certifications: ctx.certifications,
             hospitalAssociation: ctx.hospitalAssociation!,
             languagesSpoken: ctx.languagesSpoken!,
             licenseExpirationDate: ctx.licenseExpirationDate!,
