@@ -8,6 +8,7 @@ import {
   CreateDoctor,
   CreateSmartAccount,
   DeleteUser,
+  EHandleRegisterPatient,
   ERegisterEntity,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
@@ -30,6 +31,7 @@ import {
 import { UserError } from '../error/user.error';
 import {
   ICreateUser,
+  IHandleDoctorRegistration,
   IUpdateUser,
   IUserSnippet,
 } from '../interface/user.interface';
@@ -172,6 +174,75 @@ export class UserProvider {
     }
   }
 
+  @OnEvent(SharedEvents.PATIENT_REGISTRATION, { async: true })
+  private async handlePatientRegistration(ctx: EHandleRegisterPatient) {
+    const { userId, governmentIdFilePath } = ctx;
+    try {
+      await this.emitStoreIdentity({
+        userId: userId,
+        role: 'PATIENT',
+        governmentIdFilePath: governmentIdFilePath,
+      });
+
+      await this.eventEmitter.emitAsync(
+        SharedEvents.CREATE_SMART_ACCOUNT,
+        new CreateSmartAccount(userId),
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      this.eventEmitter.emit(
+        SharedEvents.ADD_PATIENT_TO_CONTRACT,
+        new ERegisterEntity(userId),
+      );
+    } catch (e) {
+      await this.deleteUser({
+        userId: userId,
+      });
+      throw new HttpException(
+        `${UEM.ERROR_HANDLING_PATIENT_REGISTRATION}, ${e}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async handleDoctorRegistration(ctx: IHandleDoctorRegistration) {
+    const { userId, governmentIdFilePath, scannedLicenseFilePath } = ctx;
+    try {
+      await this.emitStoreIdentity({
+        userId: userId,
+        role: 'DOCTOR',
+        governmentIdFilePath: governmentIdFilePath,
+        scannedLicenseFilePath: scannedLicenseFilePath,
+      });
+
+      await this.eventEmitter.emitAsync(
+        SharedEvents.CREATE_SMART_ACCOUNT,
+        new CreateSmartAccount(userId),
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      this.eventEmitter.emit(
+        SharedEvents.ADD_DOCTOR_TO_CONTRACT,
+        new ERegisterEntity(userId),
+      );
+    } catch (e) {
+      await this.deleteUser({
+        userId: userId,
+      });
+      throw new HttpException(
+        `${UEM.ERROR_HANDLING_DOCTOR_REGISTRATION}, ${e}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * @todo Abstract role creation to it's own process and handle rollback on process fail
+   * @param ctx
+   * @returns
+   */
   async createUser(ctx: ICreateUser) {
     try {
       const hashedPassword = await this.authUtils.hash(ctx.password);
@@ -222,24 +293,13 @@ export class UserProvider {
 
       switch (ctx.role) {
         case 'PATIENT':
-          await this.emitStoreIdentity({
-            userId: insertedUser.id,
-            role: 'PATIENT',
-            governmentIdFilePath: ctx.governmentIdfilePath,
-          });
-
           await this.eventEmitter.emitAsync(
-            SharedEvents.CREATE_SMART_ACCOUNT,
-            new CreateSmartAccount(insertedUser.id),
+            SharedEvents.PATIENT_REGISTRATION,
+            new EHandleRegisterPatient(
+              insertedUser.id,
+              ctx.governmentIdfilePath,
+            ),
           );
-
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-
-          this.eventEmitter.emit(
-            SharedEvents.ADD_PATIENT_TO_CONTRACT,
-            new ERegisterEntity(insertedUser.id),
-          );
-
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -267,21 +327,11 @@ export class UserProvider {
             yearsOfExperience: ctx.yearsOfExperience!,
           });
 
-          await this.emitStoreIdentity({
+          await this.handleDoctorRegistration({
             userId: insertedUser.id,
-            role: 'DOCTOR',
             governmentIdFilePath: ctx.governmentIdfilePath,
-            scannedLicenseFilePath: ctx.scannedLicensefilePath,
+            scannedLicenseFilePath: ctx.scannedLicensefilePath!,
           });
-
-          await this.createSmartAccountQueue.createSmartAccountJob(
-            new CreateSmartAccount(insertedUser.id),
-          );
-
-          this.eventEmitter.emit(
-            SharedEvents.ADD_DOCTOR_TO_CONTRACT,
-            new ERegisterEntity(insertedUser.id),
-          );
 
           parsedUser = {
             userId: insertedUser.id,
