@@ -363,6 +363,7 @@ export class UserProvider {
       userId,
       fullName,
       dateOfBirth,
+      profilePictureFilePath,
       emailAddress,
       gender,
       hospitalAssociation,
@@ -421,6 +422,23 @@ export class UserProvider {
             message: UEM.EMAIL_EXIST,
           });
         }
+      }
+
+      if (profilePictureFilePath) {
+        const result = await this.assetService.uploadProfilePicture({
+          userId,
+          profilePictureFilePath: profilePictureFilePath,
+        });
+
+        if (!('data' in result) || !result.data) {
+          return this.handler.handleReturn({
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: UEM.ERROR_UPDATING_USER,
+          });
+        }
+
+        const profilePicture = result.data.url;
+        dataToUpdate.profilePicture = profilePicture;
       }
 
       await this.db
