@@ -63,3 +63,14 @@ export interface IUserSnippet {
 }
 
 export type CreateUserType = Promise<Result<IUserSnippet, UserError>>;
+
+export interface IHandlePatientRegistration {
+  userId: string;
+  governmentIdFilePath: string;
+}
+
+export interface IHandleDoctorRegistration {
+  userId: string;
+  governmentIdFilePath: string;
+  scannedLicenseFilePath: string;
+}
