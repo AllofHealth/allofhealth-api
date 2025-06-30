@@ -39,6 +39,7 @@ export interface ICreateUser {
 export interface IUpdateUser {
   userId: string;
   fullName?: string;
+  profilePictureFilePath?: string;
   emailAddress?: string;
   dateOfBirth?: Date;
   gender?: string;
