@@ -6,4 +6,6 @@ export enum SharedEvents {
   UPDATE_USER_LOGIN = 'update.user.login',
   ADD_PATIENT_TO_CONTRACT = 'add.patient.to.contract',
   ADD_DOCTOR_TO_CONTRACT = 'add.doctor.to.contract',
+  PATIENT_REGISTRATION = 'patient.registration',
+  DOCTOR_REGISTRATION = 'doctor.registration',
 }
