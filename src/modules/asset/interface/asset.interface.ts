@@ -3,6 +3,7 @@ import { TRole } from '@/shared/interface/shared.interface';
 export enum TUploadContext {
   GOVERNMENT_ID = 'government-id',
   SCANNED = 'scanned-license',
+  PROFILE_PICTURE = 'profile-picture',
 }
 
 export interface IUploadIdentityFile {
@@ -17,4 +18,9 @@ export interface IHandleImageKitUpload {
   folderPath: string;
   fileBuffer: NonSharedBuffer;
   uploadContext: TUploadContext;
+}
+
+export interface IUploadProfilePicture {
+  userId: string;
+  profilePictureFilePath: string;
 }
