@@ -7,11 +7,11 @@ export class CreateDoctor {
     readonly specialization: string,
     readonly medicalLicenseNumber: string,
     readonly yearsOfExperience: number,
-    readonly certifications: string[],
     readonly hospitalAssociation: string,
     readonly locationOfHospital: string,
     readonly languagesSpoken: string[],
     readonly licenseExpirationDate: Date,
+    readonly certifications?: string[],
   ) {}
 }
 
