@@ -14,6 +14,10 @@ export class DoctorService {
     return await this.doctorProvider.createDoctor(ctx);
   }
 
+  async fetchDoctor(userId: string) {
+    return await this.doctorProvider.fetchDoctor(userId);
+  }
+
   async fetchAllDoctors(ctx: IFetchDoctors) {
     return await this.doctorProvider.fetchAllDoctors(ctx);
   }
