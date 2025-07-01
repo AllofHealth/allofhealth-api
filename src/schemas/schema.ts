@@ -106,3 +106,17 @@ export const refresh_tokens = pgTable('refresh_tokens', {
   replacedByToken: text('replaced_by_token'),
   updatedAt: date('updated_at').notNull().defaultNow(),
 });
+
+export const health_journal = pgTable('health_journal', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),
+  mood: varchar('mood', { length: 255 }).notNull(),
+  symptoms: jsonb('symptoms').default('[]'),
+  activities: jsonb('activities').default('[]'),
+  tags: jsonb('tags').default('[]'),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: date('updated_at').notNull().defaultNow(),
+});
