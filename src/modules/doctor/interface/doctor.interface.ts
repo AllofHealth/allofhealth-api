@@ -21,3 +21,8 @@ export interface IDoctorSnippet extends IUserSnippet {
   locationOfHospital: string;
   languagesSpoken: string[];
 }
+
+export interface IFetchDoctors {
+  page?: number;
+  limit?: number;
+}
