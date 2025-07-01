@@ -63,6 +63,9 @@ export const doctors = pgTable('doctors', {
   }).notNull(),
   yearsOfExperience: integer('years_of_experience').notNull(),
   languagesSpoken: jsonb('languages_spoken').default('[]'),
+  availability: varchar('availability', {
+    length: 255,
+  }),
   lastLogin: timestamp('last_login', { withTimezone: true }),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
