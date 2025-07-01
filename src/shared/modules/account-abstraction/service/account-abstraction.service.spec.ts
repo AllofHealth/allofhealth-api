@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AccountAbstractionService } from './account-abstraction.service';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
 import {
   LISK_MAINNET_BUNDLER_API_KEY,
   LISK_MAINNET_BUNDLER_ID,
@@ -10,11 +10,11 @@ import {
   LISK_TESTNET_BUNDLER_URL,
   LISK_TESTNET_PAYMASTER_API_KEY,
 } from '@/shared/data/constants';
-import { ExternalAccountService } from '../../external-account/service/external-account.service';
-import { ExternalAccountProvider } from '../../external-account/provider/external-account.provider';
-import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
-import { AccountAbstractionProvider } from '../provider/account-abstraction.provider';
 import { AuthUtils } from '@/shared/utils/auth.utils';
+import { ExternalAccountProvider } from '../../external-account/provider/external-account.provider';
+import { ExternalAccountService } from '../../external-account/service/external-account.service';
+import { AccountAbstractionProvider } from '../provider/account-abstraction.provider';
+import { AccountAbstractionService } from './account-abstraction.service';
 
 describe('AccountAbstractionService', () => {
   let service: AccountAbstractionService;
@@ -56,11 +56,11 @@ describe('AccountAbstractionService', () => {
       const result = await service.createSmartAccount({
         userId: '885bdbed-93ee-4db4-87d3-e6b051a5a706',
       });
-      if (!('data' in result) || !result.data) {
+      if (!('data' in result && result.data)) {
         throw new Error('Error creating account');
       }
 
       console.log(result);
-    }, 50000);
+    }, 50_000);
   });
 });

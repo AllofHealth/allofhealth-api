@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { TokenProvider } from '../provider/token.provider';
-import {
+import type {
   ICreateRefreshToken,
   IFindValidToken,
   IRevokeToken,
 } from '../interface/token.interface';
+import type { TokenProvider } from '../provider/token.provider';
 
 @Injectable()
 export class TokenService {

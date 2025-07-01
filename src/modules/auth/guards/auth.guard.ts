@@ -1,21 +1,21 @@
 import {
-  CanActivate,
-  ExecutionContext,
+  type CanActivate,
+  type ExecutionContext,
+  HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { HttpStatus } from '@nestjs/common';
+import type { JwtService } from '@nestjs/jwt';
+import type { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
-import { TokenService } from '@/modules/token/service/token.service';
+import type { TokenService } from '@/modules/token/service/token.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
-    private readonly logger: MyLoggerService,
+    private readonly logger: MyLoggerService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -63,9 +63,11 @@ export class AuthGuard implements CanActivate {
 
       if (error.name === 'TokenExpiredError') {
         throw new UnauthorizedException('Access token has expired');
-      } else if (error.name === 'JsonWebTokenError') {
+      }
+      if (error.name === 'JsonWebTokenError') {
         throw new UnauthorizedException('Invalid token signature');
-      } else if (error instanceof UnauthorizedException) {
+      }
+      if (error instanceof UnauthorizedException) {
         throw error;
       }
 
@@ -78,7 +80,7 @@ export class AuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      return undefined;
+      return;
     }
 
     const [type, token] = authHeader.split(' ');

@@ -1,6 +1,6 @@
-import { TRole } from '@/shared/interface/shared.interface';
-import { Result } from 'neverthrow';
-import { UserError } from '../error/user.error';
+import type { Result } from 'neverthrow';
+import type { TRole } from '@/shared/interface/shared.interface';
+import type { UserError } from '../error/user.error';
 export type TAuthProvider = 'GOOGLE' | 'CREDENTIALS';
 
 export interface ICreateDoctor {

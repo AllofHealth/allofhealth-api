@@ -1,7 +1,7 @@
-import { CreateSmartAccount } from '@/shared/dtos/event.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
-import { Queue } from 'bull';
+import type { Queue } from 'bull';
+import type { CreateSmartAccount } from '@/shared/dtos/event.dto';
 
 @Injectable()
 export class CreateSmartAccountQueue {

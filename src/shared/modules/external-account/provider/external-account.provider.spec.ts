@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExternalAccountProvider } from './external-account.provider';
-import { ExternalAccountSuccessMessage } from '../data/external-account.data';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { ExternalAccountSuccessMessage } from '../data/external-account.data';
+import { ExternalAccountProvider } from './external-account.provider';
 
 describe('ExternalAccountProvider', () => {
   let provider: ExternalAccountProvider;
@@ -27,10 +27,10 @@ describe('ExternalAccountProvider', () => {
 
       const wallet = errorHandler.handleResult(
         result,
-        ExternalAccountSuccessMessage.WALLET_CREATED,
+        ExternalAccountSuccessMessage.WALLET_CREATED
       );
 
-      if (!('data' in wallet) || !(wallet.data && wallet)) {
+      if (!('data' in wallet && wallet.data && wallet)) {
         throw new Error('Wallet data not found');
       }
 

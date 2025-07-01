@@ -17,7 +17,7 @@ export class MyLoggerService extends ConsoleLogger {
       const pathExist = fs.existsSync(logsDir);
 
       if (!pathExist) {
-        console.log(`creating directory`);
+        console.log('creating directory');
         await fsPromises.mkdir(logsDir, { recursive: true });
       }
 

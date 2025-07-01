@@ -1,4 +1,3 @@
-import { TRole } from '@/shared/interface/shared.interface';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
@@ -9,6 +8,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import type { TRole } from '@/shared/interface/shared.interface';
 
 export class SignUpDto {
   @ApiProperty({

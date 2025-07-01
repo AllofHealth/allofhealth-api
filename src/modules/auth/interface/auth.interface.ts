@@ -1,5 +1,5 @@
-import { TAuthProvider } from '@/modules/user/interface/user.interface';
-import { TRole } from '@/shared/interface/shared.interface';
+import type { TAuthProvider } from '@/modules/user/interface/user.interface';
+import type { TRole } from '@/shared/interface/shared.interface';
 
 export interface IhandleLogin {
   email: string;

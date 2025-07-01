@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ContractService } from '../service/contract.service';
+import type { ContractService } from '../service/contract.service';
 
 @ApiTags('Contract Operations')
 @Controller('contract')

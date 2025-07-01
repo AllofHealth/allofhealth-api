@@ -6,7 +6,7 @@ export class UserError extends Error {
 
   constructor(
     message: string = USER_ERROR_MESSAGES.ERROR_CREATE_USER,
-    status: number = HttpStatus.INTERNAL_SERVER_ERROR,
+    status: number = HttpStatus.INTERNAL_SERVER_ERROR
   ) {
     super(message);
     this.name = 'UserError';

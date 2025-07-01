@@ -1,7 +1,7 @@
+import { forwardRef, Module } from '@nestjs/common';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AccountQueueModule } from '@/shared/queues/account/account-queue.module';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { forwardRef, Module } from '@nestjs/common';
 import { AssetModule } from '../asset/asset.module';
 import { TokenModule } from '../token/token.module';
 import { UserController } from './controller/user.controller';

@@ -5,7 +5,7 @@ export class IdentityError extends Error {
   public status: number;
   constructor(
     message: string = IDENTITY_ERROR_MESSAGES.ERROR_STORING_IDENTIFICATION,
-    status: number = HttpStatus.INTERNAL_SERVER_ERROR,
+    status: number = HttpStatus.INTERNAL_SERVER_ERROR
   ) {
     super(message);
     this.name = 'IdentityError';

@@ -1,5 +1,3 @@
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import {
   Body,
   Controller,
@@ -10,6 +8,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -20,19 +19,19 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import {
   USER_ERROR_MESSAGES as UEM,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
-import { UpdateUserDto } from '../dto/user.dto';
+import type { UpdateUserDto } from '../dto/user.dto';
 import { UserError } from '../error/user.error';
-import { UserService } from '../service/user.service';
-
 import { OwnerGuard } from '../guard/user.guard';
-import { AuthGuard } from '@/modules/auth/guards/auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import type { UserService } from '../service/user.service';
 
 @ApiTags('User Operations')
 @Controller('user')
@@ -50,11 +49,11 @@ export class UserController {
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(
             null,
-            file.fieldname + '-' + uniqueSuffix + extname(file.originalname),
+            file.fieldname + '-' + uniqueSuffix + extname(file.originalname)
           );
         },
       }),
-    }),
+    })
   )
   @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: 'Updates an existing user' })
@@ -163,7 +162,7 @@ export class UserController {
   async updateUser(
     @Ip() ip: string,
     @UploadedFile() profilePicture: Express.Multer.File,
-    @Body() ctx: UpdateUserDto,
+    @Body() ctx: UpdateUserDto
   ) {
     this.logger.log(`Updating user ${ctx.userId} from ${ip} `);
     return this.userService.updateUser({

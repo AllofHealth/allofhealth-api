@@ -1,6 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExternalAccountService } from './external-account.service';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { ExternalAccountProvider } from '../provider/external-account.provider';
+import { ExternalAccountService } from './external-account.service';
 
 describe('ExternalAccountService', () => {
   let service: ExternalAccountService;

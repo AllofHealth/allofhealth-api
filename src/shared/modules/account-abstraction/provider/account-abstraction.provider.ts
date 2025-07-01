@@ -1,22 +1,22 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
 import { createSmartAccountClient } from '@biconomy/account';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
+import * as schema from '@/schemas/schema';
+import type { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
+import type { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 import {
   LISK_MAINNET_CHAINID,
   LISK_TESTNET_CHAINID,
 } from '@/shared/data/constants';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
-import * as schema from '@/schemas/schema';
-import { AuthUtils } from '@/shared/utils/auth.utils';
-import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import type { Database } from '@/shared/drizzle/drizzle.types';
+import type { ErrorHandler } from '@/shared/error-handler/error.handler';
+import type { AuthUtils } from '@/shared/utils/auth.utils';
+import type { ExternalAccountService } from '../../external-account/service/external-account.service';
 import {
-  AccountAbstractionSuccessMessage as ASM,
   AccountAbstractionErrorMessage as AEM,
+  AccountAbstractionSuccessMessage as ASM,
 } from '../data/account-abstraction.data';
-import { ExternalAccountService } from '../../external-account/service/external-account.service';
-import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
-import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class AccountAbstractionProvider {
@@ -32,25 +32,22 @@ export class AccountAbstractionProvider {
   private provideBundleUrl() {
     if (process.env.NODE_ENV === 'production') {
       return this.biconomyConfig.LISK_MAINNET_BUNDLER_URL;
-    } else {
-      return this.biconomyConfig.LISK_TESTNET_BUNDLER_URL;
     }
+    return this.biconomyConfig.LISK_TESTNET_BUNDLER_URL;
   }
 
   private provideChainId() {
     if (process.env.NODE_ENV === 'production') {
       return LISK_MAINNET_CHAINID;
-    } else {
-      return LISK_TESTNET_CHAINID;
     }
+    return LISK_TESTNET_CHAINID;
   }
 
   private providerPayMaster() {
     if (process.env.NODE_ENV === 'production') {
       return this.biconomyConfig.LISK_MAINNET_PAYMASTER_API_KEY;
-    } else {
-      return this.biconomyConfig.LISK_TESTNET_PAYMASTER_API_KEY;
     }
+    return this.biconomyConfig.LISK_TESTNET_PAYMASTER_API_KEY;
   }
 
   private async provideAccountConfig(userId: string) {
@@ -97,7 +94,7 @@ export class AccountAbstractionProvider {
           externalAddress: signerResult.walletData.walletAddress,
           privateKey: hashedPrivateKey,
           smartWalletAddress: smartAddress,
-          userId: userId,
+          userId,
         })
         .returning();
 
@@ -123,7 +120,7 @@ export class AccountAbstractionProvider {
         where: eq(schema.accounts.userId, userId),
       });
 
-      if (!result || !result.smartWalletAddress) {
+      if (!(result && result.smartWalletAddress)) {
         return this.handler.handleReturn({
           status: HttpStatus.NOT_FOUND,
           message: AEM.ERROR_SMART_ADDRESS_NOT_FOUND,

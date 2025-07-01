@@ -1,14 +1,14 @@
-import * as schema from '@/schemas/schema';
-import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
-import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { and, eq, sql } from 'drizzle-orm';
+import * as schema from '@/schemas/schema';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import type { Database } from '@/shared/drizzle/drizzle.types';
+import type { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
   DOCTOR_ERROR_MESSGAES as DEM,
   DOCTOR_SUCCESS_MESSAGES as DSM,
 } from '../data/doctor.data';
-import {
+import type {
   ICreateDoctor,
   IDoctorSnippet,
   IFetchDoctors,
@@ -28,10 +28,7 @@ export class DoctorProvider {
         .from(schema.doctors)
         .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
         .where(
-          and(
-            eq(schema.doctors.userId, userId),
-            eq(schema.user.role, 'DOCTOR'),
-          ),
+          and(eq(schema.doctors.userId, userId), eq(schema.user.role, 'DOCTOR'))
         )
         .limit(1);
 
@@ -150,7 +147,7 @@ export class DoctorProvider {
         data: parsedDoctors,
         meta: {
           currentPage: page,
-          totalPages: totalPages,
+          totalPages,
           totalCount,
           itemsPerPage: limit,
           hasNextPage: page < totalPages,

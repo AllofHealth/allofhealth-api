@@ -1,14 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ContractProvider } from './contract.provider';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 import {
   CONTRACT_ADDRESS,
   ENCRYPTION_KEY,
   SUPER_PRIVATE_KEY,
 } from '@/shared/data/constants';
-import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 import { ExternalAccountProvider } from '@/shared/modules/external-account/provider/external-account.provider';
+import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
+import { ContractProvider } from './contract.provider';
 
 describe('Contract', () => {
   let provider: ContractProvider;

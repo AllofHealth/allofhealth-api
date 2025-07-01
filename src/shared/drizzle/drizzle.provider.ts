@@ -1,7 +1,7 @@
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Provider } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Pool } from '@neondatabase/serverless';
+import type { Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '@/schemas/schema';
 
 export const DRIZZLE_PROVIDER = 'DRIZZLE_PROVIDER';
@@ -18,7 +18,7 @@ export const drizzleProvider: Provider[] = [
       const pool = new Pool({
         connectionString: uri,
         max: 10,
-        connectionTimeoutMillis: 50000,
+        connectionTimeoutMillis: 50_000,
       });
 
       console.log('Attempting to connect to db');

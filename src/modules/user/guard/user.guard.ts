@@ -1,12 +1,12 @@
 import {
-  CanActivate,
-  ExecutionContext,
+  type CanActivate,
+  type ExecutionContext,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import type { JwtService } from '@nestjs/jwt';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { UserService } from '@/modules/user/service/user.service';
+import type { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class OwnerGuard implements CanActivate {
@@ -14,7 +14,7 @@ export class OwnerGuard implements CanActivate {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly userService: UserService,
+    private readonly userService: UserService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -37,15 +37,15 @@ export class OwnerGuard implements CanActivate {
       console.log(`Requested user ID: ${requestedUserId}`);
 
       this.logger.log(
-        `Verifying ownership: Token user ID ${tokenUserId}, Requested user ID ${requestedUserId}`,
+        `Verifying ownership: Token user ID ${tokenUserId}, Requested user ID ${requestedUserId}`
       );
 
       if (tokenUserId !== requestedUserId) {
         this.logger.warn(
-          `Unauthorized access attempt: User ${tokenUserId} tried to access data for user ${requestedUserId}`,
+          `Unauthorized access attempt: User ${tokenUserId} tried to access data for user ${requestedUserId}`
         );
         throw new UnauthorizedException(
-          'You can only access or modify your own data',
+          'You can only access or modify your own data'
         );
       }
 
@@ -62,9 +62,11 @@ export class OwnerGuard implements CanActivate {
 
       if (error.name === 'TokenExpiredError') {
         throw new UnauthorizedException('Access token has expired');
-      } else if (error.name === 'JsonWebTokenError') {
+      }
+      if (error.name === 'JsonWebTokenError') {
         throw new UnauthorizedException('Invalid token signature');
-      } else if (error instanceof UnauthorizedException) {
+      }
+      if (error instanceof UnauthorizedException) {
         throw error;
       }
 
@@ -76,7 +78,7 @@ export class OwnerGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      return undefined;
+      return;
     }
 
     const [type, token] = authHeader.split(' ');
@@ -94,7 +96,7 @@ export class OwnerGuard implements CanActivate {
 
       return userId;
     } catch (error) {
-      console.error(`error extracting userId`, error);
+      console.error('error extracting userId', error);
     }
   }
 }

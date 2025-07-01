@@ -1,1 +1,1 @@
-export interface HealthJournal {}
+export type HealthJournal = {};
