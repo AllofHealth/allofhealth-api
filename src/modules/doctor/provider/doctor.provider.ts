@@ -3,19 +3,23 @@ import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import {
   DOCTOR_ERROR_MESSGAES as DEM,
   DOCTOR_SUCCESS_MESSAGES as DSM,
 } from '../data/doctor.data';
-import { ICreateDoctor, IDoctorSnippet } from '../interface/doctor.interface';
+import {
+  ICreateDoctor,
+  IDoctorSnippet,
+  IFetchDoctors,
+} from '../interface/doctor.interface';
 
 @Injectable()
 export class DoctorProvider {
-  private handler: ErrorHandler;
-  constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {
-    this.handler = new ErrorHandler();
-  }
+  constructor(
+    @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
+    private readonly handler: ErrorHandler,
+  ) {}
 
   async fetchDoctor(userId: string) {
     try {
@@ -98,6 +102,41 @@ export class DoctorProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
+    }
+  }
+
+  async fetchAllDoctors(ctx: IFetchDoctors) {
+    const { page = 1, limit = 12 } = ctx;
+    const skip = (page - 1) * limit;
+    try {
+      const totalDoctors = this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.doctors);
+
+      const totalCount = Number(totalDoctors[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const doctors = await this.db
+        .select()
+        .from(schema.doctors)
+        .offset(skip)
+        .limit(limit);
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: DSM.DOCTOR_FETCHED,
+        data: doctors,
+        meta: {
+          currentPage: page,
+          totalPages: totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, DEM.ERROR_FETCHING_ALL_DOCTORS);
     }
   }
 }
