@@ -49,6 +49,7 @@ export class DoctorProvider {
         locationOfHospital: doctor[0].doctors.locationOfHospital,
         medicalLicenseNumber: doctor[0].doctors.medicalLicenseNumber,
         yearsOfExperience: doctor[0].doctors.yearsOfExperience,
+        availability: doctor[0].doctors.availability as string,
       };
 
       return this.handler.handleReturn({
@@ -109,23 +110,44 @@ export class DoctorProvider {
     const { page = 1, limit = 12 } = ctx;
     const skip = (page - 1) * limit;
     try {
-      const totalDoctors = this.db
+      const totalDoctorsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
-        .from(schema.doctors);
+        .from(schema.doctors)
+        .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+        .where(eq(schema.user.role, 'DOCTOR'));
 
-      const totalCount = Number(totalDoctors[0]?.count ?? 0);
+      const totalCount = Number(totalDoctorsResult[0]?.count ?? 0);
       const totalPages = Math.ceil(totalCount / limit);
 
       const doctors = await this.db
         .select()
         .from(schema.doctors)
+        .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+        .where(eq(schema.user.role, 'DOCTOR'))
         .offset(skip)
         .limit(limit);
+
+      const parsedDoctors: IDoctorSnippet[] = doctors.map((doctor) => ({
+        userId: doctor.users.id,
+        fullName: doctor.users.fullName,
+        email: doctor.users.emailAddress,
+        gender: doctor.users.gender,
+        profilePicture: doctor.users.profilePicture as string,
+        role: doctor.users.role,
+        certifications: doctor.doctors.certifications as string[],
+        hospitalAssociation: doctor.doctors.hospitalAssociation,
+        specialization: doctor.doctors.specialization,
+        languagesSpoken: doctor.doctors.languagesSpoken as string[],
+        locationOfHospital: doctor.doctors.locationOfHospital,
+        medicalLicenseNumber: doctor.doctors.medicalLicenseNumber,
+        yearsOfExperience: doctor.doctors.yearsOfExperience,
+        availability: doctor.doctors.availability as string,
+      }));
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: DSM.DOCTOR_FETCHED,
-        data: doctors,
+        data: parsedDoctors,
         meta: {
           currentPage: page,
           totalPages: totalPages,
