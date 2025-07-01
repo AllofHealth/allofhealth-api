@@ -1,12 +1,12 @@
 import {
-  type CanActivate,
-  type ExecutionContext,
+  CanActivate,
+  ExecutionContext,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import type { UserService } from '@/modules/user/service/user.service';
+import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class OwnerGuard implements CanActivate {
@@ -14,7 +14,7 @@ export class OwnerGuard implements CanActivate {
 
   constructor(
     private readonly jwtService: JwtService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -37,15 +37,15 @@ export class OwnerGuard implements CanActivate {
       console.log(`Requested user ID: ${requestedUserId}`);
 
       this.logger.log(
-        `Verifying ownership: Token user ID ${tokenUserId}, Requested user ID ${requestedUserId}`
+        `Verifying ownership: Token user ID ${tokenUserId}, Requested user ID ${requestedUserId}`,
       );
 
       if (tokenUserId !== requestedUserId) {
         this.logger.warn(
-          `Unauthorized access attempt: User ${tokenUserId} tried to access data for user ${requestedUserId}`
+          `Unauthorized access attempt: User ${tokenUserId} tried to access data for user ${requestedUserId}`,
         );
         throw new UnauthorizedException(
-          'You can only access or modify your own data'
+          'You can only access or modify your own data',
         );
       }
 

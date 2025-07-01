@@ -30,9 +30,9 @@ import {
   AuthErrorMessage as AEM,
   AuthSuccessMessage as ASM,
 } from '../data/auth.data';
-import type { SignInDto, SignUpDto } from '../dto/auth.dto';
+import { SignInDto, SignUpDto } from '../dto/auth.dto';
 import { AuthError } from '../error/auth.error';
-import type { AuthService } from '../service/auth.service';
+import { AuthService } from '../service/auth.service';
 
 @ApiTags('Auth Operations')
 @Controller('auth')
@@ -55,12 +55,12 @@ export class AuthController {
               Date.now() + '-' + Math.round(Math.random() * 1e9);
             cb(
               null,
-              file.fieldname + '-' + uniqueSuffix + extname(file.originalname)
+              file.fieldname + '-' + uniqueSuffix + extname(file.originalname),
             );
           },
         }),
-      }
-    )
+      },
+    ),
   )
   @ApiOperation({
     summary: 'Sign up a new user',
@@ -172,11 +172,11 @@ export class AuthController {
     files: {
       governmentId?: Express.Multer.File[];
       scannedLicense?: Express.Multer.File[];
-    }
+    },
   ) {
     if (!files.governmentId || files.governmentId.length === 0) {
       throw new BadRequestException(
-        'Government ID is required. Please ensure the form field name is "governmentId"'
+        'Government ID is required. Please ensure the form field name is "governmentId"',
       );
     }
 
@@ -185,7 +185,7 @@ export class AuthController {
       (!files.scannedLicense || files.scannedLicense.length === 0)
     ) {
       throw new BadRequestException(
-        'Medical license is required for doctor registration. Please ensure the form field name is "scannedLicense"'
+        'Medical license is required for doctor registration. Please ensure the form field name is "scannedLicense"',
       );
     }
 

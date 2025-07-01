@@ -28,10 +28,10 @@ import {
   USER_ERROR_MESSAGES as UEM,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
-import type { UpdateUserDto } from '../dto/user.dto';
+import { UpdateUserDto } from '../dto/user.dto';
 import { UserError } from '../error/user.error';
 import { OwnerGuard } from '../guard/user.guard';
-import type { UserService } from '../service/user.service';
+import { UserService } from '../service/user.service';
 
 @ApiTags('User Operations')
 @Controller('user')
@@ -49,11 +49,11 @@ export class UserController {
             Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(
             null,
-            file.fieldname + '-' + uniqueSuffix + extname(file.originalname)
+            file.fieldname + '-' + uniqueSuffix + extname(file.originalname),
           );
         },
       }),
-    })
+    }),
   )
   @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: 'Updates an existing user' })
@@ -162,7 +162,7 @@ export class UserController {
   async updateUser(
     @Ip() ip: string,
     @UploadedFile() profilePicture: Express.Multer.File,
-    @Body() ctx: UpdateUserDto
+    @Body() ctx: UpdateUserDto,
   ) {
     this.logger.log(`Updating user ${ctx.userId} from ${ip} `);
     return this.userService.updateUser({

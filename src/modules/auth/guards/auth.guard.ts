@@ -1,21 +1,21 @@
 import {
-  type CanActivate,
-  type ExecutionContext,
+  CanActivate,
+  ExecutionContext,
   HttpStatus,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { JwtService } from '@nestjs/jwt';
-import type { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { JwtService } from '@nestjs/jwt';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
-import type { TokenService } from '@/modules/token/service/token.service';
+import { TokenService } from '@/modules/token/service/token.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
-    private readonly logger: MyLoggerService
+    private readonly logger: MyLoggerService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

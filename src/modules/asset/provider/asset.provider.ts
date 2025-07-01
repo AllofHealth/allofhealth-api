@@ -1,8 +1,8 @@
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
-import type { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs';
-import type ImageKit from 'imagekit';
-import type { ImageKitConfig } from '@/shared/config/imagekit/imagekit.config';
+import ImageKit from 'imagekit';
+import { ImageKitConfig } from '@/shared/config/imagekit/imagekit.config';
 import { StoreId } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -12,9 +12,9 @@ import {
 } from '../data/asset.data';
 import { AssetError } from '../error/asset.error';
 import {
-  type IHandleImageKitUpload,
-  type IUploadIdentityFile,
-  type IUploadProfilePicture,
+  IHandleImageKitUpload,
+  IUploadIdentityFile,
+  IUploadProfilePicture,
   TUploadContext,
 } from '../interface/asset.interface';
 
@@ -23,7 +23,7 @@ export class AssetProvider {
   private handler: ErrorHandler;
   constructor(
     private readonly imageKitConfig: ImageKitConfig,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.handler = new ErrorHandler();
   }
@@ -223,7 +223,7 @@ export class AssetProvider {
             fileBuffer: governmentFileBuffer,
             folderPath,
             uploadContext: TUploadContext.GOVERNMENT_ID,
-          })
+          }),
         );
 
         const [response] = await Promise.all(uploadPromises);
@@ -232,17 +232,17 @@ export class AssetProvider {
           ctx.userId,
           'PATIENT',
           response.url,
-          response.fileId
+          response.fileId,
         );
       } else if (ctx.role === 'DOCTOR') {
         filesToCleanup.push(
           ctx.governmentIdFilePath!,
-          ctx.scannedLicenseFilePath!
+          ctx.scannedLicenseFilePath!,
         );
 
         const governmentFileBuffer = fs.readFileSync(ctx.governmentIdFilePath!);
         const scannedLicenseBuffer = fs.readFileSync(
-          ctx.scannedLicenseFilePath!
+          ctx.scannedLicenseFilePath!,
         );
 
         uploadPromises = [
@@ -269,7 +269,7 @@ export class AssetProvider {
           governmentResponse.url,
           governmentResponse.fileId,
           licenseResponse.url,
-          licenseResponse.fileId
+          licenseResponse.fileId,
         );
       }
 

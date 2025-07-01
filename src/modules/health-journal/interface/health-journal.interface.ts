@@ -1,4 +1,4 @@
-export type TMood = 'GREAT' | 'GOOD' | 'NEUTRAL' | 'LOW';
+export type TMood = 'great' | 'good' | 'neutral' | 'low';
 
 export interface IAddEntry {
   userId: string;

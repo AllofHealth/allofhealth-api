@@ -3,7 +3,7 @@ import type {
   IUploadIdentityFile,
   IUploadProfilePicture,
 } from '../interface/asset.interface';
-import type { AssetProvider } from '../provider/asset.provider';
+import { AssetProvider } from '../provider/asset.provider';
 
 @Injectable()
 export class AssetService {

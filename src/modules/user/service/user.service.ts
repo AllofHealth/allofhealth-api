@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import type { EOnUserLogin } from '@/shared/dtos/event.dto';
+import { EOnUserLogin } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
-import type { ICreateUser, IUpdateUser } from '../interface/user.interface';
-import type { UserProvider } from '../provider/user.provider';
+import { ICreateUser, IUpdateUser } from '../interface/user.interface';
+import { UserProvider } from '../provider/user.provider';
 
 @Injectable()
 export class UserService {
