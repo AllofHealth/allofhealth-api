@@ -49,6 +49,7 @@ export interface IUpdateUser {
   medicalLicenseNumber?: string;
   hospitalAssociation?: string;
   locationOfHospital?: string;
+  availability?: string;
   lastLogin?: Date;
   lastActivity?: Date;
   authProvider?: TAuthProvider;
