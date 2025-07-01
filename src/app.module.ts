@@ -16,6 +16,7 @@ import { AccountAbstractionModule } from './shared/modules/account-abstraction/a
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContractModule } from './modules/contract/contract.module';
+import { HealthJournalModule } from './modules/health-journal/health-journal.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { ContractModule } from './modules/contract/contract.module';
     ExternalAccountModule,
     AuthModule,
     ContractModule,
+    HealthJournalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
