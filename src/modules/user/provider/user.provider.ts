@@ -1,20 +1,3 @@
-import { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
-import { AssetService } from '@/modules/asset/service/asset.service';
-import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
-import * as schema from '@/schemas/schema';
-import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
-import {
-  CreateDoctor,
-  CreateSmartAccount,
-  DeleteUser,
-  EHandleRegisterPatient,
-  ERegisterEntity,
-} from '@/shared/dtos/event.dto';
-import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { SharedEvents } from '@/shared/events/shared.events';
-import { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
-import { AuthUtils } from '@/shared/utils/auth.utils';
 import {
   BadRequestException,
   HttpException,
@@ -22,14 +5,31 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { type EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
+import type { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
+import type { AssetService } from '@/modules/asset/service/asset.service';
+import type { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
+import * as schema from '@/schemas/schema';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import type { Database } from '@/shared/drizzle/drizzle.types';
+import {
+  CreateDoctor,
+  CreateSmartAccount,
+  DeleteUser,
+  EHandleRegisterPatient,
+  ERegisterEntity,
+} from '@/shared/dtos/event.dto';
+import type { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { SharedEvents } from '@/shared/events/shared.events';
+import type { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
+import type { AuthUtils } from '@/shared/utils/auth.utils';
 import {
   USER_ERROR_MESSAGES as UEM,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
 import { UserError } from '../error/user.error';
-import {
+import type {
   ICreateUser,
   IHandleDoctorRegistration,
   IUpdateUser,
@@ -60,14 +60,14 @@ export class UserProvider {
           ctx.locationOfHospital,
           ctx.languagesSpoken,
           ctx.licenseExpirationDate,
-          ctx.certifications,
-        ),
+          ctx.certifications
+        )
       );
     } catch (error) {
       //handle rollback
       this.eventEmitter.emit(
         SharedEvents.DELETE_USER,
-        new DeleteUser(ctx.userId),
+        new DeleteUser(ctx.userId)
       );
       return this.handler.handleError(error, 'Failed to emit event');
     }
@@ -82,7 +82,7 @@ export class UserProvider {
         .where(eq(schema.identity.userId, ctx.userId));
       return this.handler.handleError(
         error,
-        'Failed to emit event to store identity',
+        'Failed to emit event to store identity'
       );
     }
   }
@@ -105,7 +105,7 @@ export class UserProvider {
         .limit(1);
 
       if (!user || user.length === 0) {
-        console.log(`user not found`);
+        console.log('user not found');
         return this.handler.handleReturn({
           status: HttpStatus.NOT_FOUND,
           message: UEM.USER_NOT_FOUND,
@@ -179,29 +179,29 @@ export class UserProvider {
     const { userId, governmentIdFilePath } = ctx;
     try {
       await this.emitStoreIdentity({
-        userId: userId,
+        userId,
         role: 'PATIENT',
-        governmentIdFilePath: governmentIdFilePath,
+        governmentIdFilePath,
       });
 
       await this.eventEmitter.emitAsync(
         SharedEvents.CREATE_SMART_ACCOUNT,
-        new CreateSmartAccount(userId),
+        new CreateSmartAccount(userId)
       );
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       this.eventEmitter.emit(
         SharedEvents.ADD_PATIENT_TO_CONTRACT,
-        new ERegisterEntity(userId),
+        new ERegisterEntity(userId)
       );
     } catch (e) {
       await this.deleteUser({
-        userId: userId,
+        userId,
       });
       throw new HttpException(
         `${UEM.ERROR_HANDLING_PATIENT_REGISTRATION}, ${e}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -210,30 +210,30 @@ export class UserProvider {
     const { userId, governmentIdFilePath, scannedLicenseFilePath } = ctx;
     try {
       await this.emitStoreIdentity({
-        userId: userId,
+        userId,
         role: 'DOCTOR',
-        governmentIdFilePath: governmentIdFilePath,
-        scannedLicenseFilePath: scannedLicenseFilePath,
+        governmentIdFilePath,
+        scannedLicenseFilePath,
       });
 
       await this.eventEmitter.emitAsync(
         SharedEvents.CREATE_SMART_ACCOUNT,
-        new CreateSmartAccount(userId),
+        new CreateSmartAccount(userId)
       );
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       this.eventEmitter.emit(
         SharedEvents.ADD_DOCTOR_TO_CONTRACT,
-        new ERegisterEntity(userId),
+        new ERegisterEntity(userId)
       );
     } catch (e) {
       await this.deleteUser({
-        userId: userId,
+        userId,
       });
       throw new HttpException(
         `${UEM.ERROR_HANDLING_DOCTOR_REGISTRATION}, ${e}`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -277,7 +277,7 @@ export class UserProvider {
       if (!user[0]) {
         throw new HttpException(
           UEM.ERROR_CREATE_USER,
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
 
@@ -297,8 +297,8 @@ export class UserProvider {
             SharedEvents.PATIENT_REGISTRATION,
             new EHandleRegisterPatient(
               insertedUser.id,
-              ctx.governmentIdfilePath,
-            ),
+              ctx.governmentIdfilePath
+            )
           );
           parsedUser = {
             userId: insertedUser.id,
@@ -350,7 +350,7 @@ export class UserProvider {
 
         default:
           throw new BadRequestException(
-            new UserError('Role not implemented', HttpStatus.BAD_REQUEST),
+            new UserError('Role not implemented', HttpStatus.BAD_REQUEST)
           );
       }
     } catch (e) {
@@ -379,22 +379,21 @@ export class UserProvider {
     } = ctx;
     try {
       const userResult = await this.findUserById(userId);
-      if (!('data' in userResult) || !(userResult.data && userResult)) {
+      if (!('data' in userResult && userResult.data && userResult)) {
         throw new HttpException(UEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       if (
-        hospitalAssociation ||
-        locationOfHospital ||
-        medicalLicenseNumber ||
-        specialization
+        (hospitalAssociation ||
+          locationOfHospital ||
+          medicalLicenseNumber ||
+          specialization) &&
+        userResult.data.role !== 'DOCTOR'
       ) {
-        if (userResult.data.role !== 'DOCTOR') {
-          return this.handler.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: UEM.INVALID_ROLE,
-          });
-        }
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: UEM.INVALID_ROLE,
+        });
       }
 
       const dataToUpdate: Record<string, any> = {};
@@ -432,10 +431,10 @@ export class UserProvider {
       if (profilePictureFilePath) {
         const result = await this.assetService.uploadProfilePicture({
           userId,
-          profilePictureFilePath: profilePictureFilePath,
+          profilePictureFilePath,
         });
 
-        if (!('data' in result) || !result.data) {
+        if (!('data' in result && result.data)) {
           return this.handler.handleReturn({
             status: HttpStatus.INTERNAL_SERVER_ERROR,
             message: UEM.ERROR_UPDATING_USER,

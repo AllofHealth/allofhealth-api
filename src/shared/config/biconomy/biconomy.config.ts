@@ -1,5 +1,5 @@
-import { IsNotEmpty } from 'class-validator';
 import { Configuration, Value } from '@itgorillaz/configify';
+import { IsNotEmpty } from 'class-validator';
 
 @Configuration()
 export class BiconomyConfig {

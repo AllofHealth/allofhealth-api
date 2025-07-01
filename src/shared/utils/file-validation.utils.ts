@@ -1,8 +1,8 @@
 import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
+  type ArgumentMetadata,
   BadRequestException,
+  Injectable,
+  type PipeTransform,
 } from '@nestjs/common';
 
 @Injectable()
@@ -39,9 +39,9 @@ export class FileSizeValidationPipe implements PipeTransform {
     const originalName = value.originalname || '';
     const extension = originalName.split('.').pop()?.toLowerCase();
 
-    if (!extension || !allowedExtensions.includes(extension)) {
+    if (!(extension && allowedExtensions.includes(extension))) {
       throw new BadRequestException(
-        `File type not allowed. Allowed types: ${allowedExtensions.join(', ')}`,
+        `File type not allowed. Allowed types: ${allowedExtensions.join(', ')}`
       );
     }
 

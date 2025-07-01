@@ -1,4 +1,4 @@
-import { TRole } from '@/shared/interface/shared.interface';
+import type { TRole } from '@/shared/interface/shared.interface';
 
 export interface IStoreIdentification {
   userId: string;

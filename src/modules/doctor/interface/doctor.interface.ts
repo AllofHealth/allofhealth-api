@@ -1,4 +1,4 @@
-import { IUserSnippet } from '@/modules/user/interface/user.interface';
+import type { IUserSnippet } from '@/modules/user/interface/user.interface';
 
 export interface ICreateDoctor {
   userId: string;

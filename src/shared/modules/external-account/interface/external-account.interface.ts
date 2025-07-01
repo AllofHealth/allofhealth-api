@@ -1,10 +1,10 @@
-import { Result } from 'neverthrow';
-import {
+import type { ethers } from 'ethers';
+import type { Result } from 'neverthrow';
+import type {
   CreateSignerError,
   ProviderError,
   WalletCreationError,
 } from '../errors/external-account.errors';
-import { ethers } from 'ethers';
 
 type WalletData = {
   publicKey: string;

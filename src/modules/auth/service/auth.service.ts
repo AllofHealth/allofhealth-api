@@ -1,7 +1,7 @@
-import { ICreateUser } from '@/modules/user/interface/user.interface';
 import { Injectable } from '@nestjs/common';
-import { AuthProvider } from '../provider/auth.provider';
-import { ILogin } from '../interface/auth.interface';
+import type { ICreateUser } from '@/modules/user/interface/user.interface';
+import type { ILogin } from '../interface/auth.interface';
+import type { AuthProvider } from '../provider/auth.provider';
 
 @Injectable()
 export class AuthService {

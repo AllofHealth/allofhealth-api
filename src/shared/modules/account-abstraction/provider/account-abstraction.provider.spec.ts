@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { AccountAbstractionProvider } from './account-abstraction.provider';
 
 describe('AccountAbstractionProvider', () => {
@@ -10,7 +10,7 @@ describe('AccountAbstractionProvider', () => {
     }).compile();
 
     provider = module.get<AccountAbstractionProvider>(
-      AccountAbstractionProvider,
+      AccountAbstractionProvider
     );
   });
 

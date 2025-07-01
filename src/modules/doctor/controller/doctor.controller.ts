@@ -6,7 +6,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { DoctorService } from '../service/doctor.service';
 import {
   ApiInternalServerErrorResponse,
   ApiOkResponse,
@@ -14,13 +13,14 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import {
-  DOCTOR_SUCCESS_MESSAGES as DSM,
-  DOCTOR_ERROR_MESSGAES as DEM,
-} from '../data/doctor.data';
 import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
+import {
+  DOCTOR_ERROR_MESSGAES as DEM,
+  DOCTOR_SUCCESS_MESSAGES as DSM,
+} from '../data/doctor.data';
+import type { DoctorService } from '../service/doctor.service';
 
 @ApiTags('Doctor Operations')
 @Controller('doctor')
@@ -117,7 +117,7 @@ export class DoctorController {
   async fetchAllDoctors(
     @Ip() ip: string,
     @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('limit') limit?: number
   ) {
     this.logger.log(`Fetch doctor request from ${ip}`);
     return await this.doctorSevice.fetchAllDoctors({

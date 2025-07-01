@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { SALT_ROUNDS } from '../data/constants';
-import { IEncrypt } from '../interface/shared.interface';
 import * as crypto from 'crypto';
+import { SALT_ROUNDS } from '../data/constants';
+import type { IEncrypt } from '../interface/shared.interface';
 
 interface ICompare {
   password: string;

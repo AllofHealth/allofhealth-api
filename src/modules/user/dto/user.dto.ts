@@ -1,4 +1,3 @@
-import { TRole } from '@/shared/interface/shared.interface';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
@@ -10,6 +9,7 @@ import {
   IsString,
   IsUrl,
 } from 'class-validator';
+import type { TRole } from '@/shared/interface/shared.interface';
 
 export class CreateUserDto {
   @ApiProperty({

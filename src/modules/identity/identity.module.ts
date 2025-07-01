@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { IdentityService } from './service/identity.service';
-import { IdentityProvider } from './provider/identity.provider';
 import { IdentityController } from './controller/identity.controller';
+import { IdentityProvider } from './provider/identity.provider';
+import { IdentityService } from './service/identity.service';
 
 @Module({
   providers: [IdentityService, IdentityProvider],

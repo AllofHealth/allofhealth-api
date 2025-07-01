@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { AccountAbstractionService } from '../service/account-abstraction.service';
+import type { AccountAbstractionService } from '../service/account-abstraction.service';
 
 @Controller('account-abstraction')
 export class AccountAbstractionController {

@@ -1,15 +1,15 @@
-import { PLACEHOLDER } from '@/shared/data/constants';
 import {
+  boolean,
+  date,
+  integer,
+  jsonb,
   pgTable,
+  text,
+  timestamp,
   uuid,
   varchar,
-  date,
-  text,
-  jsonb,
-  integer,
-  timestamp,
-  boolean,
 } from 'drizzle-orm/pg-core';
+import { PLACEHOLDER } from '@/shared/data/constants';
 
 export const user = pgTable('users', {
   id: uuid('id').notNull().primaryKey().unique().defaultRandom(),

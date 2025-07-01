@@ -1,7 +1,7 @@
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { CreateSmartAccountQueue } from './account.queue';
 import { CreateSmartAccountProcessor } from '@/shared/processors/account.processor';
+import { CreateSmartAccountQueue } from './account.queue';
 
 @Module({
   imports: [

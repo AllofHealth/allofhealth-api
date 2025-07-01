@@ -1,29 +1,29 @@
-import { ImageKitConfig } from '@/shared/config/imagekit/imagekit.config';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import type { EventEmitter2 } from '@nestjs/event-emitter';
+import * as fs from 'fs';
+import type ImageKit from 'imagekit';
+import type { ImageKitConfig } from '@/shared/config/imagekit/imagekit.config';
 import { StoreId } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import * as fs from 'fs';
-import ImageKit from 'imagekit';
 import {
   AssetErrorMessage as AEM,
   AssetSuccessMessage as ASM,
 } from '../data/asset.data';
+import { AssetError } from '../error/asset.error';
 import {
-  IHandleImageKitUpload,
-  IUploadIdentityFile,
-  IUploadProfilePicture,
+  type IHandleImageKitUpload,
+  type IUploadIdentityFile,
+  type IUploadProfilePicture,
   TUploadContext,
 } from '../interface/asset.interface';
-import { AssetError } from '../error/asset.error';
 
 @Injectable()
 export class AssetProvider {
   private handler: ErrorHandler;
   constructor(
     private readonly imageKitConfig: ImageKitConfig,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitter: EventEmitter2
   ) {
     this.handler = new ErrorHandler();
   }
@@ -221,9 +221,9 @@ export class AssetProvider {
           this.handleImageKitUpload({
             userId: ctx.userId,
             fileBuffer: governmentFileBuffer,
-            folderPath: folderPath,
+            folderPath,
             uploadContext: TUploadContext.GOVERNMENT_ID,
-          }),
+          })
         );
 
         const [response] = await Promise.all(uploadPromises);
@@ -232,30 +232,30 @@ export class AssetProvider {
           ctx.userId,
           'PATIENT',
           response.url,
-          response.fileId,
+          response.fileId
         );
       } else if (ctx.role === 'DOCTOR') {
         filesToCleanup.push(
           ctx.governmentIdFilePath!,
-          ctx.scannedLicenseFilePath!,
+          ctx.scannedLicenseFilePath!
         );
 
         const governmentFileBuffer = fs.readFileSync(ctx.governmentIdFilePath!);
         const scannedLicenseBuffer = fs.readFileSync(
-          ctx.scannedLicenseFilePath!,
+          ctx.scannedLicenseFilePath!
         );
 
         uploadPromises = [
           this.handleImageKitUpload({
             userId: ctx.userId,
             fileBuffer: governmentFileBuffer,
-            folderPath: folderPath,
+            folderPath,
             uploadContext: TUploadContext.GOVERNMENT_ID,
           }),
           this.handleImageKitUpload({
             userId: ctx.userId,
             fileBuffer: scannedLicenseBuffer,
-            folderPath: folderPath,
+            folderPath,
             uploadContext: TUploadContext.SCANNED,
           }),
         ];
@@ -269,7 +269,7 @@ export class AssetProvider {
           governmentResponse.url,
           governmentResponse.fileId,
           licenseResponse.url,
-          licenseResponse.fileId,
+          licenseResponse.fileId
         );
       }
 

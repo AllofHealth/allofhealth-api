@@ -1,23 +1,23 @@
 import {
-  LISK_MAINNET_RPC_URL,
-  LISK_TESTNET_RPC_URL,
-} from '@/shared/data/constants';
-import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
-import {
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { ethers } from 'ethers';
 import * as schema from '@/schemas/schema';
-import { eq } from 'drizzle-orm';
-import { AuthUtils } from '@/shared/utils/auth.utils';
+import type { ContractConfig } from '@/shared/config/smart-contract/contract.config';
+import {
+  LISK_MAINNET_RPC_URL,
+  LISK_TESTNET_RPC_URL,
+} from '@/shared/data/constants';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import type { Database } from '@/shared/drizzle/drizzle.types';
 
-import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
+import type { ErrorHandler } from '@/shared/error-handler/error.handler';
+import type { AuthUtils } from '@/shared/utils/auth.utils';
 
 @Injectable()
 export class ExternalAccountProvider {
@@ -43,10 +43,10 @@ export class ExternalAccountProvider {
 
     const signer = new ethers.Wallet(
       wallet.privateKey,
-      this.handleGetProvider(),
+      this.handleGetProvider()
     );
     return {
-      signer: signer,
+      signer,
       walletData: {
         publicKey: wallet.publicKey,
         privateKey: wallet.privateKey,
@@ -71,8 +71,8 @@ export class ExternalAccountProvider {
         result[0].privateKey === null
       ) {
         throw new HttpException(
-          `No signature found for this account`,
-          HttpStatus.NOT_FOUND,
+          'No signature found for this account',
+          HttpStatus.NOT_FOUND
         );
       }
 
@@ -83,12 +83,12 @@ export class ExternalAccountProvider {
 
       const signer = new ethers.Wallet(
         decryptedPrivateKey,
-        this.handleGetProvider(),
+        this.handleGetProvider()
       );
       return signer;
     } catch (e) {
       throw new InternalServerErrorException(
-        `An error occurred while providing signer ${e}`,
+        `An error occurred while providing signer ${e}`
       );
     }
   }
@@ -96,7 +96,7 @@ export class ExternalAccountProvider {
   provideAdminSigner() {
     const signer = new ethers.Wallet(
       this.config.SUPER_PRIVATE_KEY,
-      this.handleGetProvider(),
+      this.handleGetProvider()
     );
     return signer;
   }

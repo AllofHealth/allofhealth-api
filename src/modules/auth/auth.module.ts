@@ -1,5 +1,5 @@
-import { AuthUtils } from '@/shared/utils/auth.utils';
 import { Module } from '@nestjs/common';
+import { AuthUtils } from '@/shared/utils/auth.utils';
 import { TokenModule } from '../token/token.module';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './controller/auth.controller';

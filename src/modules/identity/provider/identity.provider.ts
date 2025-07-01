@@ -1,19 +1,19 @@
-import * as schema from '@/schemas/schema';
-import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
 import {
   BadRequestException,
   HttpStatus,
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { IStoreIdentification } from '../interface/identity.interface';
+import * as schema from '@/schemas/schema';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import type { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
   IDENTITY_ERROR_MESSAGES as IEM,
   IDENTITY_SUCCESS_MESSAGES as ISM,
 } from '../data/identity.data';
 import { IdentityError } from '../error/identity.error';
+import type { IStoreIdentification } from '../interface/identity.interface';
 
 @Injectable()
 export class IdentityProvider {
@@ -51,8 +51,8 @@ export class IdentityProvider {
             throw new BadRequestException(
               new IdentityError(
                 'Please provide a copy of your medical license',
-                HttpStatus.BAD_REQUEST,
-              ),
+                HttpStatus.BAD_REQUEST
+              )
             );
           }
 
@@ -89,8 +89,8 @@ export class IdentityProvider {
             throw new BadRequestException(
               new IdentityError(
                 'Please provide a copy of your medical license',
-                HttpStatus.BAD_REQUEST,
-              ),
+                HttpStatus.BAD_REQUEST
+              )
             );
           }
 

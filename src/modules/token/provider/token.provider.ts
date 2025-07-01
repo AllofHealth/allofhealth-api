@@ -1,11 +1,11 @@
-import * as schema from '@/schemas/schema';
-import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
-import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { and, eq, gt, isNull } from 'drizzle-orm';
+import * as schema from '@/schemas/schema';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import type { Database } from '@/shared/drizzle/drizzle.types';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { TokenErrorMessages, TokenSuccessMessages } from '../data/token.data';
-import {
+import type {
   ICreateRefreshToken,
   IFindValidToken,
   IRevokeToken,
@@ -45,7 +45,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN,
+        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN
       );
     }
   }
@@ -79,7 +79,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_CREATING_REFRESH_TOKEN,
+        TokenErrorMessages.ERROR_CREATING_REFRESH_TOKEN
       );
     }
   }
@@ -96,8 +96,8 @@ export class TokenProvider {
             eq(schema.refresh_tokens.userId, userId),
             eq(schema.refresh_tokens.token, token),
             isNull(schema.refresh_tokens.revokedAt),
-            gt(schema.refresh_tokens.expiresAt, now),
-          ),
+            gt(schema.refresh_tokens.expiresAt, now)
+          )
         );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -107,7 +107,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN,
+        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN
       );
     }
   }
@@ -132,7 +132,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_REVOKING_TOKEN,
+        TokenErrorMessages.ERROR_REVOKING_TOKEN
       );
     }
   }
