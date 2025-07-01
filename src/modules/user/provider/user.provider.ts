@@ -369,6 +369,7 @@ export class UserProvider {
       hospitalAssociation,
       locationOfHospital,
       medicalLicenseNumber,
+      availability,
       password,
       phoneNumber,
       specialization,
@@ -397,22 +398,26 @@ export class UserProvider {
       }
 
       const dataToUpdate: Record<string, any> = {};
+      const doctorDataToUpdate: Record<string, any> = {};
+
       if (fullName) dataToUpdate.fullName = fullName;
       if (emailAddress) dataToUpdate.emailAddress = emailAddress;
       if (dateOfBirth) dataToUpdate.dateOfBirth = dateOfBirth;
       if (gender) dataToUpdate.gender = gender;
       if (password) dataToUpdate.password = password;
       if (phoneNumber) dataToUpdate.phoneNumber = phoneNumber;
-      if (hospitalAssociation)
-        dataToUpdate.hospitalAssociation = hospitalAssociation;
-      if (locationOfHospital)
-        dataToUpdate.locationOfHospital = locationOfHospital;
-      if (medicalLicenseNumber)
-        dataToUpdate.medicalLicenseNumber = medicalLicenseNumber;
-      if (specialization) dataToUpdate.specialization = specialization;
       if (lastLogin) dataToUpdate.lastLogin = lastLogin;
       if (lastActivity) dataToUpdate.lastActivity = lastActivity;
       if (authProvider) dataToUpdate.authProvider = authProvider;
+
+      if (hospitalAssociation)
+        doctorDataToUpdate.hospitalAssociation = hospitalAssociation;
+      if (locationOfHospital)
+        doctorDataToUpdate.locationOfHospital = locationOfHospital;
+      if (medicalLicenseNumber)
+        doctorDataToUpdate.medicalLicenseNumber = medicalLicenseNumber;
+      if (specialization) doctorDataToUpdate.specialization = specialization;
+      if (availability) doctorDataToUpdate.availability = availability;
 
       if (emailAddress && emailAddress !== userResult.data.email) {
         const emailExists = await this.validateEmailAddress(emailAddress);
@@ -445,6 +450,13 @@ export class UserProvider {
         .update(schema.user)
         .set(dataToUpdate)
         .where(eq(schema.user.id, userId));
+
+      if (doctorDataToUpdate && Object.keys(doctorDataToUpdate).length > 0) {
+        await this.db
+          .update(schema.doctors)
+          .set(doctorDataToUpdate)
+          .where(eq(schema.doctors.userId, userId));
+      }
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
