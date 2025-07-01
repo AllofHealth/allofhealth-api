@@ -20,6 +20,7 @@ export interface IDoctorSnippet extends IUserSnippet {
   hospitalAssociation: string;
   locationOfHospital: string;
   languagesSpoken: string[];
+  availability: string;
 }
 
 export interface IFetchDoctors {
