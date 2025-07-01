@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import type { CreateDoctor } from '@/shared/dtos/event.dto';
+import { CreateDoctor } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
-import type { IFetchDoctors } from '../interface/doctor.interface';
-import type { DoctorProvider } from '../provider/doctor.provider';
+import { IFetchDoctors } from '../interface/doctor.interface';
+import { DoctorProvider } from '../provider/doctor.provider';
 
 @Injectable()
 export class DoctorService {

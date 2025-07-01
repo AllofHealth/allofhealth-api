@@ -2,17 +2,17 @@ import { createSmartAccountClient } from '@biconomy/account';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
-import type { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
-import type { ContractConfig } from '@/shared/config/smart-contract/contract.config';
+import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
+import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 import {
   LISK_MAINNET_CHAINID,
   LISK_TESTNET_CHAINID,
 } from '@/shared/data/constants';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import type { Database } from '@/shared/drizzle/drizzle.types';
-import type { ErrorHandler } from '@/shared/error-handler/error.handler';
-import type { AuthUtils } from '@/shared/utils/auth.utils';
-import type { ExternalAccountService } from '../../external-account/service/external-account.service';
+import { Database } from '@/shared/drizzle/drizzle.types';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { AuthUtils } from '@/shared/utils/auth.utils';
+import { ExternalAccountService } from '../../external-account/service/external-account.service';
 import {
   AccountAbstractionErrorMessage as AEM,
   AccountAbstractionSuccessMessage as ASM,

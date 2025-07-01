@@ -4,7 +4,7 @@ import type {
   IFindValidToken,
   IRevokeToken,
 } from '../interface/token.interface';
-import type { TokenProvider } from '../provider/token.provider';
+import { TokenProvider } from '../provider/token.provider';
 
 @Injectable()
 export class TokenService {

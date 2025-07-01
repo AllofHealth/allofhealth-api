@@ -20,7 +20,7 @@ import {
   DOCTOR_ERROR_MESSGAES as DEM,
   DOCTOR_SUCCESS_MESSAGES as DSM,
 } from '../data/doctor.data';
-import type { DoctorService } from '../service/doctor.service';
+import { DoctorService } from '../service/doctor.service';
 
 @ApiTags('Doctor Operations')
 @Controller('doctor')
@@ -117,7 +117,7 @@ export class DoctorController {
   async fetchAllDoctors(
     @Ip() ip: string,
     @Query('page') page?: number,
-    @Query('limit') limit?: number
+    @Query('limit') limit?: number,
   ) {
     this.logger.log(`Fetch doctor request from ${ip}`);
     return await this.doctorSevice.fetchAllDoctors({

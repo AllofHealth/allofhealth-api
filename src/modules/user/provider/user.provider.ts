@@ -5,14 +5,14 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { type EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
-import type { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
-import type { AssetService } from '@/modules/asset/service/asset.service';
-import type { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
+import { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
+import { AssetService } from '@/modules/asset/service/asset.service';
+import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import type { Database } from '@/shared/drizzle/drizzle.types';
+import { Database } from '@/shared/drizzle/drizzle.types';
 import {
   CreateDoctor,
   CreateSmartAccount,
@@ -20,16 +20,16 @@ import {
   EHandleRegisterPatient,
   ERegisterEntity,
 } from '@/shared/dtos/event.dto';
-import type { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
-import type { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
-import type { AuthUtils } from '@/shared/utils/auth.utils';
+import { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
+import { AuthUtils } from '@/shared/utils/auth.utils';
 import {
   USER_ERROR_MESSAGES as UEM,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
 import { UserError } from '../error/user.error';
-import type {
+import {
   ICreateUser,
   IHandleDoctorRegistration,
   IUpdateUser,
@@ -60,14 +60,14 @@ export class UserProvider {
           ctx.locationOfHospital,
           ctx.languagesSpoken,
           ctx.licenseExpirationDate,
-          ctx.certifications
-        )
+          ctx.certifications,
+        ),
       );
     } catch (error) {
       //handle rollback
       this.eventEmitter.emit(
         SharedEvents.DELETE_USER,
-        new DeleteUser(ctx.userId)
+        new DeleteUser(ctx.userId),
       );
       return this.handler.handleError(error, 'Failed to emit event');
     }
@@ -82,7 +82,7 @@ export class UserProvider {
         .where(eq(schema.identity.userId, ctx.userId));
       return this.handler.handleError(
         error,
-        'Failed to emit event to store identity'
+        'Failed to emit event to store identity',
       );
     }
   }
@@ -186,14 +186,14 @@ export class UserProvider {
 
       await this.eventEmitter.emitAsync(
         SharedEvents.CREATE_SMART_ACCOUNT,
-        new CreateSmartAccount(userId)
+        new CreateSmartAccount(userId),
       );
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       this.eventEmitter.emit(
         SharedEvents.ADD_PATIENT_TO_CONTRACT,
-        new ERegisterEntity(userId)
+        new ERegisterEntity(userId),
       );
     } catch (e) {
       await this.deleteUser({
@@ -201,7 +201,7 @@ export class UserProvider {
       });
       throw new HttpException(
         `${UEM.ERROR_HANDLING_PATIENT_REGISTRATION}, ${e}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -218,14 +218,14 @@ export class UserProvider {
 
       await this.eventEmitter.emitAsync(
         SharedEvents.CREATE_SMART_ACCOUNT,
-        new CreateSmartAccount(userId)
+        new CreateSmartAccount(userId),
       );
 
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
       this.eventEmitter.emit(
         SharedEvents.ADD_DOCTOR_TO_CONTRACT,
-        new ERegisterEntity(userId)
+        new ERegisterEntity(userId),
       );
     } catch (e) {
       await this.deleteUser({
@@ -233,7 +233,7 @@ export class UserProvider {
       });
       throw new HttpException(
         `${UEM.ERROR_HANDLING_DOCTOR_REGISTRATION}, ${e}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -277,7 +277,7 @@ export class UserProvider {
       if (!user[0]) {
         throw new HttpException(
           UEM.ERROR_CREATE_USER,
-          HttpStatus.INTERNAL_SERVER_ERROR
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
 
@@ -297,8 +297,8 @@ export class UserProvider {
             SharedEvents.PATIENT_REGISTRATION,
             new EHandleRegisterPatient(
               insertedUser.id,
-              ctx.governmentIdfilePath
-            )
+              ctx.governmentIdfilePath,
+            ),
           );
           parsedUser = {
             userId: insertedUser.id,
@@ -350,7 +350,7 @@ export class UserProvider {
 
         default:
           throw new BadRequestException(
-            new UserError('Role not implemented', HttpStatus.BAD_REQUEST)
+            new UserError('Role not implemented', HttpStatus.BAD_REQUEST),
           );
       }
     } catch (e) {

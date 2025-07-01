@@ -2,10 +2,10 @@ import { PaymasterMode } from '@biconomy/account';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ethers } from 'ethers';
 import { encodeFunctionData } from 'viem';
-import type { ContractConfig } from '@/shared/config/smart-contract/contract.config';
-import type { ErrorHandler } from '@/shared/error-handler/error.handler';
-import type { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
-import type { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
+import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
+import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
 import {
   ABI,
   ContractErrorMessages as CEM,
@@ -18,7 +18,7 @@ export class ContractProvider {
     private readonly contractConfig: ContractConfig,
     private readonly eoaService: ExternalAccountService,
     private readonly handlerService: ErrorHandler,
-    private readonly aaService: AccountAbstractionService
+    private readonly aaService: AccountAbstractionService,
   ) {}
 
   private provideABI() {
@@ -55,7 +55,7 @@ export class ContractProvider {
     return new ethers.Contract(
       this.contractConfig.CONTRACT_ADDRESS,
       this.provideABI(),
-      this.eoaService.provideAdminSigner()
+      this.eoaService.provideAdminSigner(),
     );
   }
 
@@ -64,7 +64,7 @@ export class ContractProvider {
     return new ethers.Contract(
       this.contractConfig.CONTRACT_ADDRESS,
       this.provideABI(),
-      signer
+      signer,
     );
   }
 
@@ -81,7 +81,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT
+        CEM.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT,
       );
     }
   }
@@ -99,7 +99,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_PROVIDING_PATIENT_COUNT
+        CEM.ERROR_PROVIDING_PATIENT_COUNT,
       );
     }
   }

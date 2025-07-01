@@ -1,19 +1,19 @@
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
-import type { EventEmitter2 } from '@nestjs/event-emitter';
-import type { JwtService } from '@nestjs/jwt';
-import type { TokenService } from '@/modules/token/service/token.service';
-import type { ICreateUser } from '@/modules/user/interface/user.interface';
-import type { UserService } from '@/modules/user/service/user.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { JwtService } from '@nestjs/jwt';
+import { TokenService } from '@/modules/token/service/token.service';
+import { ICreateUser } from '@/modules/user/interface/user.interface';
+import { UserService } from '@/modules/user/service/user.service';
 import { EOnUserLogin } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
-import type { AuthUtils } from '@/shared/utils/auth.utils';
+import { AuthUtils } from '@/shared/utils/auth.utils';
 import {
   AuthErrorMessage as AEM,
   AuthSuccessMessage as ASM,
 } from '../data/auth.data';
 import { AuthError } from '../error/auth.error';
-import type { IJwtPayload, ILogin } from '../interface/auth.interface';
+import { IJwtPayload, ILogin } from '../interface/auth.interface';
 
 @Injectable()
 export class AuthProvider {
@@ -23,7 +23,7 @@ export class AuthProvider {
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
     private readonly authUtils: AuthUtils,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {
     this.handler = new ErrorHandler();
   }
@@ -35,7 +35,7 @@ export class AuthProvider {
 
     const refreshToken = await this.jwtService.signAsync(
       { ...payload, tokenType: 'refresh' },
-      { expiresIn: '7d' }
+      { expiresIn: '7d' },
     );
 
     const expiresIn = 7 * 24 * 60 * 60;
@@ -187,7 +187,7 @@ export class AuthProvider {
 
       if (!isPasswordValid) {
         throw new UnauthorizedException(
-          new AuthError(AEM.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED)
+          new AuthError(AEM.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED),
         );
       }
 
@@ -202,8 +202,8 @@ export class AuthProvider {
           userProfile.userId,
           new Date(),
           new Date(),
-          'CREDENTIALS'
-        )
+          'CREDENTIALS',
+        ),
       );
 
       return this.handler.handleReturn({

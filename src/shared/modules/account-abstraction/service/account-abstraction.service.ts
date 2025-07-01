@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import type { CreateSmartAccount } from '@/shared/dtos/event.dto';
+import { CreateSmartAccount } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
-import type { AccountAbstractionProvider } from '../provider/account-abstraction.provider';
+import { AccountAbstractionProvider } from '../provider/account-abstraction.provider';
 
 @Injectable()
 export class AccountAbstractionService {
