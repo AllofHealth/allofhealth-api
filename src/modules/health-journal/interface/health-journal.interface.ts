@@ -7,3 +7,9 @@ export interface IAddEntry {
   activities?: string[];
   tags?: string[];
 }
+
+export interface IFetchJournal {
+  userId: string;
+  page?: number;
+  limit?: number;
+}
