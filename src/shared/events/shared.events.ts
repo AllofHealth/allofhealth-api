@@ -8,4 +8,6 @@ export enum SharedEvents {
   ADD_DOCTOR_TO_CONTRACT = 'add.doctor.to.contract',
   PATIENT_REGISTRATION = 'patient.registration',
   DOCTOR_REGISTRATION = 'doctor.registration',
+  APPROVE_RECORD_ACCESS = 'approve.record.access',
+  APPROVE_WRITE_ACCESS = 'approve.write.access',
 }
