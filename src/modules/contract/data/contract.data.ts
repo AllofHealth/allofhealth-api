@@ -252,6 +252,13 @@ export const ABI = [
   },
   {
     type: 'function',
+    name: 'doctorIds',
+    inputs: [{ name: '', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'doctors',
     inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     outputs: [
@@ -272,6 +279,13 @@ export const ABI = [
     name: 'hospitalExists',
     inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'hospitalIds',
+    inputs: [{ name: '', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -403,6 +417,13 @@ export const ABI = [
   },
   {
     type: 'function',
+    name: 'patientIds',
+    inputs: [{ name: '', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     name: 'patients',
     inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     outputs: [
@@ -437,6 +458,13 @@ export const ABI = [
     name: 'pharmacistExists',
     inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'pharmacistIds',
+    inputs: [{ name: '', type: 'address', internalType: 'address' }],
+    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
     stateMutability: 'view',
   },
   {
