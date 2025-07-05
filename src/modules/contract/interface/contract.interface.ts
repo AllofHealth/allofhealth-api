@@ -1,1 +1,4 @@
-export type Contract = {};
+export interface IHandleApproveAccessToAddNewRecord {
+  userId: string;
+  doctorId: string;
+}
