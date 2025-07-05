@@ -270,6 +270,26 @@ export class ContractProvider {
       }
 
       const patientId = patientIdResult.data.patientId;
+      const approvalRequest = await this.isApprovedToAddNewRecord({
+        doctorAddress: doctorSmartAddress,
+        patientId,
+      });
+
+      if (!('data' in approvalRequest && approvalRequest.data)) {
+        return this.handlerService.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: approvalRequest.message,
+        });
+      }
+
+      const isApproved = approvalRequest.data.isApproved;
+      if (isApproved) {
+        return this.handlerService.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.DOCTOR_ALREADY_APPROVED,
+        });
+      }
+
       const tx = this.approveAccessToAddNewRecordTx(
         doctorSmartAddress,
         patientId,
