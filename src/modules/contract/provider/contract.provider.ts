@@ -11,7 +11,10 @@ import {
   ContractErrorMessages as CEM,
   ContractSuccessMessages as CSM,
 } from '../data/contract.data';
-import { IHandleApproveAccessToAddNewRecord } from '../interface/contract.interface';
+import {
+  IApprovedToAddNewRecord,
+  IHandleApproveAccessToAddNewRecord,
+} from '../interface/contract.interface';
 
 @Injectable()
 export class ContractProvider {
@@ -116,6 +119,30 @@ export class ContractProvider {
       return this.handlerService.handleError(
         e,
         CEM.ERROR_PROVIDING_PATIENT_COUNT,
+      );
+    }
+  }
+
+  async isApprovedToAddNewRecord(ctx: IApprovedToAddNewRecord) {
+    const { patientId, doctorAddress } = ctx;
+    try {
+      const contract = this.provideAdminContractInstance();
+      const isApproved = await contract.isApprovedByPatientToAddNewRecord(
+        patientId,
+        doctorAddress,
+      );
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.TX_EXECUTED_SUCCESSFULLY,
+        data: {
+          isApproved,
+        },
+      });
+    } catch (e) {
+      return this.handlerService.handleError(
+        e,
+        CEM.ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION,
       );
     }
   }
