@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
   Ip,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -50,6 +52,56 @@ export class HealthJournalController {
   })
   async addJournalEntry(@Ip() ip: string, @Body() ctx: AddEntryDto) {
     this.logger.log(`Journal entry for ${ctx.userId} from ${ip}`);
-    return this.journalService.addEntryToJournal(ctx);
+    return await this.journalService.addEntryToJournal(ctx);
+  }
+
+  @Get('fetchUserJournals')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiOperation({ summary: 'Fetch user journals' })
+  @ApiOkResponse({
+    description: HSM.SUCCESS_FETCHING_JOURNAL,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      data: {
+        id: '1234555',
+        userId: '12345',
+        mood: 'great',
+        symptoms: ['headache', 'fatigue'],
+        activities: ['running', 'reading'],
+        tags: ['work', 'family'],
+        createdAt: '20/08/2025',
+        updatedAt: '20/08/2025',
+      },
+      meta: {
+        currentPage: 1,
+        limit: 12,
+        totalCount: 24,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: HEM.ERROR_FETCHING_JOURNAL,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: HEM.ERROR_FETCHING_JOURNAL,
+    },
+  })
+  async fetchUserJournals(
+    @Ip() ip: string,
+    @Query('userId') userId: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    this.logger.log(`Fetching journals for ${userId} from ${ip}`);
+    return await this.journalService.fetchUserJournals({
+      userId,
+      page,
+      limit,
+    });
   }
 }
