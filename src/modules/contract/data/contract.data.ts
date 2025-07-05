@@ -18,6 +18,7 @@ export enum ContractSuccessMessages {
   DOCTOR_ID_FETCHED_SUCCESSFULLY = 'Doctor ID fetched successfully',
   DOCTOR_APPROVED_SUCCESSFULLY_TO_ADD_NEW_RECORD = 'Doctor approved successfully to add new record',
   NEW_RECORD_WRITE_PERMISSION_VERIFIED = 'New record write permission verified',
+  DOCTOR_ALREADY_APPROVED = 'Doctor already approved to add new medical record',
 }
 
 export const ABI = [
