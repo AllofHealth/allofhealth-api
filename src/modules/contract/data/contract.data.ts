@@ -10,6 +10,7 @@ export enum ContractErrorMessages {
   ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION = 'Error verifying new record write permission',
   ERROR_APPROVING_RECORD_ACCESS = 'Error approving record access',
   ERROR_VERIFYING_PRACTITIONER_ACCESS = 'Error verifying if practitioner has access to medical record ',
+  RECORD_ID_REQUIRED = 'Record ID is required',
 }
 
 export enum ContractSuccessMessages {
@@ -23,6 +24,9 @@ export enum ContractSuccessMessages {
   DOCTOR_ALREADY_APPROVED = 'Doctor already approved to add new medical record',
   RECORD_ACCESS_APPROVED = 'Record access approved successfully',
   VIEW_ACCESS_ALREADY_APPROVED = 'View access already approved',
+  FULL_RECORD_ACCESS_APPROVED = 'Full record access approved successfully',
+  READ_ACCESS_APPROVED = 'Read access approved successfully',
+  WRITE_ACCESS_APPROVED = 'Write access approved successfully',
 }
 
 export enum Duration {
