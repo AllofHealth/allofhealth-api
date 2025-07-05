@@ -119,6 +119,10 @@ contract AllofHealthV3 {
     mapping(address => bool) public isPatient;
     mapping(uint256 => Hospital) public hospitals;
     mapping(uint256 => Patient) public patients;
+    mapping(address => uint256) public patientIds;
+    mapping(address => uint256) public doctorIds;
+    mapping(address => uint256) public pharmacistIds;
+    mapping(address => uint256) public hospitalIds;
     mapping(uint256 => Doctor) public doctors;
     mapping(uint256 => Pharmacist) public pharmacists;
     mapping(uint256 => bool) public hospitalExists;
@@ -325,6 +329,7 @@ contract AllofHealthV3 {
         });
         hospitals[hospitalCount] = hospital;
         hospitalExists[hospitalCount] = true;
+        hospitalIds[msg.sender] = hospitalCount;
 
         emit HospitalCreated(msg.sender, hospitalCount);
     }
@@ -369,6 +374,7 @@ contract AllofHealthV3 {
         doctorExists[doctorCount] = true;
         doctors[doctorCount] = doctor;
         isDoctor[_doctorAddress] = true;
+        doctorIds[_doctorAddress] = doctorCount;
         emit DoctorAdded(_doctorAddress, doctorCount);
     }
 
@@ -409,6 +415,8 @@ contract AllofHealthV3 {
         pharmacistExists[pharmacistCount] = true;
         pharmacists[pharmacistCount] = pharmacist;
         isPharmacist[_address] = true;
+
+        pharmacistIds[_address] = pharmacistCount;
         emit PharmacistAdded(_address, pharmacistCount);
     }
 
@@ -452,6 +460,7 @@ contract AllofHealthV3 {
 
         patients[id] = patient;
         isPatient[_walletAddress] = true;
+        patientIds[_walletAddress] = id;
 
         emit PatientAdded(_walletAddress, id);
     }
@@ -711,6 +720,8 @@ contract AllofHealthV3 {
     /**
      * View Functions
      */
+
+
     function viewMedicalRecord(uint256 _recordId, uint256 _patientId, address _viewer)
         public
         view
