@@ -7,6 +7,7 @@ export enum ContractErrorMessages {
   ERROR_FETCHING_PATIENT_ID = 'Error fetching patient ID',
   ERROR_FETCHING_DOCTOR_ID = 'Error fetching doctor ID',
   ERROR_APPROVING_ADD_NEW_RECORD = 'Error approving add new record',
+  ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION = 'Error verifying new record write permission',
 }
 
 export enum ContractSuccessMessages {
@@ -16,6 +17,7 @@ export enum ContractSuccessMessages {
   PATIENT_ID_FETCHED_SUCCESSFULLY = 'Patient ID fetched successfully',
   DOCTOR_ID_FETCHED_SUCCESSFULLY = 'Doctor ID fetched successfully',
   DOCTOR_APPROVED_SUCCESSFULLY_TO_ADD_NEW_RECORD = 'Doctor approved successfully to add new record',
+  NEW_RECORD_WRITE_PERMISSION_VERIFIED = 'New record write permission verified',
 }
 
 export const ABI = [
