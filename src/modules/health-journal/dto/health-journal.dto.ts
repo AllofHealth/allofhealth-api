@@ -8,7 +8,10 @@ export class AddEntryDto {
   @IsString()
   userId: string;
 
-  @ApiProperty({ description: 'Mood', example: 'great' })
+  @ApiProperty({
+    description: 'Mood',
+    examples: ['great', 'good', 'neutral', 'low'],
+  })
   @IsNotEmpty()
   @IsString()
   mood: TMood;
