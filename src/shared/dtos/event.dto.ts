@@ -11,7 +11,7 @@ export class CreateDoctor {
     readonly locationOfHospital: string,
     readonly languagesSpoken: string[],
     readonly licenseExpirationDate: Date,
-    readonly certifications?: string[]
+    readonly certifications?: string[],
   ) {}
 }
 
@@ -26,7 +26,7 @@ export class StoreId {
     readonly governmentId?: string,
     readonly governmentFileId?: string,
     readonly scannedLicenseUrl?: string,
-    readonly scannedLicenseFileId?: string
+    readonly scannedLicenseFileId?: string,
   ) {}
 }
 
@@ -48,7 +48,7 @@ export class EUpdateUser {
     readonly locationOfHospital?: string,
     readonly lastLogin?: Date,
     readonly lastActivity?: Date,
-    readonly authProvider?: TAuthProvider
+    readonly authProvider?: TAuthProvider,
   ) {}
 }
 
@@ -57,7 +57,7 @@ export class EOnUserLogin {
     readonly userId: string,
     readonly lastLogin?: Date,
     readonly lastActivity?: Date,
-    readonly authProvider?: TAuthProvider
+    readonly authProvider?: TAuthProvider,
   ) {}
 }
 
@@ -68,6 +68,22 @@ export class ERegisterEntity {
 export class EHandleRegisterPatient {
   constructor(
     readonly userId: string,
-    readonly governmentIdFilePath: string
+    readonly governmentIdFilePath: string,
+  ) {}
+}
+
+export class EApproveRecordAccess {
+  constructor(
+    readonly practitionerId: string,
+    readonly userId: string,
+    readonly recordId: number,
+    readonly duration: number | undefined,
+  ) {}
+}
+
+export class EApproveWriteRecord {
+  constructor(
+    readonly doctorId: string,
+    readonly userId: string,
   ) {}
 }
