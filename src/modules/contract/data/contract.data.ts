@@ -8,6 +8,8 @@ export enum ContractErrorMessages {
   ERROR_FETCHING_DOCTOR_ID = 'Error fetching doctor ID',
   ERROR_APPROVING_ADD_NEW_RECORD = 'Error approving add new record',
   ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION = 'Error verifying new record write permission',
+  ERROR_APPROVING_RECORD_ACCESS = 'Error approving record access',
+  ERROR_VERIFYING_PRACTITIONER_ACCESS = 'Error verifying if practitioner has access to medical record ',
 }
 
 export enum ContractSuccessMessages {
@@ -19,6 +21,12 @@ export enum ContractSuccessMessages {
   DOCTOR_APPROVED_SUCCESSFULLY_TO_ADD_NEW_RECORD = 'Doctor approved successfully to add new record',
   NEW_RECORD_WRITE_PERMISSION_VERIFIED = 'New record write permission verified',
   DOCTOR_ALREADY_APPROVED = 'Doctor already approved to add new medical record',
+  RECORD_ACCESS_APPROVED = 'Record access approved successfully',
+  VIEW_ACCESS_ALREADY_APPROVED = 'View access already approved',
+}
+
+export enum Duration {
+  A_DAY = 86400000,
 }
 
 export const ABI = [
