@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ContractService } from '../service/contract.service';
 
@@ -15,5 +15,10 @@ export class ContractController {
   @Get('patientCount')
   async patientCount() {
     return await this.contractService.getPatientCount();
+  }
+
+  @Get('patientContractId')
+  async patientContractId(@Query('smartAddress') smartAddress: string) {
+    return await this.contractService.getPatientContractId(smartAddress);
   }
 }
