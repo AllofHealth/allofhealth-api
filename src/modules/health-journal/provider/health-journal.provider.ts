@@ -7,7 +7,11 @@ import {
   HealthJournalErrorMessages as HEM,
   HealthJournalSuccessMessages as HSM,
 } from '../data/health-journal.data';
-import { IAddEntry } from '../interface/health-journal.interface';
+import {
+  IAddEntry,
+  IFetchJournal,
+} from '../interface/health-journal.interface';
+import { eq, sql } from 'drizzle-orm';
 
 @Injectable()
 export class HealthJournalProvider {
@@ -15,6 +19,14 @@ export class HealthJournalProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
   ) {}
+
+  private formatDate(date: Date | string): string {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const day = dateObj.getDate().toString().padStart(2, '0');
+    const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+    const year = dateObj.getFullYear().toString();
+    return `${day}/${month}/${year}`;
+  }
 
   async addJournalEntry(ctx: IAddEntry) {
     const { userId, mood, activities, symptoms, tags } = ctx;
@@ -43,6 +55,51 @@ export class HealthJournalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, HEM.ERROR_ADDING_ENTRY);
+    }
+  }
+
+  async fetchUserJournal(ctx: IFetchJournal) {
+    const { userId, page = 1, limit = 12 } = ctx;
+    const skip = (page - 1) * limit;
+    try {
+      const totalJournalCount = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.health_journal)
+        .where(eq(schema.health_journal.userId, userId));
+
+      const totalCount = Number(totalJournalCount[0].count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const journal = await this.db
+        .select()
+        .from(schema.health_journal)
+        .where(eq(schema.health_journal.userId, userId))
+        .limit(limit)
+        .offset(skip);
+
+      const formattedJournal = journal.map((entry) => ({
+        ...entry,
+        createdAt: this.formatDate(entry.createdAt),
+        updatedAt: this.formatDate(entry.updatedAt),
+      }));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: HSM.SUCCESS_FETCHING_JOURNAL,
+        data: {
+          journal: formattedJournal,
+        },
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          limit,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, HEM.ERROR_FETCHING_JOURNAL);
     }
   }
 }
