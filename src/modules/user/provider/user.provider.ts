@@ -403,7 +403,10 @@ export class UserProvider {
       if (emailAddress) dataToUpdate.emailAddress = emailAddress;
       if (dateOfBirth) dataToUpdate.dateOfBirth = dateOfBirth;
       if (gender) dataToUpdate.gender = gender;
-      if (password) dataToUpdate.password = password;
+      if (password) {
+        const hashedPassword = await this.authUtils.hash(password);
+        dataToUpdate.password = hashedPassword;
+      }
       if (phoneNumber) dataToUpdate.phoneNumber = phoneNumber;
       if (lastLogin) dataToUpdate.lastLogin = lastLogin;
       if (lastActivity) dataToUpdate.lastActivity = lastActivity;
