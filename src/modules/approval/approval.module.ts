@@ -5,11 +5,13 @@ import { ApprovalController } from './controller/approval.controller';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AccountAbstractionModule } from '@/shared/modules/account-abstraction/account-abstraction.module';
 import { ContractModule } from '../contract/contract.module';
+import { TokenModule } from '../token/token.module';
 
 @Module({
   imports: [
     forwardRef(() => AccountAbstractionModule),
     forwardRef(() => ContractModule),
+    forwardRef(() => TokenModule),
   ],
   providers: [ApprovalService, ApprovalProvider, ErrorHandler],
   controllers: [ApprovalController],
