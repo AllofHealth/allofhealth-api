@@ -120,3 +120,18 @@ export const health_journal = pgTable('health_journal', {
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
 });
+
+export const approvals = pgTable('approvals', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),
+  practitionerAddress: varchar('practitioner_address', { length: 255 })
+    .notNull()
+    .references(() => accounts.smartWalletAddress),
+  recordId: integer('recordId').default(0),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: date('updated_at').notNull().defaultNow(),
+  accessLevel: text('access_level').notNull().default('read'),
+});
