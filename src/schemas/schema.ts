@@ -140,4 +140,5 @@ export const approvals = pgTable('approvals', {
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
   accessLevel: text('access_level').notNull().default('read'),
+  isRequestAccepted: boolean().notNull().default(false),
 });
