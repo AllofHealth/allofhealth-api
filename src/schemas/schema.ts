@@ -136,6 +136,7 @@ export const approvals = pgTable('approvals', {
     .notNull()
     .references(() => accounts.smartWalletAddress, { onDelete: 'cascade' }),
   recordId: integer('recordId').default(0),
+  duration: integer('duration').default(0),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
   accessLevel: text('access_level').notNull().default('read'),
