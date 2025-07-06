@@ -10,5 +10,6 @@ import { ContractService } from './service/contract.service';
   imports: [ExternalAccountModule, forwardRef(() => AccountAbstractionModule)],
   providers: [ContractService, ContractProvider, ErrorHandler],
   controllers: [ContractController],
+  exports: [ContractService],
 })
 export class ContractModule {}
