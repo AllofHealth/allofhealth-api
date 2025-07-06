@@ -77,13 +77,16 @@ export const accounts = pgTable('accounts', {
   id: uuid('id').notNull().primaryKey().unique().defaultRandom(),
   userId: uuid('user_id')
     .notNull()
+    .unique()
     .references(() => user.id, { onDelete: 'cascade' }),
   externalAddress: varchar('external_address', {
     length: 255,
   }).notNull(),
   smartWalletAddress: varchar('smart_wallet_address', {
     length: 255,
-  }).notNull(),
+  })
+    .notNull()
+    .unique(),
   privateKey: varchar('private_key', {
     length: 255,
   }).notNull(),
@@ -127,9 +130,11 @@ export const approvals = pgTable('approvals', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' })
     .unique(),
-  practitionerAddress: varchar('practitioner_address', { length: 255 })
+  practitionerAddress: varchar('practitioner_address', {
+    length: 255,
+  })
     .notNull()
-    .references(() => accounts.smartWalletAddress),
+    .references(() => accounts.smartWalletAddress, { onDelete: 'cascade' }),
   recordId: integer('recordId').default(0),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: date('updated_at').notNull().defaultNow(),
