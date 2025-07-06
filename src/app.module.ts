@@ -17,6 +17,7 @@ import { UserModule } from './modules/user/user.module';
 import { DrizzleModule } from './shared/drizzle/drizzle.module';
 import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
+import { ApprovalModule } from './modules/approval/approval.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { ExternalAccountModule } from './shared/modules/external-account/externa
     AuthModule,
     ContractModule,
     HealthJournalModule,
+    ApprovalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
