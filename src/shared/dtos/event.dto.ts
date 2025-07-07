@@ -72,6 +72,14 @@ export class EHandleRegisterPatient {
   ) {}
 }
 
+export class EHandleRegisterDoctor {
+  constructor(
+    readonly userId: string,
+    readonly governmentIdFilePath: string,
+    readonly scannedLicenseFilePath: string,
+  ) {}
+}
+
 export class EApproveRecordAccess {
   constructor(
     readonly practitionerId: string,
