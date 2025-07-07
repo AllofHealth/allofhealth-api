@@ -17,6 +17,7 @@ import {
   CreateDoctor,
   CreateSmartAccount,
   DeleteUser,
+  EHandleRegisterDoctor,
   EHandleRegisterPatient,
   ERegisterEntity,
 } from '@/shared/dtos/event.dto';
@@ -206,7 +207,8 @@ export class UserProvider {
     }
   }
 
-  private async handleDoctorRegistration(ctx: IHandleDoctorRegistration) {
+  @OnEvent(SharedEvents.DOCTOR_REGISTRATION, { async: true })
+  private async handleDoctorRegistration(ctx: EHandleRegisterDoctor) {
     const { userId, governmentIdFilePath, scannedLicenseFilePath } = ctx;
     try {
       await this.emitStoreIdentity({
@@ -238,11 +240,6 @@ export class UserProvider {
     }
   }
 
-  /**
-   * @todo Abstract role creation to it's own process and handle rollback on process fail
-   * @param ctx
-   * @returns
-   */
   async createUser(ctx: ICreateUser) {
     try {
       const hashedPassword = await this.authUtils.hash(ctx.password);
@@ -327,11 +324,14 @@ export class UserProvider {
             yearsOfExperience: ctx.yearsOfExperience!,
           });
 
-          await this.handleDoctorRegistration({
-            userId: insertedUser.id,
-            governmentIdFilePath: ctx.governmentIdfilePath,
-            scannedLicenseFilePath: ctx.scannedLicensefilePath!,
-          });
+          await this.eventEmitter.emitAsync(
+            SharedEvents.DOCTOR_REGISTRATION,
+            new EHandleRegisterDoctor(
+              insertedUser.id,
+              ctx.governmentIdfilePath,
+              ctx.scannedLicensefilePath!,
+            ),
+          );
 
           parsedUser = {
             userId: insertedUser.id,
