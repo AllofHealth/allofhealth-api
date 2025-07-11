@@ -72,6 +72,7 @@ export const doctors = pgTable('doctors', {
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
   isVerified: boolean('is_verified').default(false).notNull(),
+  isOtpVerified: boolean('is_otp_verified').default(false).notNull(),
 });
 
 export const accounts = pgTable('accounts', {
