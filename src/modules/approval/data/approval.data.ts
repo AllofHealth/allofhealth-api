@@ -11,6 +11,9 @@ export enum APPROVAL_ERROR_MESSAGE {
   PRACTITIONER_NOT_VERIFIED = 'Practitioner not verified',
   OTP_NOT_VERIFIED = 'OTP not verified',
   APPROVAL_REQUEST_CONFLICT = 'A practitioner is already assigned to this record',
+  ERROR_VERIFYING_PATIENT = 'Error verifying patient',
+  PATIENT_ONLY = 'Only patients can create approvals',
+  APPROVAL_ALREADY_EXISTS = 'Approval already exists with this or another practitioner, please wait till the practitoner updates your record or till approval durartion runs out',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
