@@ -9,4 +9,8 @@ export class ApprovalService {
   async createApproval(ctx: IHandleApproval) {
     return await this.approvalProvider.createApproval(ctx);
   }
+
+  async fetchDoctorApprovals(doctorId: string) {
+    return await this.approvalProvider.fetchDoctorApprovals(doctorId);
+  }
 }
