@@ -14,7 +14,8 @@ RUN npm install
 COPY . .
 
 # Build the app before starting
-RUN npm run build
+RUN npm run build && ls -la dist
+
 
 EXPOSE 3001
 
