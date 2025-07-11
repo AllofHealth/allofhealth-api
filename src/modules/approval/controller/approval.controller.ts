@@ -1,21 +1,16 @@
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { OwnerGuard } from '@/modules/user/guard/user.guard';
+import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
   Ip,
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApprovalService } from '../service/approval.service';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import {
-  CreateApprovalDto,
-  FetchDoctorApprovalsDto,
-  AcceptApprovalDto,
-  RejectApprovalDto,
-} from '../dto/approval.dto';
-import { AuthGuard } from '@/modules/auth/guards/auth.guard';
-import { OwnerGuard } from '@/modules/user/guard/user.guard';
 import {
   ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
@@ -24,10 +19,16 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
-  APPROVAL_SUCCESS_MESSAGE as ASM,
   APPROVAL_ERROR_MESSAGE as AEM,
+  APPROVAL_SUCCESS_MESSAGE as ASM,
 } from '../data/approval.data';
-import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
+import {
+  AcceptApprovalDto,
+  CreateApprovalDto,
+  FetchDoctorApprovalsDto,
+  RejectApprovalDto,
+} from '../dto/approval.dto';
+import { ApprovalService } from '../service/approval.service';
 
 @ApiTags('Approval Operations')
 @Controller('approval')
@@ -212,5 +213,46 @@ export class ApprovalController {
       doctorId: ctx.userId,
       approvalId: ctx.approvalId,
     });
+  }
+
+  @Get('cleanup/manual')
+  @ApiOperation({ summary: 'Manually trigger cleanup of expired approvals' })
+  @ApiOkResponse({
+    description: 'Manual cleanup completed',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Manual cleanup completed',
+      data: {
+        deletedCount: 5,
+        expiredApprovalIds: ['id1', 'id2', 'id3', 'id4', 'id5'],
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error during manual cleanup',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error during manual cleanup',
+    },
+  })
+  async manualCleanup(@Ip() ip: string) {
+    this.logger.log(`Manual cleanup triggered from ${ip}`);
+    try {
+      const result = await this.approvalService.manualCleanup();
+      return {
+        status: HttpStatus.OK,
+        message: 'Manual cleanup completed',
+        data: result,
+      };
+    } catch (error) {
+      this.logger.error('Error during manual cleanup:', error);
+      return {
+        status: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Error during manual cleanup',
+        error: error.message,
+      };
+    }
   }
 }
