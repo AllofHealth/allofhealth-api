@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import { JwtModule } from '@nestjs/jwt';
 import config from '@/shared/config/config';
 import { AppController } from './app.controller';
@@ -52,6 +53,7 @@ import { IpfsModule } from './modules/ipfs/ipfs.module';
       }),
     }),
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     IdentityModule,
     DoctorModule,
     UserModule,
