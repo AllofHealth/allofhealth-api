@@ -137,8 +137,20 @@ export class ApprovalProvider {
 
       const doctorAddress = await this.getSmartAddress(doctorId);
       const approvals = await this.db
-        .select()
+        .select({
+          id: schema.approvals.id,
+          userId: schema.approvals.userId,
+          practitionerAddress: schema.approvals.practitionerAddress,
+          recordId: schema.approvals.recordId,
+          duration: schema.approvals.duration,
+          createdAt: schema.approvals.createdAt,
+          updatedAt: schema.approvals.updatedAt,
+          accessLevel: schema.approvals.accessLevel,
+          isRequestAccepted: schema.approvals.isRequestAccepted,
+          patientFullName: schema.user.fullName,
+        })
         .from(schema.approvals)
+        .innerJoin(schema.user, eq(schema.approvals.userId, schema.user.id))
         .where(eq(schema.approvals.practitionerAddress, doctorAddress));
 
       if (!approvals) {
