@@ -13,22 +13,24 @@ import {
   AuthSuccessMessage as ASM,
 } from '../data/auth.data';
 import { AuthError } from '../error/auth.error';
-import { IJwtPayload, ILogin } from '../interface/auth.interface';
+import {
+  IGenerateTokens,
+  IJwtPayload,
+  ILogin,
+} from '../interface/auth.interface';
 
 @Injectable()
 export class AuthProvider {
-  private handler: ErrorHandler;
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
     private readonly authUtils: AuthUtils,
     private readonly eventEmitter: EventEmitter2,
-  ) {
-    this.handler = new ErrorHandler();
-  }
+    private readonly handler: ErrorHandler,
+  ) {}
 
-  private async generateTokens(payload: { userId: string; email: string }) {
+  async generateTokens(payload: IGenerateTokens) {
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '15m',
     });
