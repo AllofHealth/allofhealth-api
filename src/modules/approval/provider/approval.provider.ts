@@ -216,6 +216,13 @@ export class ApprovalProvider {
           message: AEM.APPROVAL_NOT_FOUND,
         });
       }
+
+      if (approval.isRequestAccepted) {
+        return this.handler.handleReturn({
+          status: HttpStatus.CONFLICT,
+          message: AEM.APPROVAL_REQUEST_CONFLICT,
+        });
+      }
       const previousDate = approval.updatedAt;
 
       await this.db.update(schema.approvals).set({
