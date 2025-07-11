@@ -32,3 +32,8 @@ export interface ILogin {
   email: string;
   password: string;
 }
+
+export interface IGenerateTokens {
+  userId: string;
+  email: string;
+}
