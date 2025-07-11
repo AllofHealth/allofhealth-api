@@ -18,6 +18,7 @@ import { DrizzleModule } from './shared/drizzle/drizzle.module';
 import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
 import { ApprovalModule } from './modules/approval/approval.module';
+import { IpfsModule } from './modules/ipfs/ipfs.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { ApprovalModule } from './modules/approval/approval.module';
     ContractModule,
     HealthJournalModule,
     ApprovalModule,
+    IpfsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
