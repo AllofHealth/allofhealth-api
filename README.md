@@ -46,8 +46,9 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - ✅ Multi-role registration system (Patient, Doctor, Hospital, Pharmacy, Admin)
 - ✅ Document-based identity verification with file upload
 - ✅ Role-based access control (RBAC)
-- 🔄 OAuth 2.0 and JWT token-based authentication
-- 🔄 Web3 wallet integration (Lisk blockchain)
+- ✅ OAuth 2.0 and JWT token-based authentication
+- ✅ Web3 wallet integration (Lisk blockchain)
+- ✅ Account abstraction for simplified Web3 onboarding
 
 #### Patient Portal
 - 🔄 Comprehensive medical records management
@@ -58,7 +59,9 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - 🔄 Care team management
 
 #### Doctor Interface
-- 🔄 Patient record access with permission system
+- ✅ Patient record access with permission system
+- ✅ Approval management system for patient data access
+- ✅ Enhanced patient information display with full names
 - 🔄 Digital prescription writing tools
 - 🔄 Telemedicine consultation platform
 - 🔄 Collaborative notes system
@@ -69,6 +72,13 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - 🔄 Real-time inventory tracking
 - 🔄 Prescription queue management
 - 🔄 Patient notification system
+
+#### Medical Record Management
+- ✅ Blockchain-based approval system for data access
+- ✅ Patient-controlled access permissions
+- ✅ Doctor approval workflows (create, fetch, accept, reject)
+- ✅ Smart contract integration for secure access control
+- ✅ Comprehensive audit trails for all access requests
 
 ### 🔮 Advanced Features (Planned)
 
@@ -176,7 +186,22 @@ Access the interactive API documentation at:
 ### Asset Management
 - `POST /assets/upload` - Identity document upload to ImageKit
 
-*More endpoints will be documented as development progresses.*
+### Approval Management
+- `POST /approval/createApproval` - Create new approval request for patient data access
+- `POST /approval/fetchDoctorApprovals` - Fetch all approval requests for a doctor (includes patient names)
+- `POST /approval/acceptApproval` - Accept a patient's approval request
+- `POST /approval/rejectApproval` - Reject a patient's approval request
+
+### User Management
+- `POST /user/createUser` - Create new user account
+- `GET /user/profile` - Get user profile information
+- `PUT /user/updateUser` - Update user profile
+
+### Doctor Management
+- `GET /doctor/profile` - Get doctor profile and verification status
+- `GET /doctor/all` - Get all verified doctors (paginated)
+
+*Additional endpoints are available and documented in the Swagger UI.*
 
 ## 🏗 Architecture
 
@@ -210,21 +235,37 @@ Access the interactive API documentation at:
 - [x] ImageKit integration for secure file storage
 - [x] Role-based access control foundation
 - [x] API documentation with Swagger
+- [x] Blockchain integration with Lisk
+- [x] Smart contract deployment for access control
+- [x] Account abstraction service for Web3 onboarding
+- [x] Comprehensive approval management system
+- [x] Doctor verification and compliance checking
+- [x] Patient data access control with blockchain security
+- [x] Enhanced database schema with proper relationships
+- [x] User management with profile features
+- [x] Doctor directory with specialization filtering
 
 ### 🔄 In Progress
-- [ ] Patient portal development
-- [ ] Doctor interface implementation
-- [ ] Database schema optimization
-- [ ] Enhanced security features
+- [ ] Frontend web application development
+- [ ] Advanced patient portal features
+- [ ] Medical records storage and retrieval
+- [ ] Telemedicine integration
+- [ ] Enhanced security features and audit logging
 - [ ] Prescription management system
+- [ ] Health journaling functionality
+- [ ] Real-time notifications system
 
 ### 📋 Planned
-- [ ] Blockchain integration (Lisk)
-- [ ] One-time prescription keys
-- [ ] Telemedicine platform
-- [ ] Mobile applications
-- [ ] AI health insights
+- [ ] One-time prescription keys with automatic expiration
+- [ ] Advanced telemedicine platform with video calling
+- [ ] Mobile applications (React Native)
+- [ ] AI-powered health insights and recommendations
 - [ ] HIPAA compliance certification
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] Insurance integration
+- [ ] Lab results integration
+- [ ] Appointment scheduling system
 
 ## 📊 Success Metrics
 
