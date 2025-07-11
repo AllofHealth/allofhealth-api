@@ -12,6 +12,10 @@ export class IpfsConfig {
   IPFS_API_SECRET: string;
 
   @IsNotEmpty()
+  @Value('IPFS_HOST')
+  IPFS_HOST: string;
+
+  @IsNotEmpty()
   @Value('IPFS_PORT')
   IPFS_PORT: number;
 
