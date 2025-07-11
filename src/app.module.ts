@@ -20,6 +20,7 @@ import { UserModule } from './modules/user/user.module';
 import { DrizzleModule } from './shared/drizzle/drizzle.module';
 import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
