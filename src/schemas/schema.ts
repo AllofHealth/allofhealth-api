@@ -144,3 +144,12 @@ export const approvals = pgTable('approvals', {
   accessLevel: text('access_level').notNull().default('read'),
   isRequestAccepted: boolean().notNull().default(false),
 });
+
+export const admin = pgTable('admin', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userName: varchar('user_name', { length: 255 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(),
+  permissionLevel: text('permission_level').notNull().default('system'),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: date('updated_at').notNull().defaultNow(),
+});
