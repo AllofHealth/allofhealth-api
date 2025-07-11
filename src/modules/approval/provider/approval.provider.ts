@@ -15,8 +15,9 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
   APPROVAL_SUCCESS_MESSAGE as ASM,
@@ -26,6 +27,7 @@ import {
   IAcceptApproval,
   IRejectApproval,
 } from '../interface/approval.interface';
+import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 
 @Injectable()
 export class ApprovalProvider {
@@ -68,6 +70,33 @@ export class ApprovalProvider {
     }
   }
 
+  private async patientCompliance(userId: string) {
+    let isCompliant = false;
+    try {
+      const user = await this.db
+        .select({
+          role: schema.user.role,
+        })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId));
+
+      if (!user || user.length === 0) {
+        throw new NotFoundException(USER_ERROR_MESSAGES.USER_NOT_FOUND);
+      }
+
+      const role = user[0].role;
+      if (role === 'PATIENT') {
+        isCompliant = true;
+      }
+
+      return isCompliant;
+    } catch (e) {
+      throw new InternalServerErrorException(
+        `${AEM.ERROR_VERIFYING_PATIENT}, ${e}`,
+      );
+    }
+  }
+
   async createApproval(ctx: IHandleApproval) {
     const {
       practitionerId,
@@ -77,21 +106,23 @@ export class ApprovalProvider {
       recordId,
     } = ctx;
     try {
-      const isPractitioner = await this.practitionerCompliance(practitionerId);
+      const [isPatient, isPractitioner] = await Promise.all([
+        this.patientCompliance(userId),
+        this.practitionerCompliance(practitionerId),
+      ]);
+
+      if (!isPatient) {
+        return this.handler.handleReturn({
+          status: HttpStatus.UNAUTHORIZED,
+          message: AEM.PATIENT_ONLY,
+        });
+      }
+
       if (!isPractitioner) {
         return this.handler.handleReturn({
           status: HttpStatus.BAD_REQUEST,
           message: AEM.NOT_A_VALID_PRACTITIONER,
         });
-      }
-
-      if (accessLevel === 'write' || accessLevel === 'full') {
-        if (!recordId) {
-          return this.handler.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: AEM.RECORD_ID_IS_REQUIRED,
-          });
-        }
       }
 
       const isVerifiedResult = await this.db
@@ -105,6 +136,37 @@ export class ApprovalProvider {
           status: HttpStatus.BAD_REQUEST,
           message: AEM.PRACTITIONER_NOT_VERIFIED,
         });
+      }
+
+      if (accessLevel === 'write' || accessLevel === 'full') {
+        if (!recordId) {
+          return this.handler.handleReturn({
+            status: HttpStatus.BAD_REQUEST,
+            message: AEM.RECORD_ID_IS_REQUIRED,
+          });
+        }
+
+        const existingApproval = await this.db
+          .select({ id: schema.approvals.id })
+          .from(schema.approvals)
+          .where(
+            and(
+              eq(schema.approvals.recordId, recordId),
+              eq(schema.approvals.userId, userId),
+              or(
+                eq(schema.approvals.accessLevel, 'write'),
+                eq(schema.approvals.accessLevel, 'full'),
+              ),
+            ),
+          )
+          .limit(1);
+
+        if (existingApproval.length > 0) {
+          return this.handler.handleReturn({
+            status: HttpStatus.BAD_REQUEST,
+            message: AEM.APPROVAL_ALREADY_EXISTS,
+          });
+        }
       }
 
       const practitionerAddress = await this.getSmartAddress(practitionerId);
@@ -182,8 +244,8 @@ export class ApprovalProvider {
         });
       }
 
-      const isOtpVerifiedResult = await this.db.query.doctors.findFirst({
-        where: and(eq(schema.doctors.userId, doctorId)),
+      const isOtpVerifiedResult = await this.db.query.user.findFirst({
+        where: and(eq(schema.user.id, doctorId)),
       });
 
       if (!isOtpVerifiedResult) {
