@@ -28,6 +28,7 @@ export const user = pgTable('users', {
   lastLogin: timestamp('last_login', { withTimezone: true }),
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
+  isOtpVerified: boolean('is_otp_verified').default(false).notNull(),
 });
 
 export const identity = pgTable('identities', {
@@ -72,7 +73,6 @@ export const doctors = pgTable('doctors', {
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
   isVerified: boolean('is_verified').default(false).notNull(),
-  isOtpVerified: boolean('is_otp_verified').default(false).notNull(),
 });
 
 export const accounts = pgTable('accounts', {
