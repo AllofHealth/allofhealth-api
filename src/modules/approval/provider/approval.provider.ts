@@ -1,5 +1,8 @@
 import { Duration } from '@/modules/contract/data/contract.data';
-import { IHandleApproval } from '@/modules/contract/interface/contract.interface';
+import {
+  IHandleApproval,
+  TAccess,
+} from '@/modules/contract/interface/contract.interface';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
@@ -113,16 +116,6 @@ export class ApprovalProvider {
         duration,
       });
 
-      const approvalContractResult =
-        await this.contractService.handleRecordApproval(ctx);
-
-      if (approvalContractResult.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: approvalContractResult.status,
-          message: approvalContractResult.message,
-        });
-      }
-
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_CREATED,
@@ -211,11 +204,32 @@ export class ApprovalProvider {
           message: AEM.APPROVAL_NOT_FOUND,
         });
       }
+      const previousDate = approval.updatedAt;
 
       await this.db.update(schema.approvals).set({
         isRequestAccepted: true,
         updatedAt: new Date().toISOString(),
       });
+
+      const approvalContractResult =
+        await this.contractService.handleRecordApproval({
+          userId: approval.userId,
+          accessLevel: approval.accessLevel as TAccess,
+          practitionerId: doctorId,
+          duration: approval.duration || undefined,
+          recordId: approval.recordId || undefined,
+        });
+
+      if (approvalContractResult.status !== HttpStatus.OK) {
+        await this.db.update(schema.approvals).set({
+          isRequestAccepted: false,
+          updatedAt: previousDate,
+        });
+        return this.handler.handleReturn({
+          status: approvalContractResult.status,
+          message: approvalContractResult.message,
+        });
+      }
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
