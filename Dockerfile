@@ -14,8 +14,9 @@ RUN npm install
 # Copy the rest of the app files (after installing dependencies)
 COPY . .
 
-# Expose necessary ports (API and debugging)
+# Build the app before starting
+RUN npm run build
+
 EXPOSE 3001
 
-# Start the app in development mode with nodemon
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "start:prod"]
