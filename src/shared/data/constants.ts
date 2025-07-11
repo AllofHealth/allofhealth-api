@@ -38,3 +38,10 @@ export const SUPER_PRIVATE_KEY = process.env.SUPER_PRIVATE_KEY;
 // Profile
 export const PLACEHOLDER =
   'https://www.kravemarketingllc.com/wp-content/uploads/2018/09/placeholder-user-500x500.png';
+
+//IPFS
+export const IPFS_HOST = process.env.IPFS_HOST;
+export const IPFS_PORT = process.env.IPFS_PORT;
+export const IPFS_PROTOCOL = process.env.IPFS_PROTOCOL;
+export const IPFS_API_KEY = process.env.IPFS_API_KEY;
+export const IPFS_API_SECRET = process.env.IPFS_API_SECRET;
