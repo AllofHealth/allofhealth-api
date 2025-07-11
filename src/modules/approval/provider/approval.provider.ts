@@ -18,6 +18,11 @@ import {
   APPROVAL_ERROR_MESSAGE as AEM,
   APPROVAL_SUCCESS_MESSAGE as ASM,
 } from '../data/approval.data';
+import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
+import {
+  IAcceptApproval,
+  IRejectApproval,
+} from '../interface/approval.interface';
 
 @Injectable()
 export class ApprovalProvider {
@@ -86,6 +91,19 @@ export class ApprovalProvider {
         }
       }
 
+      const isVerifiedResult = await this.db
+        .select({ isVerified: schema.doctors.isVerified })
+        .from(schema.doctors)
+        .where(eq(schema.doctors.userId, practitionerId));
+
+      const isVerified = isVerifiedResult[0].isVerified;
+      if (!isVerified) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: AEM.PRACTITIONER_NOT_VERIFIED,
+        });
+      }
+
       const practitionerAddress = await this.getSmartAddress(practitionerId);
       await this.db.insert(schema.approvals).values({
         userId,
@@ -145,6 +163,105 @@ export class ApprovalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_FETCHING_DOCTOR_APPROVAL);
+    }
+  }
+
+  async acceptApproval(ctx: IAcceptApproval) {
+    const { doctorId, approvalId } = ctx;
+    try {
+      const isCompliant = await this.practitionerCompliance(doctorId);
+      if (!isCompliant) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: AEM.NOT_A_VALID_PRACTITIONER,
+        });
+      }
+
+      const isOtpVerifiedResult = await this.db.query.doctors.findFirst({
+        where: and(eq(schema.doctors.userId, doctorId)),
+      });
+
+      if (!isOtpVerifiedResult) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND,
+        });
+      }
+
+      const isOtpVerified = isOtpVerifiedResult[0].isOtpVeried;
+
+      if (!isOtpVerified) {
+        return this.handler.handleReturn({
+          status: HttpStatus.UNAUTHORIZED,
+          message: AEM.OTP_NOT_VERIFIED,
+        });
+      }
+
+      const doctorAddress = await this.getSmartAddress(doctorId);
+      const approval = await this.db.query.approvals.findFirst({
+        where: and(
+          eq(schema.approvals.id, approvalId),
+          eq(schema.approvals.practitionerAddress, doctorAddress),
+        ),
+      });
+
+      if (!approval || typeof approval === undefined) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.APPROVAL_NOT_FOUND,
+        });
+      }
+
+      await this.db.update(schema.approvals).set({
+        isRequestAccepted: true,
+        updatedAt: new Date().toISOString(),
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_ACCEPTED,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_ACCEPTING_APPROVAL);
+    }
+  }
+
+  async rejectApproval(ctx: IRejectApproval) {
+    const { doctorId, approvalId } = ctx;
+    try {
+      const isCompliant = await this.practitionerCompliance(doctorId);
+      if (!isCompliant) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: AEM.NOT_A_VALID_PRACTITIONER,
+        });
+      }
+
+      const doctorAddress = await this.getSmartAddress(doctorId);
+      const approval = await this.db.query.approvals.findFirst({
+        where: and(
+          eq(schema.approvals.id, approvalId),
+          eq(schema.approvals.practitionerAddress, doctorAddress),
+        ),
+      });
+
+      if (!approval || typeof approval === undefined) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.APPROVAL_NOT_FOUND,
+        });
+      }
+
+      await this.db
+        .delete(schema.approvals)
+        .where(eq(schema.approvals.id, approvalId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_REJECTED,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_REJECTING_APPROVAL);
     }
   }
 }
