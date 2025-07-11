@@ -1,39 +1,25 @@
-# Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:22-alpine
 
-# Set working directory
-WORKDIR /app
+# Install necessary development packages
+RUN apk add --no-cache python3 make g++ curl
+
+WORKDIR /usr/src/app
+
+# Copy only the necessary files to leverage Docker cache for faster builds
+COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install dependencies
-COPY package.json package-lock.json ./
-RUN npm install --legacy-peer-deps
+RUN npm install
 
-# Copy the rest of the application
+# Generate Prisma client
+RUN npx prisma generate
+
+# Copy the rest of the app files (after installing dependencies)
 COPY . .
 
-# Build the Next.js app
-RUN npm run build
+# Expose necessary ports (API and debugging)
+EXPOSE 3001
 
-# Stage 2: Production image
-FROM node:20-alpine AS runner
-
-# Set environment variable for production
-ENV NODE_ENV=production
-
-# Set working directory
-WORKDIR /app
-
-# Only copy production dependencies
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/next.config.ts ./next.config.ts
-
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose the Next.js default port
-EXPOSE 3000
-
-# Start the Next.js app
-CMD ["npm", "start"]
+# Start the app in development mode with nodemon
+CMD ["npm", "run", "start:dev"]
