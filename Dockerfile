@@ -7,7 +7,6 @@ WORKDIR /usr/src/app
 
 # Copy only the necessary files to leverage Docker cache for faster builds
 COPY package*.json ./
-COPY prisma ./prisma/
 
 # Install dependencies
 RUN npm install
