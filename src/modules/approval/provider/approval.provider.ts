@@ -153,7 +153,7 @@ export class ApprovalProvider {
         .innerJoin(schema.user, eq(schema.approvals.userId, schema.user.id))
         .where(eq(schema.approvals.practitionerAddress, doctorAddress));
 
-      if (!approvals) {
+      if (!approvals || approvals.length === 0) {
         return this.handler.handleReturn({
           status: HttpStatus.OK,
           message: AEM.APPROVALS_NOT_FOUND,
