@@ -58,10 +58,9 @@ jobs:
           username: ${{ secrets.DO_USERNAME }}
           port: 22
           script: |
-            script: |
-              export IMAGE_TAG=v${{ github.run_number }}
-              docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-              docker pull ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
-              docker stop allofhealthapi || true
-              docker rm allofhealthapi || true
-              docker run -d -p 3003:3001 --name allofhealthapi ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
+            export IMAGE_TAG=v${{ github.run_number }}
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
+            docker stop allofhealthapi || true
+            docker rm allofhealthapi || true
+            docker run -d -p 3003:3001 --name allofhealthapi ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
