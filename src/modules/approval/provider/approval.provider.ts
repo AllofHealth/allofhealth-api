@@ -113,4 +113,38 @@ export class ApprovalProvider {
       return this.handler.handleError(e, AEM.ERROR_CREATING_APPROVAL);
     }
   }
+
+  async fetchDoctorApprovals(doctorId: string) {
+    try {
+      const isCompliant = await this.practitionerCompliance(doctorId);
+      if (!isCompliant) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: AEM.NOT_A_VALID_PRACTITIONER,
+        });
+      }
+
+      const doctorAddress = await this.getSmartAddress(doctorId);
+      const approvals = await this.db
+        .select()
+        .from(schema.approvals)
+        .where(eq(schema.approvals.practitionerAddress, doctorAddress));
+
+      if (!approvals) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: AEM.APPROVALS_NOT_FOUND,
+          data: [],
+        });
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_FETCHED,
+        data: approvals,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_FETCHING_DOCTOR_APPROVAL);
+    }
+  }
 }
