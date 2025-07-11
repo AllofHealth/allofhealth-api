@@ -10,6 +10,7 @@ export enum APPROVAL_ERROR_MESSAGE {
   ERROR_REJECTING_APPROVAL = 'Error rejecting approval',
   PRACTITIONER_NOT_VERIFIED = 'Practitioner not verified',
   OTP_NOT_VERIFIED = 'OTP not verified',
+  APPROVAL_REQUEST_CONFLICT = 'A practitioner is already assigned to this record',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
