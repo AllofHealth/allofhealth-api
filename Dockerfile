@@ -19,6 +19,6 @@ COPY . .
 RUN npm run build && ls -la dist
 
 
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["npm", "run", "start:prod"]
