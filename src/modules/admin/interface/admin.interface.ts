@@ -10,3 +10,9 @@ export interface ICreateAdmin {
 export interface ICreateSystemAdmin extends ICreateAdmin {
   superAdminId: string;
 }
+
+export interface IManagePermissions {
+  superAdminId: string;
+  adminId: string;
+  permissionLevel: TPermissionLevel;
+}
