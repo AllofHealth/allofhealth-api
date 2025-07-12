@@ -1,4 +1,165 @@
-import { Controller } from '@nestjs/common';
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { OwnerGuard } from '@/modules/user/guard/user.guard';
+import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Ip,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiInternalServerErrorResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  ADMIN_ERROR_MESSAGES as AEM,
+  ADMIN_SUCCESS_MESSAGES as ASM,
+} from '../data/admin.data';
+import {
+  CreateSuperAdminDto,
+  CreateSystemAdminDto,
+  ManagePermissionsDto,
+} from '../dto/admin.dto';
+import { AdminService } from '../service/admin.service';
+import { AdminGuard } from '../guard/admin.guard';
 
+@ApiTags('Admin Operations')
 @Controller('admin')
-export class AdminController {}
+export class AdminController {
+  private readonly logger = new MyLoggerService(AdminController.name);
+  constructor(private readonly adminService: AdminService) {}
+
+  @Post('createSuperAdmin')
+  @ApiOperation({ summary: 'Create a new super admin' })
+  @ApiOkResponse({
+    description: ASM.SUPER_ADMIN_CREATED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUPER_ADMIN_CREATED,
+      data: {
+        adminId: '507f1f77bcf86cd799439011',
+        userName: 'superadmin01',
+        email: 'superadmin@allofhealth.com',
+        permissionLevel: 'super',
+        createdAt: '2024-01-01T00:00:00.000Z',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ADMIN_EXISTS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ADMIN_EXISTS,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_CREATING_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_CREATING_ADMIN,
+    },
+  })
+  async createSuperAdmin(@Ip() ip: string, @Body() ctx: CreateSuperAdminDto) {
+    this.logger.log(`Creating super admin ${ctx.userName} from ${ip}`);
+    return await this.adminService.createSuperAdmin(ctx);
+  }
+
+  @Post('createSystemAdmin')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Create a new system admin (requires super admin)' })
+  @ApiOkResponse({
+    description: ASM.SUCCESS_CREATING_ADMIN,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUCCESS_CREATING_ADMIN,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ADMIN_EXISTS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ADMIN_EXISTS,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_CREATING_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_CREATING_ADMIN,
+    },
+  })
+  async createSystemAdmin(@Ip() ip: string, @Body() ctx: CreateSystemAdminDto) {
+    this.logger.log(
+      `Super admin ${ctx.userId} creating system admin ${ctx.userName} from ${ip}`,
+    );
+    return await this.adminService.createSystemAdmin({
+      ...ctx,
+      superAdminId: ctx.userId,
+    });
+  }
+
+  @Post('managePermissions')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Manage admin permissions (requires super admin)' })
+  @ApiOkResponse({
+    description: ASM.SUCCESS_UPDATING_ADMIN_PERMISSIONS,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUCCESS_UPDATING_ADMIN_PERMISSIONS,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ADMIN_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ADMIN_NOT_FOUND,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_UPDATING_ADMIN_PERMISSIONS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_UPDATING_ADMIN_PERMISSIONS,
+    },
+  })
+  async managePermissions(@Ip() ip: string, @Body() ctx: ManagePermissionsDto) {
+    this.logger.log(
+      `Super admin ${ctx.userId} updating permissions for admin ${ctx.adminId} to ${ctx.permissionLevel} from ${ip}`,
+    );
+    return await this.adminService.managePermissions({
+      ...ctx,
+      superAdminId: ctx.userId,
+    });
+  }
+}
