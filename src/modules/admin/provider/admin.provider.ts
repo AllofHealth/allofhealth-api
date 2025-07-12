@@ -8,7 +8,11 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ICreateAdmin, ICreateSystemAdmin } from '../interface/admin.interface';
+import {
+  ICreateAdmin,
+  ICreateSystemAdmin,
+  IManagePermissions,
+} from '../interface/admin.interface';
 import {
   ADMIN_ERROR_MESSAGES as AEM,
   ADMIN_SUCCESS_MESSAGES as ASM,
@@ -33,6 +37,26 @@ export class AdminProvider {
       });
 
       if (superAdminResult && superAdminResult.permissionLevel === 'super') {
+        isValidated = true;
+      }
+
+      return isValidated;
+    } catch (e) {
+      throw new HttpException(
+        AEM.ERROR_VALIDATING_SUPER_ADMIN,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async validateIsAdmin(adminId: string) {
+    let isValidated: boolean = false;
+    try {
+      const adminResult = await this.db.query.admin.findFirst({
+        where: eq(schema.admin.id, adminId),
+      });
+
+      if (adminResult && adminResult.permissionLevel === 'system') {
         isValidated = true;
       }
 
@@ -168,6 +192,32 @@ export class AdminProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_CREATING_ADMIN);
+    }
+  }
+
+  async managePermissions(ctx: IManagePermissions) {
+    const { superAdminId, adminId, permissionLevel } = ctx;
+    try {
+      const [isSuperAdmin, isAdmin] = await Promise.all([
+        this.validateIsSuperAdmin(superAdminId),
+        this.validateIsAdmin(adminId),
+      ]);
+
+      if (!isSuperAdmin || !isAdmin) {
+        throw new UnauthorizedException('Unauthorized');
+      }
+
+      await this.db
+        .update(schema.admin)
+        .set({ permissionLevel })
+        .where(eq(schema.admin.id, adminId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SUCCESS_UPDATING_ADMIN_PERMISSIONS,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_UPDATING_ADMIN_PERMISSIONS);
     }
   }
 }
