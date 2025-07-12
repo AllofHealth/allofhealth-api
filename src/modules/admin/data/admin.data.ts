@@ -13,4 +13,5 @@ export enum ADMIN_SUCCESS_MESSAGES {
   SUCCESS_CREATING_ADMIN = 'Admin created successfully',
   ADMIN_FOUND = 'Admin found successfully',
   SUPER_ADMIN_CREATED = 'Super admin created successfully',
+  SUCCESS_UPDATING_ADMIN_PERMISSIONS = 'Admin permissions updated successfully',
 }
