@@ -6,3 +6,7 @@ export interface ICreateAdmin {
   password: string;
   permissionLevel?: TPermissionLevel;
 }
+
+export interface ICreateSystemAdmin extends ICreateAdmin {
+  superAdminId: string;
+}
