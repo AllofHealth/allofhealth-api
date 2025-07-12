@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { ICreateAdmin, ICreateSystemAdmin } from '../interface/admin.interface';
+import {
+  ICreateAdmin,
+  ICreateSystemAdmin,
+  IManagePermissions,
+} from '../interface/admin.interface';
 import { AdminProvider } from '../provider/admin.provider';
 
 @Injectable()
@@ -12,5 +16,9 @@ export class AdminService {
 
   async createSystemAdmin(ctx: ICreateSystemAdmin) {
     return await this.adminProvider.createSystemAdmin(ctx);
+  }
+
+  async managePermissions(ctx: IManagePermissions) {
+    return await this.adminProvider.managePermissions(ctx);
   }
 }
