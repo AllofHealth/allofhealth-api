@@ -151,6 +151,6 @@ export const admin = pgTable('admin', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
   permissionLevel: text('permission_level').notNull().default('system'),
-  createdAt: date('created_at').notNull().defaultNow(),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
 });
