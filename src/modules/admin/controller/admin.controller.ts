@@ -37,6 +37,7 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Post('createSuperAdmin')
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Create a new super admin' })
   @ApiOkResponse({
     description: ASM.SUPER_ADMIN_CREATED,
