@@ -50,6 +50,7 @@ export class DoctorProvider {
         medicalLicenseNumber: doctor[0].doctors.medicalLicenseNumber,
         yearsOfExperience: doctor[0].doctors.yearsOfExperience,
         availability: doctor[0].doctors.availability as string,
+        isVerified: doctor[0].doctors.isVerified,
       };
 
       return this.handler.handleReturn({
@@ -142,6 +143,7 @@ export class DoctorProvider {
         medicalLicenseNumber: doctor.doctors.medicalLicenseNumber,
         yearsOfExperience: doctor.doctors.yearsOfExperience,
         availability: doctor.doctors.availability as string,
+        isVerified: doctor.doctors.isVerified as boolean,
       }));
 
       return this.handler.handleReturn({
