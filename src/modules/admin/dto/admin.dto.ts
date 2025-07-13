@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 
 export type TPermissionLevel = 'super' | 'system';
+export type TPractitionerRole = 'doctor' | 'pharmacist';
 
 export class CreateSuperAdminDto {
   @ApiProperty({
@@ -130,4 +131,23 @@ export class AdminLoginDto {
   @IsNotEmpty()
   @IsString()
   password: string;
+}
+
+export class VerifyPractitionerDto {
+  @ApiProperty({
+    description: 'ID of the practitioner to verify',
+    example: '507f1f77bcf86cd799439011',
+  })
+  @IsNotEmpty()
+  @IsString()
+  practitionerId: string;
+
+  @ApiProperty({
+    description: 'Role of the practitioner',
+    enum: ['doctor', 'pharmacist'],
+    example: 'doctor',
+  })
+  @IsNotEmpty()
+  @IsIn(['doctor', 'pharmacist'])
+  role: TPractitionerRole;
 }
