@@ -1,1 +1,4 @@
-export interface Records {}
+export interface ICreateRecord {
+  title: string;
+  practitionerId: string;
+}
