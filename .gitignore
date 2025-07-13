@@ -62,3 +62,6 @@ drizzle/migrations
 #compiled
 out/
 cache/
+
+#kubo
+kubo/
