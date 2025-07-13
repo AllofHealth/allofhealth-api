@@ -25,6 +25,7 @@ import {
   CreateSuperAdminDto,
   CreateSystemAdminDto,
   ManagePermissionsDto,
+  VerifyPractitionerDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
@@ -207,5 +208,48 @@ export class AdminController {
   async adminLogin(@Ip() ip: string, @Body() ctx: AdminLoginDto) {
     this.logger.log(`Admin login attempt for ${ctx.email} from ${ip}`);
     return await this.adminService.adminLogin(ctx);
+  }
+
+  @Post('verifyPractitioner')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Verify a practitioner (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.PRACTITIONER_VERIFIED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.PRACTITIONER_VERIFIED,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Practitioner not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Practitioner not found',
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_VERIFYING_PRACTITIONER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_VERIFYING_PRACTITIONER,
+    },
+  })
+  async verifyPractitioner(
+    @Ip() ip: string,
+    @Body() ctx: VerifyPractitionerDto,
+  ) {
+    this.logger.log(`Verifying ${ctx.role} ${ctx.practitionerId} from ${ip}`);
+    return await this.adminService.verifyPractitioner(ctx);
   }
 }
