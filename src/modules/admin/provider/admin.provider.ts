@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import {
+  IAdminLogin,
   ICreateAdmin,
   ICreateSystemAdmin,
   IManagePermissions,
@@ -20,6 +21,7 @@ import {
 import { AuthUtils } from '@/shared/utils/auth.utils';
 import { eq } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
+import { AuthService } from '@/modules/auth/service/auth.service';
 
 @Injectable()
 export class AdminProvider {
@@ -27,6 +29,7 @@ export class AdminProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
     private readonly authUtils: AuthUtils,
+    private readonly authService: AuthService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -218,6 +221,50 @@ export class AdminProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_UPDATING_ADMIN_PERMISSIONS);
+    }
+  }
+
+  async adminLogin(ctx: IAdminLogin) {
+    const { email, password } = ctx;
+    try {
+      const admin = await this.findAdminByEmail(email);
+
+      if (!admin || admin.status !== HttpStatus.OK || !('data' in admin)) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.ADMIN_NOT_FOUND,
+        });
+      }
+
+      const isPasswordValid = await this.authUtils.compare({
+        hashedPassword: admin.data?.password!,
+        password,
+      });
+
+      if (!isPasswordValid) {
+        return this.handler.handleReturn({
+          status: HttpStatus.UNAUTHORIZED,
+          message: AEM.INVALID_ADMIN_PASSWORD,
+        });
+      }
+
+      const tokens = await this.authService.generateTokens({
+        email,
+        userId: admin.data?.id!,
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SUCCESS_LOGGING_IN_AS_ADMIN,
+        data: {
+          id: admin.data?.id!,
+          email: admin.data?.email!,
+          permissionLevel: admin.data?.permissionLevel!,
+          ...tokens,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_LOGGING_IN_AS_ADMIN);
     }
   }
 }
