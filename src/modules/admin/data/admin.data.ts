@@ -19,4 +19,5 @@ export enum ADMIN_SUCCESS_MESSAGES {
   SUCCESS_UPDATING_ADMIN_PERMISSIONS = 'Admin permissions updated successfully',
   SUCCESS_LOGGING_IN_AS_ADMIN = 'Admin logged in successfully',
   PRACTITIONER_VERIFIED = 'Practitioner verified successfully',
+  SUCCESS_DELETING_ADMIN = 'Admin deleted successfully',
 }
