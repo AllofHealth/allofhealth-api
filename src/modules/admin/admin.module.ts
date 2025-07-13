@@ -6,9 +6,14 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AuthUtils } from '@/shared/utils/auth.utils';
 import { TokenModule } from '../token/token.module';
 import { AuthModule } from '../auth/auth.module';
+import { DoctorModule } from '../doctor/doctor.module';
 
 @Module({
-  imports: [AuthModule, forwardRef(() => TokenModule)],
+  imports: [
+    AuthModule,
+    forwardRef(() => TokenModule),
+    forwardRef(() => DoctorModule),
+  ],
   providers: [AdminProvider, AdminService, ErrorHandler, AuthUtils],
   controllers: [AdminController],
 })
