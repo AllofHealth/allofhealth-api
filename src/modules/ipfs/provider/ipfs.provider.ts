@@ -55,8 +55,14 @@ export class IpfsProvider implements OnModuleInit {
     try {
       const ipfs = this.getIpfsClient();
       const result = await ipfs.add(Buffer.from('Hello, IPFS!'));
-      console.log(result.cid.toString());
-      return result;
+
+      const response = {
+        hash: result.cid.toString(),
+        name: result.path,
+        size: result.size,
+      };
+
+      return response;
     } catch (error) {
       this.handler.handleError(error, 'Failed to upload record to IPFS');
       throw error;
