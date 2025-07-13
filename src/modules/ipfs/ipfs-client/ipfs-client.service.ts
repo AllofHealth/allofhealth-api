@@ -28,9 +28,7 @@ class CustomIpfsClient {
 
   constructor(private config: IpfsConfig) {
     this.baseUrl = `${config.protocol}://${config.host}:${config.port}`;
-    this.headers = {
-      ...config.headers,
-    };
+    this.headers = config.headers ? { ...config.headers } : {};
   }
 
   async add(data: Buffer | string): Promise<IpfsAddResult> {
