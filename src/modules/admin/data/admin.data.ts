@@ -9,6 +9,7 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_VALIDATING_SUPER_ADMIN = 'Error validating super admin',
   ERROR_LOGGING_IN_AS_ADMIN = 'Error logging in as admin',
   INVALID_ADMIN_PASSWORD = 'Invalid admin password',
+  ERROR_VERIFYING_PRACTITIONER = 'Error verifying practitioner',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
@@ -17,4 +18,5 @@ export enum ADMIN_SUCCESS_MESSAGES {
   SUPER_ADMIN_CREATED = 'Super admin created successfully',
   SUCCESS_UPDATING_ADMIN_PERMISSIONS = 'Admin permissions updated successfully',
   SUCCESS_LOGGING_IN_AS_ADMIN = 'Admin logged in successfully',
+  PRACTITIONER_VERIFIED = 'Practitioner verified successfully',
 }
