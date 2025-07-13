@@ -113,3 +113,21 @@ export class ManagePermissionsDto {
   @IsIn(['super', 'system'])
   permissionLevel: TPermissionLevel;
 }
+
+export class AdminLoginDto {
+  @ApiProperty({
+    description: 'Admin email address',
+    example: 'admin@allofhealth.com',
+  })
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    description: 'Admin password',
+    example: 'AdminPassword123!',
+  })
+  @IsNotEmpty()
+  @IsString()
+  password: string;
+}
