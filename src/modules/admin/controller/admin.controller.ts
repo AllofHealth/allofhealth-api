@@ -1,6 +1,5 @@
 import { AuthGuard } from '@/modules/auth/guards/auth.guard';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { OwnerGuard } from '@/modules/user/guard/user.guard';
 import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import {
   Body,
@@ -22,12 +21,13 @@ import {
   ADMIN_SUCCESS_MESSAGES as ASM,
 } from '../data/admin.data';
 import {
+  AdminLoginDto,
   CreateSuperAdminDto,
   CreateSystemAdminDto,
   ManagePermissionsDto,
 } from '../dto/admin.dto';
-import { AdminService } from '../service/admin.service';
 import { AdminGuard } from '../guard/admin.guard';
+import { AdminService } from '../service/admin.service';
 
 @ApiTags('Admin Operations')
 @Controller('admin')
@@ -161,5 +161,51 @@ export class AdminController {
       ...ctx,
       superAdminId: ctx.userId,
     });
+  }
+
+  @Post('login')
+  @ApiOperation({ summary: 'Admin login' })
+  @ApiOkResponse({
+    description: ASM.SUCCESS_LOGGING_IN_AS_ADMIN,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUCCESS_LOGGING_IN_AS_ADMIN,
+      data: {
+        id: '507f1f77bcf86cd799439011',
+        email: 'admin@allofhealth.com',
+        permissionLevel: 'super',
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ADMIN_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ADMIN_NOT_FOUND,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.INVALID_ADMIN_PASSWORD,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.INVALID_ADMIN_PASSWORD,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_LOGGING_IN_AS_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_LOGGING_IN_AS_ADMIN,
+    },
+  })
+  async adminLogin(@Ip() ip: string, @Body() ctx: AdminLoginDto) {
+    this.logger.log(`Admin login attempt for ${ctx.email} from ${ip}`);
+    return await this.adminService.adminLogin(ctx);
   }
 }
