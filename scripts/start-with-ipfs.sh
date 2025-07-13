@@ -9,12 +9,9 @@ echo "🚀 Starting AllOfHealth API with IPFS..."
 
 # Function to cleanup on exit
 cleanup() {
-    echo "🛑 Shutting down services..."
+    echo "🛑 Shutting down IPFS daemon..."
     if [ ! -z "$IPFS_PID" ]; then
         kill $IPFS_PID 2>/dev/null || true
-    fi
-    if [ ! -z "$APP_PID" ]; then
-        kill $APP_PID 2>/dev/null || true
     fi
     exit
 }
@@ -91,27 +88,10 @@ export IPFS_API_SECRET=
 
 # Start the Node.js application
 echo "🚀 Starting Node.js application..."
-npm run start:prod &
-APP_PID=$!
-
 echo "✅ AllOfHealth API started successfully!"
 echo "📊 IPFS WebUI: http://localhost:5001/webui"
 echo "🌐 IPFS Gateway: http://localhost:8080"
 echo "🔗 API Server: http://localhost:3001"
 
-# Keep the script running and monitor both processes
-while true; do
-    # Check if IPFS daemon is still running
-    if ! kill -0 $IPFS_PID 2>/dev/null; then
-        echo "❌ IPFS daemon stopped unexpectedly"
-        exit 1
-    fi
-
-    # Check if Node.js app is still running
-    if ! kill -0 $APP_PID 2>/dev/null; then
-        echo "❌ Node.js application stopped unexpectedly"
-        exit 1
-    fi
-
-    sleep 10
-done
+# Start the Node.js application in foreground (this will keep the container running)
+exec npm run start:prod
