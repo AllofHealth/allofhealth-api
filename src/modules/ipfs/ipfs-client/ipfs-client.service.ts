@@ -62,13 +62,17 @@ class CustomIpfsClient {
     }
 
     const result = await response.json();
-    return {
+    console.log('IPFS API Response:', result);
+
+    const returnObject = {
       cid: {
         toString: () => result.Hash,
       },
       path: result.Name,
       size: result.Size,
     };
+
+    return returnObject;
   }
 
   async cat(cid: string): Promise<Buffer> {
