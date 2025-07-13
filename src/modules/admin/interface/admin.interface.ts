@@ -27,3 +27,8 @@ export interface IVerifyPractitioner {
   practitionerId: string;
   role: TPractitionerRole;
 }
+
+export interface IDeleteAdmin {
+  superAdminId: string;
+  adminId: string;
+}

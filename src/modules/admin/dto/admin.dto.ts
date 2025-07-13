@@ -151,3 +151,21 @@ export class VerifyPractitionerDto {
   @IsIn(['doctor', 'pharmacist'])
   role: TPractitionerRole;
 }
+
+export class DeleteAdminDto {
+  @ApiProperty({
+    description: 'User ID of the super admin performing the deletion',
+    example: '507f1f77bcf86cd799439011',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty({
+    description: 'ID of the admin to be deleted',
+    example: '507f1f77bcf86cd799439022',
+  })
+  @IsNotEmpty()
+  @IsString()
+  adminId: string;
+}

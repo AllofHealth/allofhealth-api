@@ -4,6 +4,7 @@ import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import {
   Body,
   Controller,
+  Delete,
   HttpStatus,
   Ip,
   Post,
@@ -24,6 +25,7 @@ import {
   AdminLoginDto,
   CreateSuperAdminDto,
   CreateSystemAdminDto,
+  DeleteAdminDto,
   ManagePermissionsDto,
   VerifyPractitionerDto,
 } from '../dto/admin.dto';
@@ -252,5 +254,50 @@ export class AdminController {
   ) {
     this.logger.log(`Verifying ${ctx.role} ${ctx.practitionerId} from ${ip}`);
     return await this.adminService.verifyPractitioner(ctx);
+  }
+
+  @Delete('deleteAdmin')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Delete an admin (requires super admin)' })
+  @ApiOkResponse({
+    description: ASM.SUCCESS_DELETING_ADMIN,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUCCESS_DELETING_ADMIN,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ADMIN_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ADMIN_NOT_FOUND,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.ERROR_VALIDATING_SUPER_ADMIN,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_DELETING_ADMIN,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_DELETING_ADMIN,
+    },
+  })
+  async deleteAdmin(@Ip() ip: string, @Body() ctx: DeleteAdminDto) {
+    this.logger.log(
+      `Super admin ${ctx.userId} deleting admin ${ctx.adminId} from ${ip}`,
+    );
+    return await this.adminService.deleteAdmin({
+      ...ctx,
+      superAdminId: ctx.userId,
+    });
   }
 }
