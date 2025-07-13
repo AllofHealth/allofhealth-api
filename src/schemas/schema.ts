@@ -154,3 +154,28 @@ export const admin = pgTable('admin', {
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
 });
+
+export const records = pgTable('records', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),
+  recordChainId: integer('record_chain_id').notNull().default(0),
+  title: varchar('title', { length: 255 }).notNull(),
+  practitionerName: varchar('practitioner_name', { length: 255 }).notNull(),
+  status: text('status').notNull().default('pending'),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
+
+export const userRecordCounters = pgTable('user_record_counters', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  lastRecordChainId: integer('last_record_chain_id').notNull().default(0),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
