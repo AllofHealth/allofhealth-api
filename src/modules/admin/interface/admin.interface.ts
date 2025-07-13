@@ -1,4 +1,5 @@
 export type TPermissionLevel = 'super' | 'system';
+export type TPractitionerRole = 'doctor' | 'pharmacist';
 
 export interface ICreateAdmin {
   userName: string;
@@ -20,4 +21,9 @@ export interface IManagePermissions {
 export interface IAdminLogin {
   email: string;
   password: string;
+}
+
+export interface IVerifyPractitioner {
+  practitionerId: string;
+  role: TPractitionerRole;
 }
