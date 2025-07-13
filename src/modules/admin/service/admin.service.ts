@@ -4,6 +4,7 @@ import {
   ICreateAdmin,
   ICreateSystemAdmin,
   IManagePermissions,
+  IVerifyPractitioner,
 } from '../interface/admin.interface';
 import { AdminProvider } from '../provider/admin.provider';
 
@@ -25,5 +26,9 @@ export class AdminService {
 
   async adminLogin(ctx: IAdminLogin) {
     return await this.adminProvider.adminLogin(ctx);
+  }
+
+  async verifyPractitioner(ctx: IVerifyPractitioner) {
+    return await this.adminProvider.verifyPractitioner(ctx);
   }
 }
