@@ -21,6 +21,7 @@ import { DrizzleModule } from './shared/drizzle/drizzle.module';
 import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { RecordsModule } from './modules/records/records.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { AdminModule } from './modules/admin/admin.module';
     ApprovalModule,
     IpfsModule,
     AdminModule,
+    RecordsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
