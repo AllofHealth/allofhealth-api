@@ -13,6 +13,7 @@ import {
   IAdminLogin,
   ICreateAdmin,
   ICreateSystemAdmin,
+  IDeleteAdmin,
   IManagePermissions,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
@@ -315,6 +316,25 @@ export class AdminProvider {
         return 'Not Implemented';
       default:
         throw new BadRequestException('Invalid role');
+    }
+  }
+
+  async deleteAdmin(ctx: IDeleteAdmin) {
+    const { superAdminId, adminId } = ctx;
+    try {
+      const isSuperAdmin = await this.validateIsSuperAdmin(superAdminId);
+      if (!isSuperAdmin) {
+        throw new UnauthorizedException('Unauthorized');
+      }
+
+      await this.db.delete(schema.admin).where(eq(schema.admin.id, adminId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SUCCESS_DELETING_ADMIN,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_DELETING_ADMIN);
     }
   }
 }
