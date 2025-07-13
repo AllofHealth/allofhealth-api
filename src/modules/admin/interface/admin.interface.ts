@@ -16,3 +16,8 @@ export interface IManagePermissions {
   adminId: string;
   permissionLevel: TPermissionLevel;
 }
+
+export interface IAdminLogin {
+  email: string;
+  password: string;
+}
