@@ -2,6 +2,7 @@ import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Inject,
@@ -13,6 +14,7 @@ import {
   ICreateAdmin,
   ICreateSystemAdmin,
   IManagePermissions,
+  IVerifyPractitioner,
 } from '../interface/admin.interface';
 import {
   ADMIN_ERROR_MESSAGES as AEM,
@@ -22,6 +24,8 @@ import { AuthUtils } from '@/shared/utils/auth.utils';
 import { eq } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { AuthService } from '@/modules/auth/service/auth.service';
+import { DoctorService } from '@/modules/doctor/service/doctor.service';
+import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
 
 @Injectable()
 export class AdminProvider {
@@ -30,6 +34,7 @@ export class AdminProvider {
     private readonly handler: ErrorHandler,
     private readonly authUtils: AuthUtils,
     private readonly authService: AuthService,
+    private readonly doctorService: DoctorService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -69,6 +74,40 @@ export class AdminProvider {
         AEM.ERROR_VALIDATING_SUPER_ADMIN,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  private async verifyDoctor(doctorId: string) {
+    try {
+      const doctor = await this.doctorService.fetchDoctor(doctorId);
+      if (!doctor || doctor.status !== HttpStatus.OK || !('data' in doctor)) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND,
+        });
+      }
+
+      const isVerified = doctor.data?.isVerified;
+      if (isVerified) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.PRACTITIONER_VERIFIED,
+        });
+      }
+
+      await this.db
+        .update(schema.doctors)
+        .set({
+          isVerified: true,
+        })
+        .where(eq(schema.doctors.userId, doctorId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.PRACTITIONER_VERIFIED,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_VERIFYING_PRACTITIONER);
     }
   }
 
@@ -265,6 +304,17 @@ export class AdminProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_LOGGING_IN_AS_ADMIN);
+    }
+  }
+
+  async verifyPractitioner(ctx: IVerifyPractitioner) {
+    switch (ctx.role) {
+      case 'doctor':
+        return await this.verifyDoctor(ctx.practitionerId);
+      case 'pharmacist':
+        return 'Not Implemented';
+      default:
+        throw new BadRequestException('Invalid role');
     }
   }
 }
