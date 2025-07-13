@@ -3,6 +3,7 @@ import {
   IAdminLogin,
   ICreateAdmin,
   ICreateSystemAdmin,
+  IDeleteAdmin,
   IManagePermissions,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
@@ -30,5 +31,8 @@ export class AdminService {
 
   async verifyPractitioner(ctx: IVerifyPractitioner) {
     return await this.adminProvider.verifyPractitioner(ctx);
+  }
+  async deleteAdmin(ctx: IDeleteAdmin) {
+    return await this.adminProvider.deleteAdmin(ctx);
   }
 }
