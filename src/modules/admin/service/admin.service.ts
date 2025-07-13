@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  IAdminLogin,
   ICreateAdmin,
   ICreateSystemAdmin,
   IManagePermissions,
@@ -20,5 +21,9 @@ export class AdminService {
 
   async managePermissions(ctx: IManagePermissions) {
     return await this.adminProvider.managePermissions(ctx);
+  }
+
+  async adminLogin(ctx: IAdminLogin) {
+    return await this.adminProvider.adminLogin(ctx);
   }
 }
