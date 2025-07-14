@@ -87,13 +87,32 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - ✅ Smart contract integration for secure access control
 - ✅ Comprehensive audit trails for all access requests
 - ✅ IPFS integration for decentralized storage
+- ✅ Advanced record encryption service with AES-256-CBC encryption
+- ✅ Batch encryption/decryption for medical records components
+- ✅ Secure clinical notes, diagnosis, lab results, and medication encryption
 
-#### IPFS Integration
+### IPFS Integration
 - ✅ Decentralized file storage system
 - ✅ IPFS daemon management
 - ✅ Custom IPFS client implementation
 - ✅ Medical record storage on IPFS
 - ✅ Automatic IPFS initialization and configuration
+
+### Record Encryption Service
+- ✅ Medical record encryption service implementation
+- ✅ AES-256-CBC encryption with secure IV generation
+- ✅ Batch encryption/decryption capabilities
+- ✅ Component-based encryption (clinical notes, diagnosis, lab results, medications)
+- ✅ Comprehensive error handling and validation
+- ✅ Environment-based encryption key configuration
+
+#### Record Encryption Service
+- ✅ AES-256-CBC encryption for sensitive medical data
+- ✅ Batch encryption/decryption capabilities
+- ✅ Secure handling of clinical notes, diagnosis, lab results, and medications
+- ✅ Configurable encryption keys via environment variables
+- ✅ Error handling and validation for encryption operations
+- ✅ Comprehensive encryption service with proper key management
 
 ### 🔄 In Progress Features
 
@@ -119,6 +138,7 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - **Database**: PostgreSQL (primary), Redis (caching)
 - **Blockchain**: Lisk SDK for custom blockchain functionality
 - **Storage**: IPFS (InterPlanetary File System) for decentralized storage
+- **Encryption**: AES-256-CBC for medical record encryption with secure IV generation
 - **Authentication**: JWT, 2FA support
 - **File Storage**: Local disk storage (development), IPFS (production)
 - **API**: RESTful APIs with comprehensive OpenAPI documentation
@@ -307,6 +327,12 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 ### IPFS Integration
 - `GET /ipfs/testIpfs` - Test IPFS functionality and upload
 
+### Record Encryption Service
+- **Internal Service**: `RecordsEncryptionService` - Medical record encryption/decryption
+- **Batch Processing**: Supports bulk encryption of clinical notes, diagnosis, lab results, and medications
+- **Security**: AES-256-CBC encryption with unique IV for each operation
+- **Key Management**: Environment-based encryption key configuration
+
 ### Contract Management
 - `GET /contract/system-admin-count` - Get system administrator count
 - `GET /contract/patientCount` - Get total patient count
@@ -336,11 +362,22 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **Gateway Access**: HTTP gateway for content retrieval
 - **API Integration**: Custom IPFS client for seamless integration
 
+### Record Encryption Architecture
+- **AES-256-CBC Encryption**: Military-grade encryption for medical records
+- **Initialization Vector (IV)**: Unique 16-byte IV generated for each encryption operation
+- **Batch Processing**: Efficient encryption/decryption of multiple record components simultaneously
+- **Key Management**: Base64-encoded 32-byte encryption keys via environment configuration
+- **Component-Based**: Individual encryption for clinical notes, diagnosis, lab results, and medications
+- **Format**: Encrypted data stored as `IV:EncryptedData` hex format for easy parsing
+- **Error Handling**: Comprehensive validation and error management for encryption operations
+
 ### Security Features
-- **🔐 Multi-layer Encryption**: AES-256 for sensitive data
+- **🔐 Multi-layer Encryption**: AES-256-CBC for sensitive medical data with IV-based security
 - **🔑 Smart Contract Access Control**: Blockchain-based permission management
 - **🛡️ Decentralized Storage**: IPFS for tamper-proof medical records
 - **📋 Audit Trails**: Comprehensive logging for compliance
+- **🔒 Record Encryption Service**: Dedicated service for encrypting/decrypting medical records
+- **🛡️ Batch Processing**: Secure batch encryption for multiple data components
 
 ## 🔧 Development Status
 
@@ -367,6 +404,8 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [x] **Contract interaction system**
 - [x] **Docker integration with IPFS**
 - [x] **Automated startup script**
+- [x] **Record encryption service with AES-256-CBC**
+- [x] **Batch encryption/decryption for medical records**
 
 ### 🔄 In Progress
 - [ ] Frontend web application development
@@ -395,6 +434,7 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **System Uptime**: Target 99.9%
 - **API Response Time**: Target <200ms
 - **IPFS Storage Reliability**: Target 99.9%
+- **Encryption Success Rate**: Target 99.9%
 - **Registration Success Rate**: Target 85%
 - **Security Incidents**: Target 0
 
@@ -410,6 +450,7 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **GDPR Ready**: European data protection regulation compliance
 - **Encryption**: End-to-end encryption for all sensitive data
 - **Access Control**: Granular permission system
+- **Record Encryption**: AES-256-CBC encryption for all sensitive medical data
 - **Decentralized Storage**: IPFS for tamper-proof data integrity
 
 ### Audit & Monitoring
@@ -454,10 +495,12 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - Use conventional commit messages
 - Update documentation for new features
 - Test IPFS integration for storage features
+- Test encryption/decryption functionality for medical records
+- Validate encryption key management and security practices
 
 ## 🔧 Environment Variables
 
-Key environment variables for IPFS integration:
+Key environment variables for IPFS integration and encryption:
 
 ```bash
 # IPFS Configuration
@@ -467,6 +510,10 @@ IPFS_PROTOCOL=http
 IPFS_API_KEY=          # Optional for hosted IPFS
 IPFS_API_SECRET=       # Optional for hosted IPFS
 
+# Record Encryption
+RECORD_ENCRYPTION_KEY= # Base64 encoded 32-byte key for AES-256-CBC encryption
+#                     # Example: generate with crypto.randomBytes(32).toString('base64')
+
 # Database
 DATABASE_URL=postgresql://...
 
@@ -475,6 +522,27 @@ JWT_SECRET=your-secret-key
 
 # Other configurations...
 ```
+
+### 🔐 Encryption Key Generation
+
+For security, generate a strong encryption key for medical records:
+
+```bash
+# Generate a secure 32-byte encryption key
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+
+# Or use the provided utility (if available)
+npm run generate:encryption-key
+```
+
+#### Security Best Practices for Encryption Keys:
+
+1. **🔑 Key Strength**: Always use 32-byte (256-bit) keys for AES-256-CBC
+2. **🔒 Key Storage**: Store keys in environment variables, never in source code
+3. **🔄 Key Rotation**: Implement regular key rotation policies for production
+4. **🛡️ Backup**: Securely backup encryption keys - lost keys mean lost data
+5. **🚫 Access Control**: Limit key access to essential personnel only
+6. **📋 Audit**: Log all encryption/decryption operations for compliance
 
 ## 📄 License
 
