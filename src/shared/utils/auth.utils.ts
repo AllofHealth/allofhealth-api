@@ -19,6 +19,11 @@ export class AuthUtils {
     return await bcrypt.compare(args.password, args.hashedPassword);
   }
 
+  generateEncryptionKey() {
+    const key = crypto.randomBytes(32);
+    return key.toString('base64');
+  }
+
   encryptKey(ctx: IEncrypt) {
     const { data, key } = ctx;
     const iv = crypto.randomBytes(16);
