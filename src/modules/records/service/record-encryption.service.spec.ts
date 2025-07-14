@@ -5,7 +5,7 @@ import { AuthUtils } from '@/shared/utils/auth.utils';
 import { Test, TestingModule } from '@nestjs/testing';
 import { RecordsEncryptionService } from './record-encryption.service';
 
-describe('ExternalAccountProvider', () => {
+describe('MedicalRecordEncryptionService', () => {
   let service: RecordsEncryptionService;
   const MockRecordConfig = {
     RECORD_ENCRYPTION_KEY,
