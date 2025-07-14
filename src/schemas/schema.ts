@@ -163,6 +163,7 @@ export const records = pgTable('records', {
     .unique(),
   recordChainId: integer('record_chain_id').notNull().default(0),
   title: varchar('title', { length: 255 }).notNull(),
+  recordType: jsonb('record_type').notNull().default('[]'),
   practitionerName: varchar('practitioner_name', { length: 255 }).notNull(),
   status: text('status').notNull().default('pending'),
   createdAt: date('created_at').defaultNow(),
