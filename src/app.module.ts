@@ -22,6 +22,7 @@ import { AccountAbstractionModule } from './shared/modules/account-abstraction/a
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { RecordsModule } from './modules/records/records.module';
+import { OtpModule } from './modules/otp/otp.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { RecordsModule } from './modules/records/records.module';
     IpfsModule,
     AdminModule,
     RecordsModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
