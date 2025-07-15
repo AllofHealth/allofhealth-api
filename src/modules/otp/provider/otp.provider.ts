@@ -30,7 +30,12 @@ export class OtpProvider {
   }
 
   validateOtp(otp: string) {
-    return this.totp.validate({ token: otp, window: 1 });
+    let isValid: boolean = false;
+    const validation = this.totp.validate({ token: otp, window: 1 });
+    if (validation !== null && typeof validation == 'number') {
+      isValid = true;
+    }
+    return isValid;
   }
 
   generateOtpWithSecret(secret: OTPAuth.Secret | string) {
