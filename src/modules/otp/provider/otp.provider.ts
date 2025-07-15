@@ -4,20 +4,56 @@ import * as OTPAuth from 'otpauth';
 
 @Injectable()
 export class OtpProvider {
-  constructor(private readonly handler: ErrorHandler) {}
+  private totp: OTPAuth.TOTP;
+
+  constructor(private readonly handler: ErrorHandler) {
+    this.totp = this.initTotp();
+  }
+
+  generateSecret() {
+    return new OTPAuth.Secret();
+  }
 
   initTotp() {
     return new OTPAuth.TOTP({
       issuer: 'allofhealth',
       label: 'allofhealth-api',
       algorithm: 'SHA1',
+      secret: this.generateSecret(),
       digits: 6,
       period: 120,
     });
   }
 
   generateOtp() {
-    const totp = this.initTotp();
+    return this.totp.generate();
+  }
+
+  validateOtp(otp: string) {
+    return this.totp.validate({ token: otp, window: 1 });
+  }
+
+  generateOtpWithSecret(secret: OTPAuth.Secret | string) {
+    const totp = new OTPAuth.TOTP({
+      issuer: 'allofhealth',
+      label: 'allofhealth-api',
+      algorithm: 'SHA1',
+      secret: secret,
+      digits: 6,
+      period: 120,
+    });
     return totp.generate();
+  }
+
+  validateOtpWithSecret(otp: string, secret: OTPAuth.Secret | string) {
+    const totp = new OTPAuth.TOTP({
+      issuer: 'allofhealth',
+      label: 'allofhealth-api',
+      algorithm: 'SHA1',
+      secret: secret,
+      digits: 6,
+      period: 120,
+    });
+    return totp.validate({ token: otp, window: 1 });
   }
 }
