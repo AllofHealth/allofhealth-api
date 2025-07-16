@@ -163,7 +163,7 @@ export class AuthController {
           format: 'date',
           description:
             "Doctor's license expiration date (Optional for DOCTOR role)",
-          example: '2025-12-31',
+          example: '2025-12-13',
         },
         governmentId: {
           type: 'string',
