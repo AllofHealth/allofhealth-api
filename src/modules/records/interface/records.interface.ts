@@ -1,5 +1,4 @@
 export interface ICreateRecord extends IEncryptRecord {
-  title: string;
   practitionerId: string;
   patientId: string;
   attachment1?: File;
@@ -8,6 +7,7 @@ export interface ICreateRecord extends IEncryptRecord {
 }
 
 export interface IEncryptRecord {
+  title: string;
   clinicalNotes: string[];
   diagnosis: string[];
   labResults?: string[];
