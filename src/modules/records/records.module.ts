@@ -6,9 +6,10 @@ import { RecordsController } from './controller/records.controller';
 import { RecordsProvider } from './provider/records.provider';
 import { RecordsEncryptionService } from './service/record-encryption.service';
 import { RecordsService } from './service/records.service';
+import { IpfsModule } from '../ipfs/ipfs.module';
 
 @Module({
-  imports: [DoctorModule],
+  imports: [DoctorModule, IpfsModule],
   providers: [
     RecordsProvider,
     RecordsService,
