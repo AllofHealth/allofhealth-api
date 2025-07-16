@@ -6,6 +6,6 @@ export class IpfsService {
   constructor(private readonly ipfsProvider: IpfsProvider) {}
 
   async uploadRecord() {
-    return this.ipfsProvider.uploadRecord();
+    return await this.ipfsProvider.uploadRecord();
   }
 }

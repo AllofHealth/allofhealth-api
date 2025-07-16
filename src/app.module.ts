@@ -1,24 +1,28 @@
+import config from '@/shared/config/config';
 import { ConfigifyModule } from '@itgorillaz/configify';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { JwtModule } from '@nestjs/jwt';
-import config from '@/shared/config/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ApprovalModule } from './modules/approval/approval.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContractModule } from './modules/contract/contract.module';
 import { DoctorModule } from './modules/doctor/doctor.module';
 import { HealthJournalModule } from './modules/health-journal/health-journal.module';
 import { IdentityModule } from './modules/identity/identity.module';
+import { IpfsModule } from './modules/ipfs/ipfs.module';
 import { MyLoggerModule } from './modules/my-logger/my-logger.module';
 import { UserModule } from './modules/user/user.module';
 import { DrizzleModule } from './shared/drizzle/drizzle.module';
 import { AccountAbstractionModule } from './shared/modules/account-abstraction/account-abstraction.module';
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
-import { ApprovalModule } from './modules/approval/approval.module';
-import { IpfsModule } from './modules/ipfs/ipfs.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { RecordsModule } from './modules/records/records.module';
+import { OtpModule } from './modules/otp/otp.module';
 
 @Module({
   imports: [
@@ -52,6 +56,7 @@ import { IpfsModule } from './modules/ipfs/ipfs.module';
       }),
     }),
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     IdentityModule,
     DoctorModule,
     UserModule,
@@ -64,6 +69,9 @@ import { IpfsModule } from './modules/ipfs/ipfs.module';
     HealthJournalModule,
     ApprovalModule,
     IpfsModule,
+    AdminModule,
+    RecordsModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -15,14 +15,20 @@ export class IpfsProvider implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      this.ipfsClient = await this.ipfsClientService.createClient({
+      const config: any = {
         host: this.ipfsConfig.IPFS_HOST,
         port: this.ipfsConfig.IPFS_PORT,
         protocol: this.ipfsConfig.IPFS_PROTOCOL,
-        headers: {
+      };
+
+      // Only add auth headers if API key and secret are provided
+      if (this.ipfsConfig.IPFS_API_KEY && this.ipfsConfig.IPFS_API_SECRET) {
+        config.headers = {
           authorization: this.createAuth(),
-        },
-      });
+        };
+      }
+
+      this.ipfsClient = await this.ipfsClientService.createClient(config);
     } catch (error) {
       this.handler.handleError(error, 'Failed to initialize IPFS client');
     }
@@ -49,8 +55,14 @@ export class IpfsProvider implements OnModuleInit {
     try {
       const ipfs = this.getIpfsClient();
       const result = await ipfs.add(Buffer.from('Hello, IPFS!'));
-      console.log(result.cid.toString());
-      return result;
+
+      const response = {
+        hash: result.cid.toString(),
+        name: result.path,
+        size: result.size,
+      };
+
+      return response;
     } catch (error) {
       this.handler.handleError(error, 'Failed to upload record to IPFS');
       throw error;

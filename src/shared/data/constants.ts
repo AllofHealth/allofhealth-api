@@ -45,3 +45,6 @@ export const IPFS_PORT = process.env.IPFS_PORT;
 export const IPFS_PROTOCOL = process.env.IPFS_PROTOCOL;
 export const IPFS_API_KEY = process.env.IPFS_API_KEY;
 export const IPFS_API_SECRET = process.env.IPFS_API_SECRET;
+
+//RECORDS
+export const RECORD_ENCRYPTION_KEY = process.env.RECORD_ENCRYPTION_KEY;

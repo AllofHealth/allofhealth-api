@@ -28,6 +28,7 @@ export const user = pgTable('users', {
   lastLogin: timestamp('last_login', { withTimezone: true }),
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
+  isOtpVerified: boolean('is_otp_verified').default(false).notNull(),
 });
 
 export const identity = pgTable('identities', {
@@ -71,6 +72,7 @@ export const doctors = pgTable('doctors', {
   updatedAt: date('updated_at').notNull().defaultNow(),
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
+  isVerified: boolean('is_verified').default(false).notNull(),
 });
 
 export const accounts = pgTable('accounts', {
@@ -141,4 +143,40 @@ export const approvals = pgTable('approvals', {
   updatedAt: date('updated_at').notNull().defaultNow(),
   accessLevel: text('access_level').notNull().default('read'),
   isRequestAccepted: boolean().notNull().default(false),
+});
+
+export const admin = pgTable('admin', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userName: varchar('user_name', { length: 255 }).notNull().unique(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(),
+  permissionLevel: text('permission_level').notNull().default('system'),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
+
+export const records = pgTable('records', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),
+  recordChainId: integer('record_chain_id').notNull().default(0),
+  title: varchar('title', { length: 255 }).notNull(),
+  recordType: jsonb('record_type').notNull().default('[]'),
+  practitionerName: varchar('practitioner_name', { length: 255 }).notNull(),
+  status: text('status').notNull().default('pending'),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
+
+export const userRecordCounters = pgTable('user_record_counters', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  lastRecordChainId: integer('last_record_chain_id').notNull().default(0),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
 });
