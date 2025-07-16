@@ -78,7 +78,7 @@ export class AuthController {
           description: "User's full name",
           example: 'John Doe',
         },
-        email: {
+        emailAddress: {
           type: 'string',
           format: 'email',
           description: "User's email address",
@@ -107,6 +107,64 @@ export class AuthController {
           description: "User's date of birth (YYYY-MM-DD)",
           example: '1990-01-15',
         },
+        gender: {
+          type: 'string',
+          description: "User's gender",
+          example: 'Male',
+        },
+        specialization: {
+          type: 'string',
+          description: "Doctor's specialization (Required for DOCTOR role)",
+          example: 'Cardiologist',
+        },
+        medicalLicenseNumber: {
+          type: 'string',
+          description:
+            "Doctor's medical license number (Required for DOCTOR role)",
+          example: '123456789',
+        },
+        yearsOfExperience: {
+          type: 'number',
+          description:
+            "Doctor's years of experience (Optional for DOCTOR role)",
+          example: 5,
+        },
+        certifications: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          description: "Doctor's certifications (Optional for DOCTOR role)",
+          example: ['Certification 1', 'Certification 2'],
+        },
+        hospitalAssociation: {
+          type: 'string',
+          description:
+            "Doctor's hospital association (Optional for DOCTOR role)",
+          example: 'General Hospital',
+        },
+        locationOfHospital: {
+          type: 'string',
+          description:
+            "Location of doctor's hospital (Optional for DOCTOR role)",
+          example: 'New York, NY',
+        },
+        languagesSpoken: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          description:
+            'Languages spoken by the doctor (Optional for DOCTOR role)',
+          example: ['English', 'Spanish'],
+        },
+        licenseExpirationDate: {
+          type: 'string',
+          format: 'date',
+          description:
+            "Doctor's license expiration date (Optional for DOCTOR role)",
+          example: '2025-12-31',
+        },
         governmentId: {
           type: 'string',
           format: 'binary',
@@ -122,11 +180,12 @@ export class AuthController {
       },
       required: [
         'fullName',
-        'email',
+        'emailAddress',
         'password',
         'role',
         'phoneNumber',
         'dateOfBirth',
+        'gender',
         'governmentId',
       ],
     },
