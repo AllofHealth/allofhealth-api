@@ -37,3 +37,16 @@ export interface IHandleApproval {
   duration?: number;
   accessLevel: TAccess;
 }
+
+export interface IAddMedicalRecordTx {
+  doctorAddress: string;
+  patientAddress: string;
+  patientChainId: number;
+  cid: string;
+}
+
+export interface IHandleAddMedicalRecord {
+  userId: string;
+  practitionerId: string;
+  cid: string;
+}
