@@ -45,9 +45,16 @@ export class RecordsEncryptionService {
   }
 
   async encryptMedicalRecord(ctx: IEncryptRecord) {
-    const { clinicalNotes, diagnosis, labResults, medicationsPrscribed } = ctx;
+    const {
+      clinicalNotes,
+      diagnosis,
+      labResults,
+      medicationsPrscribed,
+      title,
+    } = ctx;
 
     try {
+      const encryptedTitle = this.encryptRecord(title);
       const encryptedClinicalNotes =
         await this.batchEncryptRecords(clinicalNotes);
       const encryptedDiagnosis = await this.batchEncryptRecords(diagnosis);
@@ -68,6 +75,7 @@ export class RecordsEncryptionService {
         status: HttpStatus.OK,
         message: RSM.RECORD_ENCRYPTED_SUCCESSFULLY,
         data: {
+          title: encryptedTitle,
           clinicalNotes: encryptedClinicalNotes,
           diagnosis: encryptedDiagnosis,
           labResults: encryptedLabResults,
