@@ -35,6 +35,13 @@ export class DoctorProvider {
         )
         .limit(1);
 
+      if (!doctor || doctor.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: DEM.DOCTOR_NOT_FOUND,
+        });
+      }
+
       const parsedDoctor: IDoctorSnippet = {
         userId: doctor[0].users.id,
         fullName: doctor[0].users.fullName,
@@ -48,7 +55,7 @@ export class DoctorProvider {
         languagesSpoken: doctor[0].doctors.languagesSpoken as string[],
         locationOfHospital: doctor[0].doctors.locationOfHospital,
         medicalLicenseNumber: doctor[0].doctors.medicalLicenseNumber,
-        yearsOfExperience: doctor[0].doctors.yearsOfExperience,
+        yearsOfExperience: doctor[0].doctors.yearsOfExperience || 1,
         availability: doctor[0].doctors.availability as string,
         isVerified: doctor[0].doctors.isVerified,
       };
@@ -82,9 +89,10 @@ export class DoctorProvider {
         });
       }
 
-      const licenseExpirationDateString = ctx.licenseExpirationDate
-        .toISOString()
-        .split('T')[0];
+      const licenseExpirationDateString =
+        ctx.licenseExpirationDate instanceof Date
+          ? ctx.licenseExpirationDate.toISOString().split('T')[0]
+          : ctx.licenseExpirationDate;
 
       await this.db.insert(schema.doctors).values({
         userId: ctx.userId,
@@ -141,7 +149,7 @@ export class DoctorProvider {
         languagesSpoken: doctor.doctors.languagesSpoken as string[],
         locationOfHospital: doctor.doctors.locationOfHospital,
         medicalLicenseNumber: doctor.doctors.medicalLicenseNumber,
-        yearsOfExperience: doctor.doctors.yearsOfExperience,
+        yearsOfExperience: doctor.doctors.yearsOfExperience || 1,
         availability: doctor.doctors.availability as string,
         isVerified: doctor.doctors.isVerified as boolean,
       }));

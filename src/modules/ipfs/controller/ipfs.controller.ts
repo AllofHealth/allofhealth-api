@@ -7,6 +7,6 @@ export class IpfsController {
 
   @Get('testIpfs')
   async testIpfs() {
-    return await this.ipfsService.uploadRecord();
+    return await this.ipfsService.testIPFS();
   }
 }
