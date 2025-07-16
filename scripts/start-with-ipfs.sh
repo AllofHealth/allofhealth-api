@@ -96,3 +96,4 @@ echo "🔗 API Server: http://localhost:3001"
 
 # Start the Node.js application in foreground
 exec npm run start:prod
+
