@@ -1,23 +1,26 @@
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
+import { IPFS_ERROR_MESSAGES } from '@/modules/ipfs/data/ipfs.data';
+import { IpfsService } from '@/modules/ipfs/service/ipfs.service';
+import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
+import { EAddMedicalRecordToContract } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { SharedEvents } from '@/shared/events/shared.events';
 import {
   BadRequestException,
   HttpStatus,
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { eq } from 'drizzle-orm';
 import {
   RECORDS_ERROR_MESSAGES as REM,
   RECORDS_SUCCESS_MESSAGES as RSM,
 } from '../data/records.data';
 import { ICreateRecord } from '../interface/records.interface';
-import * as schema from '@/schemas/schema';
-import { eq } from 'drizzle-orm';
 import { RecordsEncryptionService } from '../service/record-encryption.service';
-import { IpfsService } from '@/modules/ipfs/service/ipfs.service';
-import { IPFS_ERROR_MESSAGES } from '@/modules/ipfs/data/ipfs.data';
 
 @Injectable()
 export class RecordsProvider {
@@ -27,6 +30,7 @@ export class RecordsProvider {
     private readonly doctorService: DoctorService,
     private readonly recordEncryptionService: RecordsEncryptionService,
     private readonly ipfsService: IpfsService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private async returnPractitionerName(practitionerId: string) {
@@ -52,7 +56,8 @@ export class RecordsProvider {
       attachment3,
     } = ctx;
     try {
-      const attachments: File[] = [];
+      // Process attachments
+      const attachments: Express.Multer.File[] = [];
       if (attachment1) attachments.push(attachment1);
       if (attachment2) attachments.push(attachment2);
       if (attachment3) attachments.push(attachment3);
@@ -154,7 +159,10 @@ export class RecordsProvider {
         });
       }
 
-      //upload cid and record id to blockchain
+      this.eventEmitter.emit(
+        SharedEvents.ADD_MEDICAL_RECORD_TO_CONTRACT,
+        new EAddMedicalRecordToContract(patientId, practitionerId, cid),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
