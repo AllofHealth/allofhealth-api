@@ -60,7 +60,7 @@ describe('Ipfs', () => {
       await provider.onModuleInit();
 
       // Then test the upload functionality
-      const result = await provider.uploadRecord();
+      const result = await provider.testIPFS();
       expect(result).toBeDefined();
     }, 10000);
   });
