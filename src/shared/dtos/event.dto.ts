@@ -95,3 +95,11 @@ export class EApproveWriteRecord {
     readonly userId: string,
   ) {}
 }
+
+export class EAddMedicalRecordToContract {
+  constructor(
+    readonly userId: string,
+    readonly practitionerId: string,
+    readonly cid: string,
+  ) {}
+}
