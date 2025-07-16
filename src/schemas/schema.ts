@@ -62,7 +62,7 @@ export const doctors = pgTable('doctors', {
   locationOfHospital: varchar('location_of_hospital', {
     length: 255,
   }).notNull(),
-  yearsOfExperience: integer('years_of_experience').notNull(),
+  yearsOfExperience: integer('years_of_experience').default(1),
   languagesSpoken: jsonb('languages_spoken').default('[]'),
   availability: varchar('availability', {
     length: 255,
