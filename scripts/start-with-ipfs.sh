@@ -94,4 +94,4 @@ echo "🌐 IPFS Gateway: http://localhost:8080"
 echo "🔗 API Server: http://localhost:3001"
 
 # Start the Node.js application in foreground (this will keep the container running)
-exec npm run start:prod
+exec npm run start:dev
