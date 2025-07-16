@@ -23,6 +23,7 @@ import { ExternalAccountModule } from './shared/modules/external-account/externa
 import { AdminModule } from './modules/admin/admin.module';
 import { RecordsModule } from './modules/records/records.module';
 import { OtpModule } from './modules/otp/otp.module';
+import { AssetModule } from './modules/asset/asset.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { OtpModule } from './modules/otp/otp.module';
     AdminModule,
     RecordsModule,
     OtpModule,
+    AssetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
