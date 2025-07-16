@@ -15,6 +15,9 @@ import {
 import { ICreateRecord } from '../interface/records.interface';
 import * as schema from '@/schemas/schema';
 import { eq } from 'drizzle-orm';
+import { RecordsEncryptionService } from '../service/record-encryption.service';
+import { IpfsService } from '@/modules/ipfs/service/ipfs.service';
+import { IPFS_ERROR_MESSAGES } from '@/modules/ipfs/data/ipfs.data';
 
 @Injectable()
 export class RecordsProvider {
@@ -22,6 +25,8 @@ export class RecordsProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
     private readonly doctorService: DoctorService,
+    private readonly recordEncryptionService: RecordsEncryptionService,
+    private readonly ipfsService: IpfsService,
   ) {}
 
   private async returnPractitionerName(practitionerId: string) {
@@ -34,9 +39,50 @@ export class RecordsProvider {
   }
 
   async createRecord(ctx: ICreateRecord) {
-    const { title, practitionerId, patientId } = ctx;
+    const {
+      title,
+      practitionerId,
+      patientId,
+      clinicalNotes,
+      diagnosis,
+      labResults,
+      medicationsPrscribed,
+      attachment1,
+      attachment2,
+      attachment3,
+    } = ctx;
     try {
-      return await this.db.transaction(async (tx) => {
+      const attachments: File[] = [];
+      if (attachment1) attachments.push(attachment1);
+      if (attachment2) attachments.push(attachment2);
+      if (attachment3) attachments.push(attachment3);
+
+      const name = await this.returnPractitionerName(practitionerId);
+      if (!name) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: 'Practitioner not found',
+        });
+      }
+
+      const encryptedRecordResult =
+        await this.recordEncryptionService.encryptMedicalRecord({
+          clinicalNotes,
+          diagnosis,
+          title,
+          medicationsPrscribed,
+          labResults,
+        });
+
+      const encryptedResult = encryptedRecordResult.data;
+      if (!encryptedResult) {
+        return this.handler.handleReturn({
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: REM.ERROR_CREATING_RECORD,
+        });
+      }
+
+      const dbResult = await this.db.transaction(async (tx) => {
         let lastRecordChainId: number = 0;
 
         let counter = await tx
@@ -66,29 +112,53 @@ export class RecordsProvider {
           })
           .where(eq(schema.userRecordCounters.userId, patientId));
 
-        const name = await this.returnPractitionerName(practitionerId);
-
         const inserted = await tx
           .insert(schema.records)
           .values({
             userId: patientId,
             recordChainId: nextChainId,
             title: title,
-            practitionerName: name!,
+            practitionerName: name,
           })
           .returning();
 
         if (!inserted) {
-          return this.handler.handleReturn({
-            status: HttpStatus.EXPECTATION_FAILED,
-            message: REM.ERROR_CREATING_RECORD,
-          });
+          throw new Error('Failed to insert record');
         }
 
+        return { recordId: nextChainId };
+      });
+
+      const ipfsResult = await this.ipfsService.uploadRecordToIpfs({
+        userId: patientId,
+        clinicalNotes: encryptedResult.clinicalNotes,
+        title: encryptedResult.title,
+        diagnosis: encryptedResult.diagnosis,
+        medicationsPrscribed: encryptedResult.medicationsPrscribed,
+        labResults: encryptedResult.labResults,
+        attachments: attachments,
+      });
+
+      if (!('data' in ipfsResult) || !ipfsResult) {
         return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: RSM.SUCCESS_CREATING_RECORD,
+          status: ipfsResult.status,
+          message: ipfsResult.message,
         });
+      }
+
+      const cid = ipfsResult.data;
+      if (!cid) {
+        return this.handler.handleReturn({
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: IPFS_ERROR_MESSAGES.ERROR_UPLOADING_RECORD,
+        });
+      }
+
+      //upload cid and record id to blockchain
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: RSM.SUCCESS_CREATING_RECORD,
       });
     } catch (e) {
       return this.handler.handleError(e, REM.ERROR_CREATING_RECORD);
