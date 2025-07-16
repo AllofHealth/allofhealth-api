@@ -96,7 +96,7 @@ export class IpfsProvider implements OnModuleInit {
 
           throw new Error('Upload failed: No CID returned');
         } catch (error) {
-          console.error(`Failed to upload file ${file.name}:`, error);
+          console.error(`Failed to upload file ${file.originalname}:`, error);
           throw error;
         }
       }),
