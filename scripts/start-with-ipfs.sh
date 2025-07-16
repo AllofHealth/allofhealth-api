@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# AllOfHealth API Startup Script with IPFS
-# This script starts IPFS daemon and then the Node.js application
+# AllOfHealth API Startup Script with IPFS (local binary support)
 
 set -e
 
@@ -19,35 +18,37 @@ cleanup() {
 # Set up signal handlers
 trap cleanup SIGTERM SIGINT
 
-# Check if IPFS is installed
-if ! command -v ipfs &> /dev/null; then
-    echo "❌ IPFS is not installed"
+# Define IPFS binary path (prefer local if available)
+if [ -x "./kubo/ipfs" ]; then
+    IPFS_CMD="./kubo/ipfs"
+elif command -v ipfs &> /dev/null; then
+    IPFS_CMD=$(command -v ipfs)
+else
+    echo "❌ IPFS is not installed or not found in ./kubo or PATH"
     exit 1
 fi
 
-echo "📦 IPFS version: $(ipfs version --number)"
+echo "📦 IPFS version: $($IPFS_CMD version --number)"
 
 # Initialize IPFS if not already done
 if [ ! -d "$HOME/.ipfs" ]; then
     echo "🔧 Initializing IPFS..."
-    ipfs init
+    $IPFS_CMD init
 
-    # Configure IPFS for API access
     echo "⚙️  Configuring IPFS..."
-    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
-    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
-    ipfs config --json API.HTTPHeaders.Access-Control-Allow-Headers '["Authorization", "Content-Type"]'
+    $IPFS_CMD config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+    $IPFS_CMD config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
+    $IPFS_CMD config --json API.HTTPHeaders.Access-Control-Allow-Headers '["Authorization", "Content-Type"]'
 
-    # Set API and Gateway addresses for container access
-    ipfs config Addresses.API /ip4/127.0.0.1/tcp/5001
-    ipfs config Addresses.Gateway /ip4/127.0.0.1/tcp/8080
+    $IPFS_CMD config Addresses.API /ip4/127.0.0.1/tcp/5001
+    $IPFS_CMD config Addresses.Gateway /ip4/127.0.0.1/tcp/8080
 else
     echo "✅ IPFS already initialized"
 fi
 
 # Start IPFS daemon
 echo "🌟 Starting IPFS daemon..."
-ipfs daemon > /tmp/ipfs.log 2>&1 &
+$IPFS_CMD daemon > /tmp/ipfs.log 2>&1 &
 IPFS_PID=$!
 
 # Wait for IPFS to be ready
@@ -93,5 +94,5 @@ echo "📊 IPFS WebUI: http://localhost:5001/webui"
 echo "🌐 IPFS Gateway: http://localhost:8080"
 echo "🔗 API Server: http://localhost:3001"
 
-# Start the Node.js application in foreground (this will keep the container running)
+# Start the Node.js application in foreground
 exec npm run start:prod
