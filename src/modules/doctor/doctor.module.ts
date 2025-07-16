@@ -9,5 +9,6 @@ import { DoctorService } from './service/doctor.service';
   imports: [forwardRef(() => TokenModule)],
   providers: [DoctorService, DoctorProvider, ErrorHandler],
   controllers: [DoctorController],
+  exports: [DoctorService],
 })
 export class DoctorModule {}

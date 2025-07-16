@@ -28,9 +28,7 @@ class CustomIpfsClient {
 
   constructor(private config: IpfsConfig) {
     this.baseUrl = `${config.protocol}://${config.host}:${config.port}`;
-    this.headers = {
-      ...config.headers,
-    };
+    this.headers = config.headers ? { ...config.headers } : {};
   }
 
   async add(data: Buffer | string): Promise<IpfsAddResult> {
@@ -64,13 +62,17 @@ class CustomIpfsClient {
     }
 
     const result = await response.json();
-    return {
+    console.log('IPFS API Response:', result);
+
+    const returnObject = {
       cid: {
         toString: () => result.Hash,
       },
       path: result.Name,
       size: result.Size,
     };
+
+    return returnObject;
   }
 
   async cat(cid: string): Promise<Buffer> {

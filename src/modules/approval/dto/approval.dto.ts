@@ -37,3 +37,49 @@ export class CreateApprovalDto {
   @IsString()
   accessLevel: TAccess;
 }
+
+export class FetchDoctorApprovalsDto {
+  @ApiProperty({
+    description: 'Doctor User ID to fetch approvals for',
+    example: '1234567890',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+}
+
+export class AcceptApprovalDto {
+  @ApiProperty({
+    description: 'Doctor User ID accepting the approval',
+    example: '1234567890',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty({
+    description: 'Approval ID to accept',
+    example: '0987654321',
+  })
+  @IsNotEmpty()
+  @IsString()
+  approvalId: string;
+}
+
+export class RejectApprovalDto {
+  @ApiProperty({
+    description: 'Doctor User ID rejecting the approval',
+    example: '1234567890',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty({
+    description: 'Approval ID to reject',
+    example: '0987654321',
+  })
+  @IsNotEmpty()
+  @IsString()
+  approvalId: string;
+}

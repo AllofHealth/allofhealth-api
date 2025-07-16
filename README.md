@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>A comprehensive blockchain-powered digital health platform built on the Lisk blockchain that revolutionizes medical record management, prescription handling, and healthcare collaboration.</strong>
+  <strong>A comprehensive blockchain-powered digital health platform built on the Lisk blockchain that revolutionizes medical record management, prescription handling, and healthcare collaboration with IPFS-powered decentralized storage.</strong>
 </p>
 
 <p align="center">
@@ -20,13 +20,14 @@
 
 ## 🚀 Vision
 
-To create a unified, patient-controlled digital health ecosystem that eliminates data silos, empowers healthcare stakeholders, and improves patient outcomes through secure, transparent, and accessible medical record management.
+To create a unified, patient-controlled digital health ecosystem that eliminates data silos, empowers healthcare stakeholders, and improves patient outcomes through secure, transparent, and accessible medical record management with decentralized storage.
 
 ## ✨ Key Value Propositions
 
 - **🔐 Simplified Web3 Onboarding**: Streamlined user registration process that abstracts blockchain complexity
 - **👥 Multi-Role Access Control**: Tailored interfaces for patients, doctors, hospitals, pharmacies, and administrators
 - **🔗 Blockchain Security**: Immutable record storage with smart contract-based access permissions on Lisk blockchain
+- **🌐 Decentralized Storage**: IPFS integration for secure, distributed medical data storage
 - **🏥 Integrated Healthcare Ecosystem**: Complete platform combining medical records, telemedicine, and pharmacy coordination
 
 ## 🎯 Target Users
@@ -40,35 +41,87 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 
 ## 📋 Features
 
-### 🌟 Core Features (In Development)
+### 🌟 Core Features (Implemented)
 
 #### Authentication & User Management
 - ✅ Multi-role registration system (Patient, Doctor, Hospital, Pharmacy, Admin)
 - ✅ Document-based identity verification with file upload
 - ✅ Role-based access control (RBAC)
-- 🔄 OAuth 2.0 and JWT token-based authentication
-- 🔄 Web3 wallet integration (Lisk blockchain)
+- ✅ JWT token-based authentication
+- ✅ Web3 wallet integration (Lisk blockchain)
+- ✅ Account abstraction service for simplified Web3 onboarding
+- ✅ User profile management and updates
+
+#### Admin Management System
+- ✅ Super admin creation and management
+- ✅ System admin role management
+- ✅ Permission management system
+- ✅ Practitioner verification workflows
+- ✅ Admin authentication and access control
 
 #### Patient Portal
-- 🔄 Comprehensive medical records management
-- 🔄 Prescription tracking and history
-- 🔄 Appointment scheduling and management
-- 🔄 Healthcare provider directory
-- 🔄 Personal health journaling
-- 🔄 Care team management
+- ✅ Comprehensive approval management for data access
+- ✅ Patient-controlled access permissions
+- ✅ Healthcare provider directory access
+- ✅ Personal health journaling system
+- ✅ Medical record access control
 
 #### Doctor Interface
-- 🔄 Patient record access with permission system
+- ✅ Patient record access with permission system
+- ✅ Approval management system for patient data access
+- ✅ Enhanced patient information display with full names
+- ✅ Doctor profile and verification status
+- ✅ Paginated doctor directory
+- ✅ Collaborative approval workflows
+
+#### Health Journaling System
+- ✅ Personal health journal entries
+- ✅ Journal entry management and retrieval
+- ✅ Patient-owned health data tracking
+- ✅ Secure journal storage
+
+#### Medical Record Management
+- ✅ Blockchain-based approval system for data access
+- ✅ Patient-controlled access permissions
+- ✅ Doctor approval workflows (create, fetch, accept, reject)
+- ✅ Smart contract integration for secure access control
+- ✅ Comprehensive audit trails for all access requests
+- ✅ IPFS integration for decentralized storage
+- ✅ Advanced record encryption service with AES-256-CBC encryption
+- ✅ Batch encryption/decryption for medical records components
+- ✅ Secure clinical notes, diagnosis, lab results, and medication encryption
+
+### IPFS Integration
+- ✅ Decentralized file storage system
+- ✅ IPFS daemon management
+- ✅ Custom IPFS client implementation
+- ✅ Medical record storage on IPFS
+- ✅ Automatic IPFS initialization and configuration
+
+### Record Encryption Service
+- ✅ Medical record encryption service implementation
+- ✅ AES-256-CBC encryption with secure IV generation
+- ✅ Batch encryption/decryption capabilities
+- ✅ Component-based encryption (clinical notes, diagnosis, lab results, medications)
+- ✅ Comprehensive error handling and validation
+- ✅ Environment-based encryption key configuration
+
+#### Record Encryption Service
+- ✅ AES-256-CBC encryption for sensitive medical data
+- ✅ Batch encryption/decryption capabilities
+- ✅ Secure handling of clinical notes, diagnosis, lab results, and medications
+- ✅ Configurable encryption keys via environment variables
+- ✅ Error handling and validation for encryption operations
+- ✅ Comprehensive encryption service with proper key management
+
+### 🔄 In Progress Features
+
+- 🔄 Advanced patient portal features
 - 🔄 Digital prescription writing tools
 - 🔄 Telemedicine consultation platform
-- 🔄 Collaborative notes system
-- 🔄 Treatment plan management
-
-#### Pharmacy System
-- 🔄 One-time prescription key validation
-- 🔄 Real-time inventory tracking
-- 🔄 Prescription queue management
-- 🔄 Patient notification system
+- 🔄 Enhanced security features and audit logging
+- 🔄 Real-time notifications system
+- 🔄 Medical records retrieval interface
 
 ### 🔮 Advanced Features (Planned)
 
@@ -82,11 +135,18 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 
 ### Backend
 - **Framework**: NestJS (Node.js)
-- **Database**: PostgreSQL (primary), MongoDB (medical records), Redis (caching)
+- **Database**: PostgreSQL (primary), Redis (caching)
 - **Blockchain**: Lisk SDK for custom blockchain functionality
-- **Authentication**: JWT, OAuth 2.0, 2FA (TOTP)
-- **File Storage**: Local disk storage (development), planned IPFS integration
+- **Storage**: IPFS (InterPlanetary File System) for decentralized storage
+- **Encryption**: AES-256-CBC for medical record encryption with secure IV generation
+- **Authentication**: JWT, 2FA support
+- **File Storage**: Local disk storage (development), IPFS (production)
 - **API**: RESTful APIs with comprehensive OpenAPI documentation
+
+### Decentralized Storage
+- **IPFS**: Kubo implementation for distributed file storage
+- **Protocol**: HTTP API for IPFS interactions
+- **Features**: Automatic daemon management, content addressing, distributed storage
 
 ### Frontend (Planned)
 - **Web**: React.js with TypeScript
@@ -95,7 +155,7 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - **UI Framework**: Material-UI / Chakra UI
 
 ### DevOps & Infrastructure
-- **Containerization**: Docker
+- **Containerization**: Docker with IPFS integration
 - **CI/CD**: GitHub Actions
 - **Cloud**: AWS/GCP (planned)
 - **Monitoring**: Prometheus + Grafana (planned)
@@ -109,6 +169,50 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - npm or yarn
 - PostgreSQL
 - Redis (optional, for caching)
+- **IPFS (Kubo)** - for decentralized storage
+
+### IPFS (Kubo) Installation
+
+#### Option 1: Use Included Kubo Binary (Recommended)
+The project includes a pre-compiled Kubo binary in the `kubo/` directory:
+
+```bash
+# Navigate to the kubo directory
+cd kubo
+
+# Install IPFS globally (requires sudo)
+sudo ./install.sh
+
+# Or manually move to PATH
+sudo mv ipfs /usr/local/bin/ipfs
+```
+
+#### Option 2: Download Latest Kubo
+```bash
+# Download latest Kubo release
+wget https://dist.ipfs.tech/kubo/v0.24.0/kubo_v0.24.0_linux-amd64.tar.gz
+
+# Extract and install
+tar -xzf kubo_v0.24.0_linux-amd64.tar.gz
+cd kubo
+sudo ./install.sh
+
+# Verify installation
+ipfs version
+```
+
+#### Option 3: Using Package Managers
+```bash
+# macOS with Homebrew
+brew install ipfs
+
+# Ubuntu/Debian
+sudo apt update
+sudo apt install kubo
+
+# Arch Linux
+sudo pacman -S kubo
+```
 
 ### Installation
 
@@ -129,16 +233,16 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
    cp .env.example .env
    
    # Edit .env with your configuration
-   # Database URLs, JWT secrets, ImageKit credentials, etc.
+   # Database URLs, JWT secrets, IPFS configuration, etc.
    ```
 
 4. **Database Setup**
    ```bash
    # Run database migrations
-   npm run migration:run
+   npm run migrate
    
-   # Seed initial data (optional)
-   npm run seed
+   # Generate database schema (if needed)
+   npm run generate
    ```
 
 5. **Create uploads directory**
@@ -148,6 +252,21 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 
 ### Running the Application
 
+#### Development Mode (with IPFS)
+```bash
+# Start with IPFS integration (recommended)
+./scripts/start-with-ipfs.sh
+```
+
+This script will:
+- ✅ Initialize IPFS if not already done
+- ✅ Configure IPFS for API access
+- ✅ Start IPFS daemon
+- ✅ Set up IPFS environment variables
+- ✅ Start the NestJS application
+- ✅ Provide access to IPFS WebUI and Gateway
+
+#### Manual Development Mode
 ```bash
 # Development mode with hot reload
 npm run start:dev
@@ -159,13 +278,19 @@ npm run start:prod
 npm run start
 ```
 
-The API will be available at `http://localhost:3000`
+#### Docker Deployment
+```bash
+# Build and run with Docker (includes IPFS)
+docker build -t allofhealth-api .
+docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
+```
 
-### API Documentation
+### Access Points
 
-Access the interactive API documentation at:
-- **Swagger UI**: `http://localhost:3000/api`
-- **OpenAPI JSON**: `http://localhost:3000/api-json`
+- **API Server**: `http://localhost:3001`
+- **API Documentation**: `http://localhost:3001/api`
+- **IPFS WebUI**: `http://localhost:5001/webui`
+- **IPFS Gateway**: `http://localhost:8080`
 
 ## 📚 API Endpoints
 
@@ -173,10 +298,47 @@ Access the interactive API documentation at:
 - `POST /auth/signUp` - User registration with document upload
 - `POST /auth/signIn` - User authentication
 
-### Asset Management
-- `POST /assets/upload` - Identity document upload to ImageKit
+### Admin Management
+- `POST /admin/createSuperAdmin` - Create super administrator
+- `POST /admin/createSystemAdmin` - Create system administrator
+- `POST /admin/managePermissions` - Manage admin permissions
+- `POST /admin/login` - Admin authentication
+- `POST /admin/verifyPractitioner` - Verify healthcare practitioners
+- `DELETE /admin/deleteAdmin` - Delete administrator accounts
 
-*More endpoints will be documented as development progresses.*
+### Approval Management
+- `POST /approval/createApproval` - Create new approval request for patient data access
+- `POST /approval/fetchDoctorApprovals` - Fetch all approval requests for a doctor
+- `POST /approval/acceptApproval` - Accept a patient's approval request
+- `POST /approval/rejectApproval` - Reject a patient's approval request
+- `GET /approval/cleanup/manual` - Manually trigger cleanup of expired approvals
+
+### User Management
+- `POST /user/updateUser` - Update user profile with file upload support
+
+### Doctor Management
+- `GET /doctor/fetchDoctor` - Get doctor profile and verification status
+- `GET /doctor/fetchAllDoctors` - Get all verified doctors (paginated)
+
+### Health Journal
+- `POST /health-journal/addJournalEntry` - Add personal health journal entry
+- `GET /health-journal/fetchUserJournals` - Fetch user's health journal entries
+
+### IPFS Integration
+- `GET /ipfs/testIpfs` - Test IPFS functionality and upload
+
+### Record Encryption Service
+- **Internal Service**: `RecordsEncryptionService` - Medical record encryption/decryption
+- **Batch Processing**: Supports bulk encryption of clinical notes, diagnosis, lab results, and medications
+- **Security**: AES-256-CBC encryption with unique IV for each operation
+- **Key Management**: Environment-based encryption key configuration
+
+### Contract Management
+- `GET /contract/system-admin-count` - Get system administrator count
+- `GET /contract/patientCount` - Get total patient count
+- `GET /contract/patientContractId` - Get patient contract ID by address
+
+*Additional endpoints are available and documented in the Swagger UI.*
 
 ## 🏗 Architecture
 
@@ -186,19 +348,36 @@ Access the interactive API documentation at:
 │   Frontend      │    │   Backend API   │    │   Blockchain    │
 │   (Planned)     │◄──►│   (NestJS)     │◄──►│   (Lisk)       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌─────────────────┐
-                       │   Database      │
-                       │   (PostgreSQL)  │
-                       └─────────────────┘
+                              │                        │
+                              ▼                        ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │   Database      │    │      IPFS       │
+                       │   (PostgreSQL)  │    │   (Kubo Node)   │
+                       └─────────────────┘    └─────────────────┘
 ```
 
+### IPFS Integration
+- **Decentralized Storage**: Medical records stored on IPFS network
+- **Content Addressing**: Immutable content identification via CID
+- **Gateway Access**: HTTP gateway for content retrieval
+- **API Integration**: Custom IPFS client for seamless integration
+
+### Record Encryption Architecture
+- **AES-256-CBC Encryption**: Military-grade encryption for medical records
+- **Initialization Vector (IV)**: Unique 16-byte IV generated for each encryption operation
+- **Batch Processing**: Efficient encryption/decryption of multiple record components simultaneously
+- **Key Management**: Base64-encoded 32-byte encryption keys via environment configuration
+- **Component-Based**: Individual encryption for clinical notes, diagnosis, lab results, and medications
+- **Format**: Encrypted data stored as `IV:EncryptedData` hex format for easy parsing
+- **Error Handling**: Comprehensive validation and error management for encryption operations
+
 ### Security Features
-- **🔐 Multi-layer Encryption**: AES-256 for sensitive data
+- **🔐 Multi-layer Encryption**: AES-256-CBC for sensitive medical data with IV-based security
 - **🔑 Smart Contract Access Control**: Blockchain-based permission management
-- **🛡️ Zero-Knowledge Proofs**: Privacy-preserving authentication
+- **🛡️ Decentralized Storage**: IPFS for tamper-proof medical records
 - **📋 Audit Trails**: Comprehensive logging for compliance
+- **🔒 Record Encryption Service**: Dedicated service for encrypting/decrypting medical records
+- **🛡️ Batch Processing**: Secure batch encryption for multiple data components
 
 ## 🔧 Development Status
 
@@ -207,30 +386,55 @@ Access the interactive API documentation at:
 - [x] Multi-role authentication system
 - [x] File upload with validation (government ID, medical license)
 - [x] Identity verification workflow
-- [x] ImageKit integration for secure file storage
 - [x] Role-based access control foundation
 - [x] API documentation with Swagger
+- [x] Blockchain integration with Lisk
+- [x] Smart contract deployment for access control
+- [x] Account abstraction service for Web3 onboarding
+- [x] Comprehensive approval management system
+- [x] Doctor verification and compliance checking
+- [x] Patient data access control with blockchain security
+- [x] Enhanced database schema with proper relationships
+- [x] User management with profile features
+- [x] Doctor directory with specialization filtering
+- [x] **IPFS integration with Kubo**
+- [x] **Decentralized storage system**
+- [x] **Health journaling functionality**
+- [x] **Admin management system**
+- [x] **Contract interaction system**
+- [x] **Docker integration with IPFS**
+- [x] **Automated startup script**
+- [x] **Record encryption service with AES-256-CBC**
+- [x] **Batch encryption/decryption for medical records**
 
 ### 🔄 In Progress
-- [ ] Patient portal development
-- [ ] Doctor interface implementation
-- [ ] Database schema optimization
-- [ ] Enhanced security features
+- [ ] Frontend web application development
+- [ ] Advanced patient portal features
+- [ ] Medical records storage and retrieval interface
+- [ ] Telemedicine integration
+- [ ] Enhanced security features and audit logging
 - [ ] Prescription management system
+- [ ] Real-time notifications system
 
 ### 📋 Planned
-- [ ] Blockchain integration (Lisk)
-- [ ] One-time prescription keys
-- [ ] Telemedicine platform
-- [ ] Mobile applications
-- [ ] AI health insights
+- [ ] One-time prescription keys with automatic expiration
+- [ ] Advanced telemedicine platform with video calling
+- [ ] Mobile applications (React Native)
+- [ ] AI-powered health insights and recommendations
 - [ ] HIPAA compliance certification
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] Insurance integration
+- [ ] Lab results integration
+- [ ] Appointment scheduling system
 
 ## 📊 Success Metrics
 
 ### Technical KPIs
 - **System Uptime**: Target 99.9%
 - **API Response Time**: Target <200ms
+- **IPFS Storage Reliability**: Target 99.9%
+- **Encryption Success Rate**: Target 99.9%
 - **Registration Success Rate**: Target 85%
 - **Security Incidents**: Target 0
 
@@ -246,12 +450,33 @@ Access the interactive API documentation at:
 - **GDPR Ready**: European data protection regulation compliance
 - **Encryption**: End-to-end encryption for all sensitive data
 - **Access Control**: Granular permission system
+- **Record Encryption**: AES-256-CBC encryption for all sensitive medical data
+- **Decentralized Storage**: IPFS for tamper-proof data integrity
 
 ### Audit & Monitoring
 - Comprehensive audit trails
 - Real-time security monitoring
+- IPFS content verification
 - Regular security assessments
 - Penetration testing (planned)
+
+## 🐳 Docker Support
+
+The application includes full Docker support with IPFS integration:
+
+```dockerfile
+# Build
+docker build -t allofhealth-api .
+
+# Run with all services
+docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
+```
+
+The Docker container automatically:
+- Installs and configures IPFS (Kubo)
+- Starts IPFS daemon
+- Builds and starts the NestJS application
+- Exposes all necessary ports
 
 ## 🤝 Contributing
 
@@ -269,6 +494,55 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - Maintain test coverage above 80%
 - Use conventional commit messages
 - Update documentation for new features
+- Test IPFS integration for storage features
+- Test encryption/decryption functionality for medical records
+- Validate encryption key management and security practices
+
+## 🔧 Environment Variables
+
+Key environment variables for IPFS integration and encryption:
+
+```bash
+# IPFS Configuration
+IPFS_HOST=127.0.0.1
+IPFS_PORT=5001
+IPFS_PROTOCOL=http
+IPFS_API_KEY=          # Optional for hosted IPFS
+IPFS_API_SECRET=       # Optional for hosted IPFS
+
+# Record Encryption
+RECORD_ENCRYPTION_KEY= # Base64 encoded 32-byte key for AES-256-CBC encryption
+#                     # Example: generate with crypto.randomBytes(32).toString('base64')
+
+# Database
+DATABASE_URL=postgresql://...
+
+# JWT
+JWT_SECRET=your-secret-key
+
+# Other configurations...
+```
+
+### 🔐 Encryption Key Generation
+
+For security, generate a strong encryption key for medical records:
+
+```bash
+# Generate a secure 32-byte encryption key
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+
+# Or use the provided utility (if available)
+npm run generate:encryption-key
+```
+
+#### Security Best Practices for Encryption Keys:
+
+1. **🔑 Key Strength**: Always use 32-byte (256-bit) keys for AES-256-CBC
+2. **🔒 Key Storage**: Store keys in environment variables, never in source code
+3. **🔄 Key Rotation**: Implement regular key rotation policies for production
+4. **🛡️ Backup**: Securely backup encryption keys - lost keys mean lost data
+5. **🚫 Access Control**: Limit key access to essential personnel only
+6. **📋 Audit**: Log all encryption/decryption operations for compliance
 
 ## 📄 License
 
@@ -276,6 +550,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
+- **IPFS/Protocol Labs** for decentralized storage infrastructure
 - **Lisk Foundation** for blockchain infrastructure
 - **NestJS Team** for the excellent framework
 - **Healthcare Community** for valuable feedback and requirements
@@ -290,7 +565,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <p align="center">
-  <strong>AllOf Health - Transforming Healthcare Through Blockchain Technology</strong>
+  <strong>AllOf Health - Transforming Healthcare Through Blockchain & Decentralized Storage</strong>
 </p>
 
 <p align="center">

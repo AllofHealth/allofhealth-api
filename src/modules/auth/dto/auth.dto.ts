@@ -192,10 +192,18 @@ export class UserSnippetDto {
 }
 
 export class SignInDto {
+  @ApiProperty({
+    description: 'The email address of the user',
+    example: 'john.doe@example.com',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
+  @ApiProperty({
+    description: 'The password of the user',
+    example: 'password123',
+  })
   @IsNotEmpty()
   @IsString()
   password: string;
