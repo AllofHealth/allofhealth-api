@@ -5,7 +5,7 @@ import { IpfsProvider } from '../provider/ipfs.provider';
 export class IpfsService {
   constructor(private readonly ipfsProvider: IpfsProvider) {}
 
-  async uploadRecord() {
-    return await this.ipfsProvider.uploadRecord();
+  async testIPFS() {
+    return await this.ipfsProvider.testIPFS();
   }
 }
