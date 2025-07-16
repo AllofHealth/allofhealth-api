@@ -130,7 +130,10 @@ export class CustomIpfsClient {
     return returnObject;
   }
 
-  async uploadImage(file: File, userId?: string): Promise<IpfsAddResult> {
+  async uploadImage(
+    file: Express.Multer.File,
+    userId?: string,
+  ): Promise<IpfsAddResult> {
     if (userId) {
       const folderExists = await this.folderExists(userId);
       if (!folderExists) {
@@ -141,17 +144,16 @@ export class CustomIpfsClient {
     const boundary =
       '----FormBoundary' + Math.random().toString(36).substr(2, 9);
 
-    // Convert File to Buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Convert Express.Multer.File to Buffer
+    const buffer = file.buffer;
 
     const body = Buffer.concat([
       Buffer.from(`--${boundary}\r\n`),
       Buffer.from(
-        `Content-Disposition: form-data; name="file"; filename="${file.name}"\r\n`,
+        `Content-Disposition: form-data; name="file"; filename="${file.originalname}"\r\n`,
       ),
       Buffer.from(
-        `Content-Type: ${file.type || 'application/octet-stream'}\r\n\r\n`,
+        `Content-Type: ${file.mimetype || 'application/octet-stream'}\r\n\r\n`,
       ),
       buffer,
       Buffer.from(`\r\n--${boundary}--\r\n`),
@@ -176,14 +178,14 @@ export class CustomIpfsClient {
     console.log('IPFS Image Upload Response:', result);
 
     if (userId) {
-      await this.moveToUserFolder(result.Hash, userId, file.name);
+      await this.moveToUserFolder(result.Hash, userId, file.originalname);
     }
 
     const returnObject = {
       cid: {
         toString: () => result.Hash,
       },
-      path: userId ? `/${userId}/${file.name}` : file.name,
+      path: userId ? `/${userId}/${file.originalname}` : file.originalname,
       size: result.Size,
     };
 
