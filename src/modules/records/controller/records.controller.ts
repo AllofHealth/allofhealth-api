@@ -83,6 +83,13 @@ export class RecordsController {
             'The unique identifier of the practitioner creating the record',
           example: '550e8400-e29b-41d4-a716-446655440000',
         },
+        approvalId: {
+          type: 'string',
+          format: 'uuid',
+          description:
+            'The unique identifier of the approval given to create this record',
+          example: '550e8400-e29b-41d4-a716-446655440000',
+        },
         patientId: {
           type: 'string',
           format: 'uuid',
