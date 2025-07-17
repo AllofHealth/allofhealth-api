@@ -45,4 +45,10 @@ export class ContractService {
   async addMedicalRecordToContract(ctx: EAddMedicalRecordToContract) {
     return await this.contractProvider.handleAddMedicalRecord(ctx);
   }
+
+  async getPractitionerSmartAddress(practitionerId: string) {
+    return await this.contractProvider.getPractitionerSmartAddress(
+      practitionerId,
+    );
+  }
 }
