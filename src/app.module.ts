@@ -24,6 +24,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { RecordsModule } from './modules/records/records.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { AssetModule } from './modules/asset/asset.module';
+import { WalletModule } from './modules/wallet/wallet.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { AssetModule } from './modules/asset/asset.module';
     RecordsModule,
     OtpModule,
     AssetModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService],
