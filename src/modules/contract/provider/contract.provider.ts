@@ -1,5 +1,5 @@
 import { PaymasterMode } from '@biconomy/account';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { ethers } from 'ethers';
 import { encodeFunctionData } from 'viem';
 import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
@@ -385,32 +385,39 @@ export class ContractProvider {
     }
   }
 
+  async getPractitionerSmartAddress(practitionerId: string) {
+    const practitionerResult =
+      await this.aaService.getSmartAddress(practitionerId);
+
+    if (!('data' in practitionerResult && practitionerResult.data)) {
+      throw new BadRequestException(practitionerResult.message);
+    }
+
+    return practitionerResult.data.smartAddress;
+  }
+
+  async getPatientSmartAddress(patientId: string) {
+    const patientResult = await this.aaService.getSmartAddress(patientId);
+
+    if (!('data' in patientResult && patientResult.data)) {
+      throw new BadRequestException(patientResult.message);
+    }
+
+    return patientResult.data.smartAddress;
+  }
+
   @OnEvent(SharedEvents.APPROVE_RECORD_ACCESS)
   async handleApproveMedicalRecordAccess(ctx: EApproveRecordAccess) {
     const { practitionerId, userId, recordId, duration = Duration.A_DAY } = ctx;
     try {
       const smartWallet = await this.aaService.provideSmartWallet(userId);
 
-      const patientResult = await this.aaService.getSmartAddress(userId);
-      const practitionerResult =
-        await this.aaService.getSmartAddress(practitionerId);
-
-      if (!('data' in patientResult && patientResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientResult.message,
-        });
-      }
-
-      if (!('data' in practitionerResult && practitionerResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: practitionerResult.message,
-        });
-      }
-
-      const patientSmartAddress = patientResult.data.smartAddress;
-      const practitionerSmartAddress = practitionerResult.data.smartAddress;
+      const [practitionerSmartAddress, patientSmartAddress] = await Promise.all(
+        [
+          this.getPractitionerSmartAddress(practitionerId),
+          this.getPatientSmartAddress(userId),
+        ],
+      );
 
       const patientIdResult =
         await this.handleGetPatientId(patientSmartAddress);
