@@ -49,6 +49,7 @@ export class RecordsProvider {
   async createRecord(ctx: ICreateRecord) {
     const {
       title,
+      approvalId,
       practitionerId,
       patientId,
       clinicalNotes,
@@ -66,6 +67,7 @@ export class RecordsProvider {
       const isPractitionerApprovedToAccessRecord =
         await this.approvalService.validateIsPractitionerApproved({
           practitionerAddress: practitionerSmartAddress,
+          approvalId,
           userId: patientId,
         });
 
