@@ -9,13 +9,16 @@ import {
   HttpStatus,
   Ip,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -26,6 +29,7 @@ import {
   AcceptApprovalDto,
   CreateApprovalDto,
   FetchDoctorApprovalsDto,
+  FindApprovalDto,
   RejectApprovalDto,
 } from '../dto/approval.dto';
 import { ApprovalService } from '../service/approval.service';
@@ -213,6 +217,62 @@ export class ApprovalController {
       doctorId: ctx.userId,
       approvalId: ctx.approvalId,
     });
+  }
+
+  @Get('findApproval')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Find an approval by ID',
+    description:
+      'Retrieve a specific approval record using its unique identifier',
+  })
+  @ApiQuery({
+    name: 'approvalId',
+    description: 'The unique identifier of the approval to find',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    type: String,
+  })
+  @ApiOkResponse({
+    description: 'Approval found successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Approval found',
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        userId: 'patient-id-456',
+        practitionerAddress: '0x123...abc',
+        recordId: 1,
+        duration: 3600,
+        accessLevel: 'read',
+        isRequestAccepted: true,
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: AEM.APPROVAL_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: AEM.APPROVAL_NOT_FOUND,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error finding approval',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error finding approval',
+    },
+  })
+  async findApprovalById(
+    @Ip() ip: string,
+    @Query('approvalId') approvalId: string,
+  ) {
+    this.logger.log(`Finding approval ${approvalId} from ${ip}`);
+    return await this.approvalService.findApprovalById(approvalId);
   }
 
   @Get('cleanup/manual')
