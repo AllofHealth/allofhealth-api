@@ -7,6 +7,9 @@ import {
 } from '../interface/approval.interface';
 import { ApprovalProvider } from '../provider/approval.provider';
 import { ApprovalCleanupService } from '../tasks/approval-cleanup.service';
+import { OnEvent } from '@nestjs/event-emitter';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { EDeleteApproval } from '@/shared/dtos/event.dto';
 
 @Injectable()
 export class ApprovalService {
@@ -43,7 +46,8 @@ export class ApprovalService {
     return await this.approvalProvider.findApprovalById(approvalId);
   }
 
-  async deleteApproval(approvalId: string) {
-    return await this.approvalProvider.deleteApproval(approvalId);
+  @OnEvent(SharedEvents.DELETE_APPROVAL)
+  async deleteApproval(ctx: EDeleteApproval) {
+    return await this.approvalProvider.deleteApproval(ctx.approvalId);
   }
 }
