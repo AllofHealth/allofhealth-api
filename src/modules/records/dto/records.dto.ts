@@ -26,6 +26,15 @@ export class CreateRecordDto {
   practitionerId: string;
 
   @ApiProperty({
+    description:
+      'The unique identifier of approval given to create this record',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsNotEmpty()
+  @IsUUID()
+  approvalId: string;
+
+  @ApiProperty({
     description: 'The unique identifier of the patient',
     example: '550e8400-e29b-41d4-a716-446655440001',
   })
