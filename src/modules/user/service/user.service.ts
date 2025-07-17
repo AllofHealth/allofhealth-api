@@ -29,4 +29,8 @@ export class UserService {
   async findUserByEmail(email: string) {
     return await this.userProvider.findUserByEmail(email);
   }
+
+  async fetchDashboardData(userId: string) {
+    return await this.userProvider.fetchDashboardData(userId);
+  }
 }
