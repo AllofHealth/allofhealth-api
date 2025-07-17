@@ -11,11 +11,13 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import {
   BadRequestException,
+  HttpException,
   HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { and, eq, or } from 'drizzle-orm';
 import {
@@ -26,6 +28,8 @@ import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
 import {
   IAcceptApproval,
   IRejectApproval,
+  IValidateApprovalDuration,
+  IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
 import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 
@@ -357,6 +361,86 @@ export class ApprovalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_REJECTING_APPROVAL);
+    }
+  }
+
+  validateApprovalDuration(ctx: IValidateApprovalDuration) {
+    const { createdAt, duration } = ctx;
+    let isValid: boolean = false;
+
+    const currentTime = Date.now();
+    const createdAtTime = new Date(createdAt).getTime();
+
+    const expirationTime = createdAtTime + duration;
+
+    if (currentTime <= expirationTime) {
+      isValid = true;
+    }
+
+    return isValid;
+  }
+
+  async validatePractitionerIsApproved(ctx: IValidatePractitionerIsApproved) {
+    let isPractitionerApproved: boolean = false;
+
+    const { practitionerAddress, userId, recordId } = ctx;
+
+    try {
+      const approval = await this.db.query.approvals.findMany({
+        where: and(
+          eq(schema.approvals.practitionerAddress, practitionerAddress),
+          eq(schema.approvals.userId, userId),
+        ),
+      });
+
+      if (!approval || approval.length === 0 || typeof approval === undefined) {
+        throw new HttpException(AEM.APPROVAL_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      if (recordId) {
+        const specificApproval = approval.find(
+          (approval) => approval.recordId == recordId,
+        );
+        if (!specificApproval) {
+          throw new UnauthorizedException(
+            'Practitioner not allowed to view this record',
+          );
+        }
+
+        if (!specificApproval.duration) {
+          return {
+            isApproved: true,
+            permissions: specificApproval.accessLevel,
+          };
+        } else {
+          const isDurationValid = this.validateApprovalDuration({
+            createdAt: specificApproval.createdAt,
+            duration: specificApproval.duration,
+          });
+
+          return {
+            isApproved: isDurationValid,
+            permissions: specificApproval.accessLevel,
+          };
+        }
+      }
+
+      const isDurationValid = this.validateApprovalDuration({
+        createdAt: approval[0].createdAt,
+        duration: approval[0].duration as number,
+      });
+
+      isPractitionerApproved = isDurationValid;
+
+      return {
+        isApproved: isPractitionerApproved,
+        permissions: approval[0].accessLevel,
+      };
+    } catch (e) {
+      throw new HttpException(
+        AEM.ERROR_VALIDATING_APPROVAL_ACCESS,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
