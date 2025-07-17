@@ -15,6 +15,7 @@ export enum APPROVAL_ERROR_MESSAGE {
   PATIENT_ONLY = 'Only patients can create approvals',
   APPROVAL_ALREADY_EXISTS = 'Approval already exists with this or another practitioner, please wait till the practitoner updates your record or till approval durartion runs out',
   ERROR_VALIDATING_APPROVAL_ACCESS = 'Error validating approval access',
+  APPROVAL_NOT_ACCEPTED = 'Approval not accepted',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
