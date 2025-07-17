@@ -27,6 +27,7 @@ import { SharedEvents } from '@/shared/events/shared.events';
 import {
   EApproveRecordAccess,
   EApproveWriteRecord,
+  EDeleteApproval,
 } from '@/shared/dtos/event.dto';
 
 @Injectable()
@@ -541,7 +542,7 @@ export class ContractProvider {
   }
 
   async handleAddMedicalRecord(ctx: IHandleAddMedicalRecord) {
-    const { practitionerId, userId, cid } = ctx;
+    const { practitionerId, userId, cid, approvalId } = ctx;
     try {
       const smartWallet = await this.aaService.provideSmartWallet(userId);
 
@@ -590,6 +591,11 @@ export class ContractProvider {
       });
 
       const { transactionHash } = await opResponse.waitForTxHash();
+
+      this.eventEmitter.emit(
+        SharedEvents.DELETE_APPROVAL,
+        new EDeleteApproval(approvalId),
+      );
 
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
