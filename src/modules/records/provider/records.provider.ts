@@ -1,3 +1,5 @@
+import { ApprovalService } from '@/modules/approval/service/approval.service';
+import { ContractService } from '@/modules/contract/service/contract.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
 import { IPFS_ERROR_MESSAGES } from '@/modules/ipfs/data/ipfs.data';
 import { IpfsService } from '@/modules/ipfs/service/ipfs.service';
@@ -31,6 +33,8 @@ export class RecordsProvider {
     private readonly recordEncryptionService: RecordsEncryptionService,
     private readonly ipfsService: IpfsService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly approvalService: ApprovalService,
+    private readonly contractService: ContractService,
   ) {}
 
   private async returnPractitionerName(practitionerId: string) {
@@ -56,6 +60,26 @@ export class RecordsProvider {
       attachment3,
     } = ctx;
     try {
+      const practitionerSmartAddress =
+        await this.contractService.getPractitionerSmartAddress(practitionerId);
+
+      const isPractitionerApprovedToAccessRecord =
+        await this.approvalService.validateIsPractitionerApproved({
+          practitionerAddress: practitionerSmartAddress,
+          userId: patientId,
+        });
+
+      if (
+        (!isPractitionerApprovedToAccessRecord.isApproved &&
+          isPractitionerApprovedToAccessRecord.permissions !== 'write') ||
+        isPractitionerApprovedToAccessRecord.permissions !== 'full'
+      ) {
+        return this.handler.handleReturn({
+          status: HttpStatus.FORBIDDEN,
+          message: REM.PRACTITIONER_NOT_APPROVED_TO_ACCESS_RECORD,
+        });
+      }
+
       // Process attachments
       const attachments: Express.Multer.File[] = [];
       if (attachment1) attachments.push(attachment1);
