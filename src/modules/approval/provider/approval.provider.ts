@@ -174,17 +174,30 @@ export class ApprovalProvider {
       }
 
       const practitionerAddress = await this.getSmartAddress(practitionerId);
-      await this.db.insert(schema.approvals).values({
-        userId,
-        recordId,
-        practitionerAddress,
-        accessLevel: accessLevel,
-        duration,
-      });
+      const approval = await this.db
+        .insert(schema.approvals)
+        .values({
+          userId,
+          recordId,
+          practitionerAddress,
+          accessLevel: accessLevel,
+          duration,
+        })
+        .returning();
+
+      if (!approval || approval.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: AEM.ERROR_CREATING_APPROVAL,
+        });
+      }
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_CREATED,
+        data: {
+          approvalId: approval[0].id,
+        },
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_CREATING_APPROVAL);
@@ -383,21 +396,22 @@ export class ApprovalProvider {
   async validatePractitionerIsApproved(ctx: IValidatePractitionerIsApproved) {
     let isPractitionerApproved: boolean = false;
 
-    const { practitionerAddress, userId, recordId } = ctx;
+    const { practitionerAddress, userId, recordId, approvalId } = ctx;
 
     try {
-      const approval = await this.db.query.approvals.findMany({
+      const approval = await this.db.query.approvals.findFirst({
         where: and(
           eq(schema.approvals.practitionerAddress, practitionerAddress),
           eq(schema.approvals.userId, userId),
+          eq(schema.approvals.id, approvalId),
         ),
       });
 
-      if (!approval || approval.length === 0 || typeof approval === undefined) {
+      if (!approval || typeof approval === undefined) {
         throw new HttpException(AEM.APPROVAL_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
-      if (!approval[0].isRequestAccepted) {
+      if (!approval.isRequestAccepted) {
         throw new HttpException(
           AEM.APPROVAL_NOT_ACCEPTED,
           HttpStatus.FORBIDDEN,
@@ -405,49 +419,87 @@ export class ApprovalProvider {
       }
 
       if (recordId) {
-        const specificApproval = approval.find(
-          (approval) => approval.recordId == recordId,
-        );
-        if (!specificApproval) {
+        if (recordId !== approval.recordId) {
           throw new UnauthorizedException(
             'Practitioner not allowed to view this record',
           );
         }
 
-        if (!specificApproval.duration) {
+        if (!approval.duration) {
           return {
             isApproved: true,
-            permissions: specificApproval.accessLevel,
+            permissions: approval.accessLevel,
           };
         } else {
           const isDurationValid = this.validateApprovalDuration({
-            createdAt: specificApproval.createdAt,
-            duration: specificApproval.duration,
+            createdAt: approval.createdAt,
+            duration: approval.duration,
           });
 
           return {
             isApproved: isDurationValid,
-            permissions: specificApproval.accessLevel,
+            permissions: approval.accessLevel,
           };
         }
       }
 
       const isDurationValid = this.validateApprovalDuration({
-        createdAt: approval[0].createdAt,
-        duration: approval[0].duration as number,
+        createdAt: approval.createdAt,
+        duration: approval.duration as number,
       });
 
       isPractitionerApproved = isDurationValid;
 
       return {
         isApproved: isPractitionerApproved,
-        permissions: approval[0].accessLevel,
+        permissions: approval.accessLevel,
       };
     } catch (e) {
       throw new HttpException(
         AEM.ERROR_VALIDATING_APPROVAL_ACCESS,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async findApprovalById(approvalId: string) {
+    try {
+      const approval = await this.db.query.approvals.findFirst({
+        where: eq(schema.approvals.id, approvalId),
+      });
+
+      if (!approval || typeof approval === undefined) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.APPROVAL_NOT_FOUND,
+        });
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_FOUND,
+        data: approval,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_FINDING_APPROVAL);
+    }
+  }
+
+  async deleteApproval(approvalId: string) {
+    try {
+      const approvalResult = await this.findApprovalById(approvalId);
+      if (approvalResult.status !== HttpStatus.OK) return approvalResult;
+
+      this.db
+        .delete(schema.approvals)
+        .where(eq(schema.approvals.id, approvalId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_DELETED,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_DELETING_APPROVAL);
     }
   }
 }
