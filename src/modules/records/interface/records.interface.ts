@@ -1,4 +1,5 @@
 export interface ICreateRecord extends IEncryptRecord {
+  approvalId: string;
   practitionerId: string;
   patientId: string;
   attachment1?: Express.Multer.File;
