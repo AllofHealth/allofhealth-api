@@ -15,6 +15,7 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiConsumes,
+  ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
@@ -62,7 +63,7 @@ export class RecordsController {
   @ApiOperation({
     summary: 'Create a new medical record',
     description:
-      'Create a new medical record with optional file attachments. Maximum of 3 attachments allowed per record.',
+      'Create a new medical record with optional file attachments. Maximum of 3 attachments allowed per record. The practitioner must have valid approval with write or full permissions to create records for the specified patient.',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -181,6 +182,14 @@ export class RecordsController {
     example: {
       status: HttpStatus.BAD_REQUEST,
       message: 'Invalid file format. Only JPG, PNG, and PDF files are allowed.',
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Practitioner authorization failed',
+    example: {
+      status: HttpStatus.FORBIDDEN,
+      message:
+        "Practitioner is not approved to access this patient's records or lacks sufficient permissions.",
     },
   })
   async createRecord(
