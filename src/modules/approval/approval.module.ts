@@ -23,6 +23,6 @@ import { ApprovalCleanupService } from './tasks/approval-cleanup.service';
     ErrorHandler,
   ],
   controllers: [ApprovalController],
-  exports: [ApprovalCleanupService],
+  exports: [ApprovalCleanupService, ApprovalService],
 })
 export class ApprovalModule {}
