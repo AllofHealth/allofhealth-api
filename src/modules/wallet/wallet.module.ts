@@ -5,9 +5,14 @@ import { WalletController } from './controller/wallet.controller';
 import { WalletProvider } from './provider/wallet.provider';
 import { WalletService } from './service/wallet.service';
 import { TokenModule } from '../token/token.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [ExternalAccountModule, forwardRef(() => TokenModule)],
+  imports: [
+    ExternalAccountModule,
+    forwardRef(() => TokenModule),
+    forwardRef(() => UserModule),
+  ],
   providers: [WalletProvider, WalletService, ErrorHandler],
   controllers: [WalletController],
 })
