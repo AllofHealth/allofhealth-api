@@ -7,9 +7,17 @@ import { TokenModule } from '../token/token.module';
 import { UserController } from './controller/user.controller';
 import { UserProvider } from './provider/user.provider';
 import { UserService } from './service/user.service';
+import { WalletModule } from '../wallet/wallet.module';
+import { ApprovalModule } from '../approval/approval.module';
 
 @Module({
-  imports: [AccountQueueModule, forwardRef(() => TokenModule), AssetModule],
+  imports: [
+    AccountQueueModule,
+    forwardRef(() => TokenModule),
+    AssetModule,
+    forwardRef(() => WalletModule),
+    forwardRef(() => ApprovalModule),
+  ],
   providers: [UserProvider, UserService, AuthUtils, ErrorHandler],
   controllers: [UserController],
   exports: [UserService],
