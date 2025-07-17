@@ -8,6 +8,7 @@ import {
   Ip,
   Post,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -30,6 +31,7 @@ import {
 } from '../data/records.data';
 import { CreateRecordDto } from '../dto/records.dto';
 import { RecordsService } from '../service/records.service';
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
 
 @ApiTags('Medical Records Operations')
 @Controller('records')
@@ -38,6 +40,7 @@ export class RecordsController {
   constructor(private readonly recordsService: RecordsService) {}
 
   @Post('createMedicalRecord')
+  @UseGuards(AuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor(
       [
