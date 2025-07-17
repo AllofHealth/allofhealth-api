@@ -49,4 +49,5 @@ export interface IHandleAddMedicalRecord {
   userId: string;
   practitionerId: string;
   cid: string;
+  approvalId: string;
 }
