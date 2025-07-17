@@ -9,6 +9,7 @@ import { RecordsController } from './controller/records.controller';
 import { RecordsProvider } from './provider/records.provider';
 import { RecordsEncryptionService } from './service/record-encryption.service';
 import { RecordsService } from './service/records.service';
+import { TokenModule } from '../token/token.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { RecordsService } from './service/records.service';
     IpfsModule,
     forwardRef(() => ApprovalModule),
     forwardRef(() => ContractModule),
+    forwardRef(() => TokenModule),
   ],
   providers: [
     RecordsProvider,
