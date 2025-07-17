@@ -16,6 +16,8 @@ export enum APPROVAL_ERROR_MESSAGE {
   APPROVAL_ALREADY_EXISTS = 'Approval already exists with this or another practitioner, please wait till the practitoner updates your record or till approval durartion runs out',
   ERROR_VALIDATING_APPROVAL_ACCESS = 'Error validating approval access',
   APPROVAL_NOT_ACCEPTED = 'Approval not accepted',
+  ERROR_DELETING_APPROVAL = 'Error deleting approval',
+  ERROR_FINDING_APPROVAL = 'Error finding approval',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
@@ -23,4 +25,6 @@ export enum APPROVAL_SUCCESS_MESSAGE {
   APPROVAL_FETCHED = 'Approval fetched successfully',
   APPROVAL_ACCEPTED = 'Approval accepted successfully',
   APPROVAL_REJECTED = 'Approval rejected successfully',
+  APPROVAL_DELETED = 'Approval deleted successfully',
+  APPROVAL_FOUND = 'Approval found successfully',
 }
