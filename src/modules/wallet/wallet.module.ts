@@ -1,12 +1,13 @@
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { ExternalAccountModule } from '@/shared/modules/external-account/external-account.module';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { WalletController } from './controller/wallet.controller';
 import { WalletProvider } from './provider/wallet.provider';
 import { WalletService } from './service/wallet.service';
+import { TokenModule } from '../token/token.module';
 
 @Module({
-  imports: [ExternalAccountModule],
+  imports: [ExternalAccountModule, forwardRef(() => TokenModule)],
   providers: [WalletProvider, WalletService, ErrorHandler],
   controllers: [WalletController],
 })
