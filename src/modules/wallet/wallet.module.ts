@@ -15,5 +15,6 @@ import { UserModule } from '../user/user.module';
   ],
   providers: [WalletProvider, WalletService, ErrorHandler],
   controllers: [WalletController],
+  exports: [WalletService],
 })
 export class WalletModule {}
