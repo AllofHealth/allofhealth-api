@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   IAcceptApproval,
   IRejectApproval,
+  IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
 import { ApprovalProvider } from '../provider/approval.provider';
 import { ApprovalCleanupService } from '../tasks/approval-cleanup.service';
@@ -32,5 +33,9 @@ export class ApprovalService {
 
   async manualCleanup() {
     return await this.approvalCleanupService.manualCleanup();
+  }
+
+  async validateIsPractitionerApproved(ctx: IValidatePractitionerIsApproved) {
+    return await this.approvalProvider.validatePractitionerIsApproved(ctx);
   }
 }
