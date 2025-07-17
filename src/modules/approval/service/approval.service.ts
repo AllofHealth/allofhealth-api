@@ -38,4 +38,12 @@ export class ApprovalService {
   async validateIsPractitionerApproved(ctx: IValidatePractitionerIsApproved) {
     return await this.approvalProvider.validatePractitionerIsApproved(ctx);
   }
+
+  async findApprovalById(approvalId: string) {
+    return await this.approvalProvider.findApprovalById(approvalId);
+  }
+
+  async deleteApproval(approvalId: string) {
+    return await this.approvalProvider.deleteApproval(approvalId);
+  }
 }
