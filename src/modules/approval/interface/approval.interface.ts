@@ -12,6 +12,7 @@ export interface IValidateApprovalDuration {
 
 export interface IValidatePractitionerIsApproved {
   userId: string;
+  approvalId: string;
   practitionerAddress: string;
   recordId?: number;
 }
