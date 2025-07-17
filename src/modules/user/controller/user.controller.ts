@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
   Ip,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -38,6 +40,79 @@ import { UserService } from '../service/user.service';
 export class UserController {
   private readonly logger = new MyLoggerService(UserController.name);
   constructor(private readonly userService: UserService) {}
+
+  @Get('dashboard')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiOperation({
+    summary: 'Fetch user dashboard data',
+    description:
+      'Returns different data structure based on user role (PATIENT or DOCTOR)',
+  })
+  @ApiOkResponse({
+    description: 'Dashboard data fetched successfully',
+    type: SuccessResponseDto,
+    examples: {
+      patient: {
+        summary: 'Patient Dashboard Response',
+        value: {
+          status: 200,
+          message: 'Dashboard data fetched successfully',
+          data: {
+            userId: '1234567890',
+            fullName: 'John Doe',
+            email: 'john.doe@example.com',
+            gender: 'Male',
+            profilePicture: 'profile-picture-url',
+            role: 'PATIENT',
+            dob: '22 years',
+            updatedAt: '24th February, 2025',
+            walletData: {
+              walletAddress: '0x1234...5678',
+              balance: '100.00',
+              lastTransactionDate: '2025-02-24T10:30:00Z',
+            },
+          },
+        },
+      },
+      doctor: {
+        summary: 'Doctor Dashboard Response',
+        value: {
+          status: 200,
+          message: 'Dashboard data fetched successfully',
+          data: {
+            userId: '1234567890',
+            fullName: 'Dr. Jane Smith',
+            email: 'jane.smith@example.com',
+            gender: 'Female',
+            profilePicture: 'profile-picture-url',
+            role: 'DOCTOR',
+            dob: '35 years',
+            updatedAt: '24th February, 2025',
+            walletData: {
+              walletAddress: '0x1234...5678',
+              balance: '100.00',
+              lastTransactionDate: '2025-02-24T10:30:00Z',
+            },
+            pendingApprovals: 5,
+            totalReward: 0,
+            dailyTaskCompletion: 0,
+          },
+        },
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: UserError,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: UEM.ERROR_FETCHING_USER,
+    },
+  })
+  async fetchDashboardData(@Ip() ip: string, @Query('userId') userId: string) {
+    this.logger.log(`Fetching dashboard data for user ${userId} from ${ip}`);
+    return this.userService.fetchDashboardData(userId);
+  }
 
   @Post('updateUser')
   @UseInterceptors(
