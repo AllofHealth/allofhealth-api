@@ -10,4 +10,5 @@ export enum ExternalAccountErrorMessage {
   PROVIDER_CONNECTION_FAILED = 'Failed to connect to provider',
   ERROR_CREATING_SIGNER = 'Error creating signer',
   ERROR_PROVIDING_SIGNER = 'Error providing signer',
+  ERROR_FETCHING_BALANCE = 'Error fetching balance',
 }
