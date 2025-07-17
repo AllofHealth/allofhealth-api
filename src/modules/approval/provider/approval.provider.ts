@@ -397,6 +397,13 @@ export class ApprovalProvider {
         throw new HttpException(AEM.APPROVAL_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
+      if (!approval[0].isRequestAccepted) {
+        throw new HttpException(
+          AEM.APPROVAL_NOT_ACCEPTED,
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
       if (recordId) {
         const specificApproval = approval.find(
           (approval) => approval.recordId == recordId,
