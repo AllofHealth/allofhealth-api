@@ -187,7 +187,12 @@ export class RecordsProvider {
 
       this.eventEmitter.emit(
         SharedEvents.ADD_MEDICAL_RECORD_TO_CONTRACT,
-        new EAddMedicalRecordToContract(patientId, practitionerId, cid),
+        new EAddMedicalRecordToContract(
+          patientId,
+          practitionerId,
+          cid,
+          approvalId,
+        ),
       );
 
       return this.handler.handleReturn({
