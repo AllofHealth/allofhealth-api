@@ -103,3 +103,7 @@ export class EAddMedicalRecordToContract {
     readonly cid: string,
   ) {}
 }
+
+export class EDeleteApproval {
+  constructor(readonly approvalId: string) {}
+}
