@@ -9,6 +9,8 @@ export enum USER_ERROR_MESSAGES {
   INVALID_ROLE = 'Invalid role',
   ERROR_HANDLING_PATIENT_REGISTRATION = 'Error handling patient registration',
   ERROR_HANDLING_DOCTOR_REGISTRATION = 'Error handling doctor registration',
+  ERROR_FETCHING_DASHBOARD_DATA = 'Error fetching dashboard data',
+  DASHBOARD_DATA_NOT_IMPLEMENTED = 'Dashboard data not implemented for this role',
 }
 
 export enum USER_SUCCESS_MESSAGE {
@@ -16,4 +18,5 @@ export enum USER_SUCCESS_MESSAGE {
   USER_FETCHED_SUCCESSFULLY = 'User fetched successfully',
   USER_DELETED_SUCCESSFULLY = 'User deleted successfully',
   USER_UPDATED = 'User updated successfully',
+  SUCCESS_FETCHING_DASHBOARD_DATA = 'Dashboard data fetched successfully',
 }
