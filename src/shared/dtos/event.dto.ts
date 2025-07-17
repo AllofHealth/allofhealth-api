@@ -101,6 +101,7 @@ export class EAddMedicalRecordToContract {
     readonly userId: string,
     readonly practitionerId: string,
     readonly cid: string,
+    readonly approvalId: string,
   ) {}
 }
 
