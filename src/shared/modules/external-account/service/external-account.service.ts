@@ -5,7 +5,7 @@ import { ExternalAccountProvider } from '../provider/external-account.provider';
 export class ExternalAccountService {
   constructor(
     private readonly externalAccountProvider: ExternalAccountProvider,
-  ) {}
+  ) { }
 
   createExternalWallet() {
     return this.externalAccountProvider.handleCreateWallet();
@@ -20,5 +20,9 @@ export class ExternalAccountService {
 
   provideAdminSigner() {
     return this.externalAccountProvider.provideAdminSigner();
+  }
+
+  async getBalance(walletAddress: string) {
+    return await this.externalAccountProvider.getBalance(walletAddress);
   }
 }
