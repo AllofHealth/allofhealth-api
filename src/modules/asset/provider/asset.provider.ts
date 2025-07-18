@@ -178,6 +178,7 @@ export class AssetProvider {
         message: ASM.FILE_UPLOADED,
         data: {
           url: response.url,
+          fileId: response.fileId,
         },
       });
     } catch (e) {
