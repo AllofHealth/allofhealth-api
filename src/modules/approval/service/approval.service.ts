@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import {
   IAcceptApproval,
   IRejectApproval,
+  IValidateApprovalDuration,
   IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
 import { ApprovalProvider } from '../provider/approval.provider';
@@ -49,5 +50,13 @@ export class ApprovalService {
   @OnEvent(SharedEvents.DELETE_APPROVAL)
   async deleteApproval(ctx: EDeleteApproval) {
     return await this.approvalProvider.deleteApproval(ctx.approvalId);
+  }
+
+  async fetchApproval(approvalId: string) {
+    return await this.approvalProvider.fetchApproval(approvalId);
+  }
+
+  validateApprovalDuration(ctx: IValidateApprovalDuration) {
+    return this.approvalProvider.validateApprovalDuration(ctx);
   }
 }
