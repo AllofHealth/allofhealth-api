@@ -36,6 +36,7 @@ export interface IHandleApproval {
   recordId?: number;
   duration?: number;
   accessLevel: TAccess;
+  shareHealthInfo?: boolean;
 }
 
 export interface IAddMedicalRecordTx {
