@@ -9,3 +9,8 @@ export interface ICreateHealthInfo {
   medicationsTaken?: string[];
   attachmentFilePath?: string;
 }
+
+export interface IHandleAttachmentUpload {
+  userId: string;
+  attachmentFilePath: string;
+}
