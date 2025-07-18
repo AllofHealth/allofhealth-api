@@ -108,6 +108,7 @@ export class ApprovalProvider {
       accessLevel,
       duration = Duration.A_DAY,
       recordId,
+      shareHealthInfo = false,
     } = ctx;
     try {
       const [isPatient, isPractitioner] = await Promise.all([
@@ -174,6 +175,49 @@ export class ApprovalProvider {
       }
 
       const practitionerAddress = await this.getSmartAddress(practitionerId);
+
+      if (shareHealthInfo) {
+        const healthInfo = await this.db.query.healthInformation.findFirst({
+          where: eq(schema.healthInformation.userId, userId),
+        });
+
+        if (!healthInfo) {
+          return this.handler.handleReturn({
+            status: HttpStatus.NOT_FOUND,
+            message: AEM.HEALTH_INFO_NOT_FOUND,
+          });
+        }
+
+        const healthInfoId = healthInfo.id;
+
+        const approval = await this.db
+          .insert(schema.approvals)
+          .values({
+            userId,
+            recordId,
+            practitionerAddress,
+            accessLevel: accessLevel,
+            duration,
+            userHealthInfoId: healthInfoId,
+          })
+          .returning();
+
+        if (!approval || approval.length === 0) {
+          return this.handler.handleReturn({
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: AEM.ERROR_CREATING_APPROVAL,
+          });
+        }
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.APPROVAL_CREATED,
+          data: {
+            approvalId: approval[0].id,
+          },
+        });
+      }
+
       const approval = await this.db
         .insert(schema.approvals)
         .values({
