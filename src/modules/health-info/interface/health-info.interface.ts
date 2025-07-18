@@ -24,3 +24,9 @@ export interface IUpdateHealthInfo {
   medicationsTaken?: string[];
   attachmentFilePath?: string;
 }
+
+export interface IFetchHealthInfo {
+  userId: string;
+  approvalId?: string;
+  healthInfoId?: string;
+}
