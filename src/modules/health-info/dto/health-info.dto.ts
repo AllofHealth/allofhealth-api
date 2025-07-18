@@ -122,3 +122,29 @@ export class UpdateHealthInfoDto {
   @IsString({ each: true })
   medicationsTaken?: string[];
 }
+
+export class FetchHealthInfoDto {
+  @ApiProperty({
+    description: 'The user identifier',
+    example: '1234567890',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiPropertyOptional({
+    description: 'The approval identifier for accessing health info',
+    example: 'approval-12345',
+  })
+  @IsOptional()
+  @IsString()
+  approvalId?: string;
+
+  @ApiPropertyOptional({
+    description: 'The specific health info identifier to fetch',
+    example: 'health-info-67890',
+  })
+  @IsOptional()
+  @IsString()
+  healthInfoId?: string;
+}
