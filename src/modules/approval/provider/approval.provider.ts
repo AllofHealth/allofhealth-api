@@ -271,6 +271,7 @@ export class ApprovalProvider {
           accessLevel: schema.approvals.accessLevel,
           isRequestAccepted: schema.approvals.isRequestAccepted,
           patientFullName: schema.user.fullName,
+          userHealthInfoId: schema.approvals.userHealthInfoId || null,
         })
         .from(schema.approvals)
         .innerJoin(schema.user, eq(schema.approvals.userId, schema.user.id))
@@ -544,6 +545,29 @@ export class ApprovalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_DELETING_APPROVAL);
+    }
+  }
+
+  async fetchApproval(approvalId: string) {
+    try {
+      const approval = await this.db.query.approvals.findFirst({
+        where: eq(schema.approvals.id, approvalId),
+      });
+
+      if (!approval || typeof approval === undefined) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.APPROVAL_NOT_FOUND,
+        });
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_FOUND,
+        data: approval,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVAL);
     }
   }
 }
