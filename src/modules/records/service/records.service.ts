@@ -1,4 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { RecordsProvider } from '../provider/records.provider';
+import { ICreateRecord } from '../interface/records.interface';
 
 @Injectable()
-export class RecordsService {}
+export class RecordsService {
+  constructor(private readonly recordsProvider: RecordsProvider) {}
+
+  async createRecord(ctx: ICreateRecord) {
+    return await this.recordsProvider.createRecord(ctx);
+  }
+}

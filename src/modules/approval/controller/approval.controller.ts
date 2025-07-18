@@ -9,14 +9,18 @@ import {
   HttpStatus,
   Ip,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
@@ -38,13 +42,20 @@ export class ApprovalController {
 
   @Post('createApproval')
   @UseGuards(AuthGuard, OwnerGuard)
-  @ApiOperation({ summary: 'Create a new approval' })
+  @ApiOperation({
+    summary: 'Create a new approval',
+    description:
+      "Creates a new approval request for a practitioner to access patient records. When shareHealthInfo is set to true, the patient's health information will be automatically shared with the practitioner upon approval creation. This requires the patient to have existing health information on file.",
+  })
   @ApiOkResponse({
     description: ASM.APPROVAL_CREATED,
     type: SuccessResponseDto,
     example: {
       status: HttpStatus.OK,
       message: ASM.APPROVAL_CREATED,
+      data: {
+        approvalId: 'approval-id-123',
+      },
     },
   })
   @ApiBadRequestResponse({
@@ -56,11 +67,43 @@ export class ApprovalController {
     },
   })
   @ApiBadRequestResponse({
+    description: AEM.PRACTITIONER_NOT_VERIFIED,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.PRACTITIONER_NOT_VERIFIED,
+    },
+  })
+  @ApiBadRequestResponse({
     description: AEM.RECORD_ID_IS_REQUIRED,
     type: ErrorResponseDto,
     example: {
       status: HttpStatus.BAD_REQUEST,
       message: AEM.RECORD_ID_IS_REQUIRED,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.APPROVAL_ALREADY_EXISTS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.APPROVAL_ALREADY_EXISTS,
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: AEM.PATIENT_ONLY,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.UNAUTHORIZED,
+      message: AEM.PATIENT_ONLY,
+    },
+  })
+  @ApiNotFoundResponse({
+    description: AEM.HEALTH_INFO_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: AEM.HEALTH_INFO_NOT_FOUND,
     },
   })
   @ApiInternalServerErrorResponse({
@@ -91,6 +134,7 @@ export class ApprovalController {
           userId: 'patient-id-456',
           practitionerAddress: '0x123...abc',
           recordId: 1,
+          healthInfoId: '123455',
           duration: 3600,
           accessLevel: 'read',
           isRequestAccepted: false,
@@ -213,6 +257,62 @@ export class ApprovalController {
       doctorId: ctx.userId,
       approvalId: ctx.approvalId,
     });
+  }
+
+  @Get('findApproval')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Find an approval by ID',
+    description:
+      'Retrieve a specific approval record using its unique identifier',
+  })
+  @ApiQuery({
+    name: 'approvalId',
+    description: 'The unique identifier of the approval to find',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    type: String,
+  })
+  @ApiOkResponse({
+    description: 'Approval found successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Approval found',
+      data: {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        userId: 'patient-id-456',
+        practitionerAddress: '0x123...abc',
+        recordId: 1,
+        duration: 3600,
+        accessLevel: 'read',
+        isRequestAccepted: true,
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+      },
+    },
+  })
+  @ApiNotFoundResponse({
+    description: AEM.APPROVAL_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: AEM.APPROVAL_NOT_FOUND,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error finding approval',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error finding approval',
+    },
+  })
+  async findApprovalById(
+    @Ip() ip: string,
+    @Query('approvalId') approvalId: string,
+  ) {
+    this.logger.log(`Finding approval ${approvalId} from ${ip}`);
+    return await this.approvalService.findApprovalById(approvalId);
   }
 
   @Get('cleanup/manual')

@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { ERegisterEntity } from '@/shared/dtos/event.dto';
+import {
+  EAddMedicalRecordToContract,
+  ERegisterEntity,
+} from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { ContractProvider } from '../provider/contract.provider';
-import { IHandleApproval } from '../interface/contract.interface';
+import {
+  IHandleAddMedicalRecord,
+  IHandleApproval,
+} from '../interface/contract.interface';
 
 @Injectable()
 export class ContractService {
@@ -33,5 +39,16 @@ export class ContractService {
 
   async handleRecordApproval(ctx: IHandleApproval) {
     return await this.contractProvider.handleRecordApproval(ctx);
+  }
+
+  @OnEvent(SharedEvents.ADD_MEDICAL_RECORD_TO_CONTRACT)
+  async addMedicalRecordToContract(ctx: EAddMedicalRecordToContract) {
+    return await this.contractProvider.handleAddMedicalRecord(ctx);
+  }
+
+  async getPractitionerSmartAddress(practitionerId: string) {
+    return await this.contractProvider.getPractitionerSmartAddress(
+      practitionerId,
+    );
   }
 }
