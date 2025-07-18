@@ -6,12 +6,14 @@ import { UserModule } from '../user/user.module';
 import { TokenModule } from '../token/token.module';
 import { ApprovalModule } from '../approval/approval.module';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { AssetModule } from '../asset/asset.module';
 
 @Module({
   imports: [
     forwardRef(() => UserModule),
     forwardRef(() => TokenModule),
     forwardRef(() => ApprovalModule),
+    forwardRef(() => AssetModule),
   ],
   providers: [HealthInfoProvider, HealthInfoService, ErrorHandler],
   controllers: [HealthInfoController],
