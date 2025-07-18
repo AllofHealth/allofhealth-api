@@ -41,7 +41,10 @@ export class HealthInfoProvider {
         throw new HttpException(uploadResult.message, uploadResult.status);
       }
 
-      return uploadResult.data.url;
+      return {
+        url: uploadResult.data.url,
+        fileId: uploadResult.data.fileId,
+      };
     } catch (e) {
       throw new InternalServerErrorException(
         `Error uploading attachment, ${e}`,
@@ -61,11 +64,15 @@ export class HealthInfoProvider {
     } = ctx;
     try {
       let attachmentUrl: string | null = null;
+      let attachmentFileId: string | null = null;
       if (attachmentFilePath) {
-        attachmentUrl = await this.handleAttachmentUpload({
+        const { url, fileId } = await this.handleAttachmentUpload({
           userId,
           attachmentFilePath,
         });
+
+        attachmentUrl = url;
+        attachmentFileId = fileId;
       }
 
       await this.db.insert(schema.healthInformation).values({
@@ -76,6 +83,7 @@ export class HealthInfoProvider {
         knownConditions,
         medicationsTaken,
         attachment: attachmentUrl,
+        attachmentFileId,
       });
 
       return this.handler.handleReturn({
