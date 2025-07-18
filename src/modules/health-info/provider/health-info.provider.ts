@@ -8,9 +8,11 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ICreateHealthInfo,
+  IFetchHealthInfo,
   IHandleAttachmentUpload,
   IUpdateHealthInfo,
 } from '../interface/health-info.interface';
@@ -155,6 +157,122 @@ export class HealthInfoProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, HEM.ERROR_UPDATING_HEALTH_INFO);
+    }
+  }
+
+  async validateApprovedHealthAccess(ctx: Omit<IFetchHealthInfo, 'userId'>) {
+    const { healthInfoId, approvalId } = ctx;
+    let isAccessApproved: boolean = false;
+    try {
+      if (healthInfoId) {
+        if (!approvalId) {
+          throw new UnauthorizedException(HEM.UNAUTHORIZED);
+        }
+
+        const approval = await this.approvalService.fetchApproval(approvalId);
+        if (!('data' in approval && approval.data)) {
+          throw new UnauthorizedException(approval.message);
+        }
+
+        const approvalData = approval.data;
+
+        if (
+          !approvalData.userHealthInfoId ||
+          healthInfoId !== approvalData.userHealthInfoId
+        ) {
+          throw new UnauthorizedException(HEM.UNAUTHORIZED);
+        }
+
+        const isApprovalValid = this.approvalService.validateApprovalDuration({
+          createdAt: approvalData.createdAt,
+          duration: approvalData.duration as number,
+        });
+
+        if (!isApprovalValid) {
+          throw new UnauthorizedException(HEM.APPROVAL_EXPIRED);
+        }
+
+        isAccessApproved = true;
+      }
+
+      return isAccessApproved;
+    } catch (e) {
+      throw new InternalServerErrorException(
+        `${HEM.ERROR_VALIDATING_HEALTH_ACCESS}, ${e}`,
+      );
+    }
+  }
+
+  async fetchHealthInformation(ctx: IFetchHealthInfo) {
+    const { userId, approvalId, healthInfoId } = ctx;
+    try {
+      if (approvalId) {
+        const isAccessValid = this.validateApprovedHealthAccess({
+          approvalId,
+          healthInfoId,
+        });
+
+        if (!isAccessValid) {
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: HEM.HEALTH_INFO_ACCESS_DENIED,
+          });
+        }
+
+        const patientHealthInfo = await this.db
+          .select({
+            howAreYouFeeling: schema.healthInformation.howAreYouFeeling,
+            whenDidItStart: schema.healthInformation.whenDidItStart,
+            painLevel: schema.healthInformation.painLevel,
+            knownConditions: schema.healthInformation.knownConditions,
+            medicationsTaken: schema.healthInformation.medicationsTaken,
+            attachment: schema.healthInformation.attachment,
+          })
+          .from(schema.healthInformation)
+          .where(eq(schema.healthInformation.id, healthInfoId as string))
+          .limit(1);
+
+        if (!patientHealthInfo || patientHealthInfo.length === 0) {
+          return this.handler.handleReturn({
+            status: HttpStatus.NOT_FOUND,
+            message: HEM.HEALTH_INFO_NOT_FOUND,
+          });
+        }
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: HSM.HEALTH_INFO_FETCHED,
+          data: patientHealthInfo[0],
+        });
+      }
+
+      const patientHealthInfo = await this.db
+        .select({
+          howAreYouFeeling: schema.healthInformation.howAreYouFeeling,
+          whenDidItStart: schema.healthInformation.whenDidItStart,
+          painLevel: schema.healthInformation.painLevel,
+          knownConditions: schema.healthInformation.knownConditions,
+          medicationsTaken: schema.healthInformation.medicationsTaken,
+          attachment: schema.healthInformation.attachment,
+        })
+        .from(schema.healthInformation)
+        .where(eq(schema.healthInformation.userId, userId))
+        .limit(1);
+
+      if (!patientHealthInfo || patientHealthInfo.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: HEM.HEALTH_INFO_NOT_FOUND,
+        });
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: HSM.HEALTH_INFO_FETCHED,
+        data: patientHealthInfo[0],
+      });
+    } catch (e) {
+      return this.handler.handleError(e, HEM.ERROR_FETCHING_HEALTH_INFO);
     }
   }
 }
