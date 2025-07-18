@@ -1,6 +1,12 @@
 import { TAccess } from '@/modules/contract/interface/contract.interface';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateApprovalDto {
   @ApiProperty({ description: 'User ID', example: '1234567890' })
@@ -36,6 +42,15 @@ export class CreateApprovalDto {
   @IsOptional()
   @IsString()
   accessLevel: TAccess;
+
+  @ApiPropertyOptional({
+    description: 'Whether to share health information with the practitioner',
+    example: false,
+    default: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  shareHealthInfo?: boolean;
 }
 
 export class FetchDoctorApprovalsDto {
