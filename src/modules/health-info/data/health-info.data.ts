@@ -3,6 +3,7 @@ export enum HEALTH_INFO_ERROR_MESSAGES {
   HEALTH_INFO_ALREADY_EXISTS = 'Health info already exists',
   HEALTH_INFO_INVALID_DATA = 'Invalid health info data',
   ERROR_CREATING_HEALTH_INFO = 'Error creating health info',
+  ERROR_UPDATING_HEALTH_INFO = 'Error updating health info',
 }
 
 export enum HEALTH_INFO_SUCCESS_MESSAGES {
