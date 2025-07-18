@@ -8,6 +8,8 @@ import {
   UseGuards,
   UseInterceptors,
   Put,
+  Get,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -32,6 +34,7 @@ import {
 import {
   CreateHealthInfoDto,
   UpdateHealthInfoDto,
+  FetchHealthInfoDto,
 } from '../dto/health-info.dto';
 import { HealthInfoService } from '../service/health-info.service';
 import { OwnerGuard } from '@/modules/user/guard/user.guard';
@@ -43,7 +46,7 @@ export class HealthInfoController {
 
   constructor(private readonly healthInfoService: HealthInfoService) {}
 
-  @Post('create')
+  @Post('createHealthInfo')
   @UseInterceptors(
     FileInterceptor('attachment', {
       storage: diskStorage({
@@ -153,7 +156,7 @@ export class HealthInfoController {
     });
   }
 
-  @Put('update')
+  @Put('updateHealthInfo')
   @UseInterceptors(
     FileInterceptor('attachment', {
       storage: diskStorage({
@@ -269,5 +272,60 @@ export class HealthInfoController {
       ...ctx,
       attachmentFilePath: attachment?.path,
     });
+  }
+
+  @Get('fetchHealthInfo')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Fetch health information',
+    description:
+      'Retrieves health information records for a user with optional filtering by approval or health info ID',
+  })
+  @ApiOkResponse({
+    description: 'Health information fetched successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: 200,
+      message: HISM.HEALTH_INFO_FETCHED,
+      data: {
+        userId: '1234567890',
+        howAreYouFeeling: 'I have been experiencing headaches and fatigue',
+        whenDidItStart: '3 days ago',
+        painLevel: 'moderate',
+        knownConditions: ['hypertension', 'diabetes'],
+        medicationsTaken: ['ibuprofen', 'lisinopril'],
+        attachmentFilePath: './uploads/health-info/attachment-123456789.jpg',
+        createdAt: '2024-01-15T10:30:00Z',
+        updatedAt: '2024-01-15T10:30:00Z',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: HIEM.ERROR_FETCHING_HEALTH_INFO,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid request parameters',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: HIEM.HEALTH_INFO_INVALID_DATA,
+    },
+  })
+  @ApiNotFoundResponse({
+    description: 'Health info not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: HIEM.HEALTH_INFO_NOT_FOUND,
+    },
+  })
+  async fetchHealthInfo(@Ip() ip: string, @Query() ctx: FetchHealthInfoDto) {
+    this.logger.log(`Fetching health info for user ${ctx.userId} from ${ip}`);
+    return this.healthInfoService.fetchHealthInfo(ctx);
   }
 }
