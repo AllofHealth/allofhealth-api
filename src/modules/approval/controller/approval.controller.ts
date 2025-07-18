@@ -134,6 +134,7 @@ export class ApprovalController {
           userId: 'patient-id-456',
           practitionerAddress: '0x123...abc',
           recordId: 1,
+          healthInfoId: '123455',
           duration: 3600,
           accessLevel: 'read',
           isRequestAccepted: false,
