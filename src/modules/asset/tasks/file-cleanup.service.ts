@@ -15,48 +15,27 @@ export class FileCleanupService {
     try {
       // Check if upload directory exists
       if (!fs.existsSync(this.uploadDirectory)) {
-        this.logger.warn(`Upload directory ${this.uploadDirectory} does not exist`);
+        this.logger.warn(
+          `Upload directory ${this.uploadDirectory} does not exist`,
+        );
         return;
       }
 
-      const files = await fs.promises.readdir(this.uploadDirectory);
-      this.logger.debug(`Found ${files.length} files in upload directory`);
-
-      if (files.length === 0) {
-        this.logger.log('No files found in upload directory');
-        return;
-      }
-
-      const deletedFiles: string[] = [];
-      const failedFiles: string[] = [];
-
-      for (const file of files) {
-        try {
-          const filePath = path.join(this.uploadDirectory, file);
-          const stats = await fs.promises.stat(filePath);
-
-          // Skip directories
-          if (stats.isDirectory()) {
-            this.logger.debug(`Skipping directory: ${file}`);
-            continue;
-          }
-
-          await fs.promises.unlink(filePath);
-          deletedFiles.push(file);
-          this.logger.debug(`Deleted file: ${file}`);
-        } catch (fileError) {
-          failedFiles.push(file);
-          this.logger.warn(`Failed to delete file ${file}: ${fileError.message}`);
-        }
-      }
+      const { deletedFiles, failedFiles } = await this.recursiveCleanup(
+        this.uploadDirectory,
+      );
 
       if (deletedFiles.length > 0) {
-        this.logger.log(`Successfully deleted ${deletedFiles.length} files from upload directory`);
+        this.logger.log(
+          `Successfully deleted ${deletedFiles.length} files from upload directory and subdirectories`,
+        );
         this.logger.debug(`Deleted files: ${deletedFiles.join(', ')}`);
       }
 
       if (failedFiles.length > 0) {
-        this.logger.warn(`Failed to delete ${failedFiles.length} files: ${failedFiles.join(', ')}`);
+        this.logger.warn(
+          `Failed to delete ${failedFiles.length} files: ${failedFiles.join(', ')}`,
+        );
       }
 
       if (deletedFiles.length === 0 && failedFiles.length === 0) {
@@ -73,12 +52,71 @@ export class FileCleanupService {
     }
   }
 
+  private async recursiveCleanup(
+    directoryPath: string,
+  ): Promise<{ deletedFiles: string[]; failedFiles: string[] }> {
+    const deletedFiles: string[] = [];
+    const failedFiles: string[] = [];
+
+    try {
+      const items = await fs.promises.readdir(directoryPath);
+      this.logger.debug(
+        `Found ${items.length} items in directory: ${directoryPath}`,
+      );
+
+      if (items.length === 0) {
+        this.logger.debug(`No items found in directory: ${directoryPath}`);
+        return { deletedFiles, failedFiles };
+      }
+
+      for (const item of items) {
+        try {
+          const itemPath = path.join(directoryPath, item);
+          const stats = await fs.promises.stat(itemPath);
+
+          if (stats.isDirectory()) {
+            this.logger.debug(`Processing subdirectory: ${item}`);
+            // Recursively clean subdirectory
+            const {
+              deletedFiles: subDeletedFiles,
+              failedFiles: subFailedFiles,
+            } = await this.recursiveCleanup(itemPath);
+            deletedFiles.push(...subDeletedFiles);
+            failedFiles.push(...subFailedFiles);
+          } else {
+            // Delete the file
+            await fs.promises.unlink(itemPath);
+            const relativePath = path.relative(this.uploadDirectory, itemPath);
+            deletedFiles.push(relativePath);
+            this.logger.debug(`Deleted file: ${relativePath}`);
+          }
+        } catch (itemError) {
+          const relativePath = path.relative(
+            this.uploadDirectory,
+            path.join(directoryPath, item),
+          );
+          failedFiles.push(relativePath);
+          this.logger.warn(
+            `Failed to process item ${relativePath}: ${itemError.message}`,
+          );
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error reading directory ${directoryPath}:`, error);
+      throw error;
+    }
+
+    return { deletedFiles, failedFiles };
+  }
+
   async manualCleanup() {
     this.logger.log('Manual cleanup of upload directory triggered...');
 
     try {
       if (!fs.existsSync(this.uploadDirectory)) {
-        this.logger.warn(`Upload directory ${this.uploadDirectory} does not exist`);
+        this.logger.warn(
+          `Upload directory ${this.uploadDirectory} does not exist`,
+        );
         return {
           deletedCount: 0,
           deletedFiles: [],
@@ -86,39 +124,21 @@ export class FileCleanupService {
         };
       }
 
-      const files = await fs.promises.readdir(this.uploadDirectory);
-      this.logger.debug(`Found ${files.length} files in upload directory`);
-
-      const deletedFiles: string[] = [];
-      const failedFiles: string[] = [];
-
-      for (const file of files) {
-        try {
-          const filePath = path.join(this.uploadDirectory, file);
-          const stats = await fs.promises.stat(filePath);
-
-          // Skip directories
-          if (stats.isDirectory()) {
-            this.logger.debug(`Skipping directory: ${file}`);
-            continue;
-          }
-
-          await fs.promises.unlink(filePath);
-          deletedFiles.push(file);
-          this.logger.debug(`Deleted file: ${file}`);
-        } catch (fileError) {
-          failedFiles.push(file);
-          this.logger.warn(`Failed to delete file ${file}: ${fileError.message}`);
-        }
-      }
+      const { deletedFiles, failedFiles } = await this.recursiveCleanup(
+        this.uploadDirectory,
+      );
 
       if (deletedFiles.length > 0) {
-        this.logger.log(`Successfully deleted ${deletedFiles.length} files from upload directory`);
+        this.logger.log(
+          `Successfully deleted ${deletedFiles.length} files from upload directory and subdirectories`,
+        );
         this.logger.debug(`Deleted files: ${deletedFiles.join(', ')}`);
       }
 
       if (failedFiles.length > 0) {
-        this.logger.warn(`Failed to delete ${failedFiles.length} files: ${failedFiles.join(', ')}`);
+        this.logger.warn(
+          `Failed to delete ${failedFiles.length} files: ${failedFiles.join(', ')}`,
+        );
       }
 
       return {
