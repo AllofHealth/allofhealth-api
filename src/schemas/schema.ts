@@ -180,3 +180,19 @@ export const userRecordCounters = pgTable('user_record_counters', {
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
 });
+
+export const healthInformation = pgTable('health_information', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),
+  howAreYouFeeling: varchar('how_are_you_feeling', { length: 255 }).notNull(),
+  whenDidItStart: varchar('when_did_it_start', { length: 255 }).notNull(),
+  painLevel: text('pain_level').notNull().default('mild'),
+  knownConditions: jsonb('known_conditions').notNull().default('[]'),
+  medicationsTaken: jsonb('medications_taken').notNull().default('[]'),
+  attachment: text('attachment').default(''),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
