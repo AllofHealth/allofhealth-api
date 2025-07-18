@@ -193,6 +193,7 @@ export const healthInformation = pgTable('health_information', {
   knownConditions: jsonb('known_conditions').notNull().default('[]'),
   medicationsTaken: jsonb('medications_taken').notNull().default('[]'),
   attachment: text('attachment').default(''),
+  attachmentFileId: text('attachment_file_id').default(''),
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
 });
