@@ -20,6 +20,7 @@ import {
   ApiOperation,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
@@ -29,7 +30,6 @@ import {
   AcceptApprovalDto,
   CreateApprovalDto,
   FetchDoctorApprovalsDto,
-  FindApprovalDto,
   RejectApprovalDto,
 } from '../dto/approval.dto';
 import { ApprovalService } from '../service/approval.service';
@@ -42,13 +42,20 @@ export class ApprovalController {
 
   @Post('createApproval')
   @UseGuards(AuthGuard, OwnerGuard)
-  @ApiOperation({ summary: 'Create a new approval' })
+  @ApiOperation({
+    summary: 'Create a new approval',
+    description:
+      "Creates a new approval request for a practitioner to access patient records. When shareHealthInfo is set to true, the patient's health information will be automatically shared with the practitioner upon approval creation. This requires the patient to have existing health information on file.",
+  })
   @ApiOkResponse({
     description: ASM.APPROVAL_CREATED,
     type: SuccessResponseDto,
     example: {
       status: HttpStatus.OK,
       message: ASM.APPROVAL_CREATED,
+      data: {
+        approvalId: 'approval-id-123',
+      },
     },
   })
   @ApiBadRequestResponse({
@@ -60,11 +67,43 @@ export class ApprovalController {
     },
   })
   @ApiBadRequestResponse({
+    description: AEM.PRACTITIONER_NOT_VERIFIED,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.PRACTITIONER_NOT_VERIFIED,
+    },
+  })
+  @ApiBadRequestResponse({
     description: AEM.RECORD_ID_IS_REQUIRED,
     type: ErrorResponseDto,
     example: {
       status: HttpStatus.BAD_REQUEST,
       message: AEM.RECORD_ID_IS_REQUIRED,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.APPROVAL_ALREADY_EXISTS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.APPROVAL_ALREADY_EXISTS,
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: AEM.PATIENT_ONLY,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.UNAUTHORIZED,
+      message: AEM.PATIENT_ONLY,
+    },
+  })
+  @ApiNotFoundResponse({
+    description: AEM.HEALTH_INFO_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: AEM.HEALTH_INFO_NOT_FOUND,
     },
   })
   @ApiInternalServerErrorResponse({
