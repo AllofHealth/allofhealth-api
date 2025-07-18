@@ -67,3 +67,58 @@ export class CreateHealthInfoDto {
   @IsString({ each: true })
   medicationsTaken?: string[];
 }
+
+export class UpdateHealthInfoDto {
+  @ApiProperty({
+    description: 'The user identifier',
+    example: '1234567890',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiPropertyOptional({
+    description: 'How the user is feeling',
+    example: 'I have been experiencing headaches and fatigue',
+  })
+  @IsOptional()
+  @IsString()
+  howAreYouFeeling?: string;
+
+  @ApiPropertyOptional({
+    description: 'When the symptoms started',
+    example: '3 days ago',
+  })
+  @IsOptional()
+  @IsString()
+  whenDidItStart?: string;
+
+  @ApiPropertyOptional({
+    description: 'Pain level experienced',
+    enum: TPainLevel,
+    example: TPainLevel.MODERATE,
+  })
+  @IsOptional()
+  @IsEnum(TPainLevel)
+  painLevel?: TPainLevel;
+
+  @ApiPropertyOptional({
+    description: 'Known medical conditions',
+    type: [String],
+    example: ['hypertension', 'diabetes'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  knownConditions?: string[];
+
+  @ApiPropertyOptional({
+    description: 'Medications currently taken',
+    type: [String],
+    example: ['ibuprofen', 'lisinopril'],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  medicationsTaken?: string[];
+}
