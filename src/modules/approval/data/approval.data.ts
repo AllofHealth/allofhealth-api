@@ -19,6 +19,7 @@ export enum APPROVAL_ERROR_MESSAGE {
   ERROR_DELETING_APPROVAL = 'Error deleting approval',
   ERROR_FINDING_APPROVAL = 'Error finding approval',
   HEALTH_INFO_NOT_FOUND = 'Health information not found',
+  ERROR_FETCHING_APPROVAL = 'Error fetching approval',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
