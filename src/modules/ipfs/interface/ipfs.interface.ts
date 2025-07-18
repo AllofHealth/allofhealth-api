@@ -1,6 +1,6 @@
 export interface IHandleFileUploads {
   userId?: string;
-  files: File[];
+  files: Express.Multer.File[];
 }
 
 export interface IMedicalRecord {
@@ -10,7 +10,7 @@ export interface IMedicalRecord {
   diagnosis: string[];
   labResults?: string[];
   medicationsPrscribed?: string[];
-  attachments?: File[];
+  attachments?: Express.Multer.File[];
 }
 
 export interface IpfsRecord {

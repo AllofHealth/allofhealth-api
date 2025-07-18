@@ -72,7 +72,7 @@ export const doctors = pgTable('doctors', {
   updatedAt: date('updated_at').notNull().defaultNow(),
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
-  isVerified: boolean('is_verified').default(false).notNull(),
+  isVerified: boolean('is_verified').default(true).notNull(),
 });
 
 export const accounts = pgTable('accounts', {
@@ -137,6 +137,10 @@ export const approvals = pgTable('approvals', {
   })
     .notNull()
     .references(() => accounts.smartWalletAddress, { onDelete: 'cascade' }),
+  userHealthInfoId: uuid('user_health_info_id').references(
+    () => healthInformation.id,
+    { onDelete: 'cascade' },
+  ),
   recordId: integer('recordId').default(0),
   duration: integer('duration').default(0),
   createdAt: date('created_at').notNull().defaultNow(),
@@ -177,6 +181,23 @@ export const userRecordCounters = pgTable('user_record_counters', {
     .unique()
     .references(() => user.id, { onDelete: 'cascade' }),
   lastRecordChainId: integer('last_record_chain_id').notNull().default(0),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
+
+export const healthInformation = pgTable('health_information', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' })
+    .unique(),
+  howAreYouFeeling: varchar('how_are_you_feeling', { length: 255 }).notNull(),
+  whenDidItStart: varchar('when_did_it_start', { length: 255 }).notNull(),
+  painLevel: text('pain_level').notNull().default('mild'),
+  knownConditions: jsonb('known_conditions').notNull().default('[]'),
+  medicationsTaken: jsonb('medications_taken').notNull().default('[]'),
+  attachment: text('attachment').default(''),
+  attachmentFileId: text('attachment_file_id').default(''),
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
 });

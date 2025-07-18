@@ -11,11 +11,13 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import {
   BadRequestException,
+  HttpException,
   HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { and, eq, or } from 'drizzle-orm';
 import {
@@ -26,6 +28,8 @@ import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
 import {
   IAcceptApproval,
   IRejectApproval,
+  IValidateApprovalDuration,
+  IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
 import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 
@@ -104,6 +108,7 @@ export class ApprovalProvider {
       accessLevel,
       duration = Duration.A_DAY,
       recordId,
+      shareHealthInfo = false,
     } = ctx;
     try {
       const [isPatient, isPractitioner] = await Promise.all([
@@ -170,17 +175,73 @@ export class ApprovalProvider {
       }
 
       const practitionerAddress = await this.getSmartAddress(practitionerId);
-      await this.db.insert(schema.approvals).values({
-        userId,
-        recordId,
-        practitionerAddress,
-        accessLevel: accessLevel,
-        duration,
-      });
+
+      if (shareHealthInfo) {
+        const healthInfo = await this.db.query.healthInformation.findFirst({
+          where: eq(schema.healthInformation.userId, userId),
+        });
+
+        if (!healthInfo) {
+          return this.handler.handleReturn({
+            status: HttpStatus.NOT_FOUND,
+            message: AEM.HEALTH_INFO_NOT_FOUND,
+          });
+        }
+
+        const healthInfoId = healthInfo.id;
+
+        const approval = await this.db
+          .insert(schema.approvals)
+          .values({
+            userId,
+            recordId,
+            practitionerAddress,
+            accessLevel: accessLevel,
+            duration,
+            userHealthInfoId: healthInfoId,
+          })
+          .returning();
+
+        if (!approval || approval.length === 0) {
+          return this.handler.handleReturn({
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: AEM.ERROR_CREATING_APPROVAL,
+          });
+        }
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.APPROVAL_CREATED,
+          data: {
+            approvalId: approval[0].id,
+          },
+        });
+      }
+
+      const approval = await this.db
+        .insert(schema.approvals)
+        .values({
+          userId,
+          recordId,
+          practitionerAddress,
+          accessLevel: accessLevel,
+          duration,
+        })
+        .returning();
+
+      if (!approval || approval.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: AEM.ERROR_CREATING_APPROVAL,
+        });
+      }
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_CREATED,
+        data: {
+          approvalId: approval[0].id,
+        },
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_CREATING_APPROVAL);
@@ -210,6 +271,7 @@ export class ApprovalProvider {
           accessLevel: schema.approvals.accessLevel,
           isRequestAccepted: schema.approvals.isRequestAccepted,
           patientFullName: schema.user.fullName,
+          userHealthInfoId: schema.approvals.userHealthInfoId || null,
         })
         .from(schema.approvals)
         .innerJoin(schema.user, eq(schema.approvals.userId, schema.user.id))
@@ -357,6 +419,155 @@ export class ApprovalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_REJECTING_APPROVAL);
+    }
+  }
+
+  validateApprovalDuration(ctx: IValidateApprovalDuration) {
+    const { createdAt, duration } = ctx;
+    let isValid: boolean = false;
+
+    const currentTime = Date.now();
+    const createdAtTime = new Date(createdAt).getTime();
+
+    const expirationTime = createdAtTime + duration;
+
+    if (currentTime <= expirationTime) {
+      isValid = true;
+    }
+
+    return isValid;
+  }
+
+  async validatePractitionerIsApproved(ctx: IValidatePractitionerIsApproved) {
+    let isPractitionerApproved: boolean = false;
+
+    const { practitionerAddress, userId, recordId, approvalId } = ctx;
+
+    try {
+      const approval = await this.db.query.approvals.findFirst({
+        where: and(
+          eq(schema.approvals.practitionerAddress, practitionerAddress),
+          eq(schema.approvals.userId, userId),
+          eq(schema.approvals.id, approvalId),
+        ),
+      });
+
+      if (!approval || typeof approval === undefined) {
+        throw new HttpException(AEM.APPROVAL_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      if (!approval.isRequestAccepted) {
+        throw new HttpException(
+          AEM.APPROVAL_NOT_ACCEPTED,
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      if (recordId) {
+        if (recordId !== approval.recordId) {
+          throw new UnauthorizedException(
+            'Practitioner not allowed to view this record',
+          );
+        }
+
+        if (!approval.duration) {
+          return {
+            isApproved: true,
+            permissions: approval.accessLevel,
+          };
+        } else {
+          const isDurationValid = this.validateApprovalDuration({
+            createdAt: approval.createdAt,
+            duration: approval.duration,
+          });
+
+          return {
+            isApproved: isDurationValid,
+            permissions: approval.accessLevel,
+          };
+        }
+      }
+
+      const isDurationValid = this.validateApprovalDuration({
+        createdAt: approval.createdAt,
+        duration: approval.duration as number,
+      });
+
+      isPractitionerApproved = isDurationValid;
+
+      return {
+        isApproved: isPractitionerApproved,
+        permissions: approval.accessLevel,
+      };
+    } catch (e) {
+      throw new HttpException(
+        AEM.ERROR_VALIDATING_APPROVAL_ACCESS,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findApprovalById(approvalId: string) {
+    try {
+      const approval = await this.db.query.approvals.findFirst({
+        where: eq(schema.approvals.id, approvalId),
+      });
+
+      if (!approval || typeof approval === undefined) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.APPROVAL_NOT_FOUND,
+        });
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_FOUND,
+        data: approval,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_FINDING_APPROVAL);
+    }
+  }
+
+  async deleteApproval(approvalId: string) {
+    try {
+      const approvalResult = await this.findApprovalById(approvalId);
+      if (approvalResult.status !== HttpStatus.OK) return approvalResult;
+
+      this.db
+        .delete(schema.approvals)
+        .where(eq(schema.approvals.id, approvalId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_DELETED,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_DELETING_APPROVAL);
+    }
+  }
+
+  async fetchApproval(approvalId: string) {
+    try {
+      const approval = await this.db.query.approvals.findFirst({
+        where: eq(schema.approvals.id, approvalId),
+      });
+
+      if (!approval || typeof approval === undefined) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.APPROVAL_NOT_FOUND,
+        });
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_FOUND,
+        data: approval,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVAL);
     }
   }
 }

@@ -1,6 +1,6 @@
 import { IpfsConfig } from '@/shared/config/ipfs/ipfs.config';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
 import {
   CustomIpfsClient,
   IpfsClientService,
@@ -96,7 +96,7 @@ export class IpfsProvider implements OnModuleInit {
 
           throw new Error('Upload failed: No CID returned');
         } catch (error) {
-          console.error(`Failed to upload file ${file.name}:`, error);
+          console.error(`Failed to upload file ${file.originalname}:`, error);
           throw error;
         }
       }),
@@ -137,7 +137,11 @@ export class IpfsProvider implements OnModuleInit {
 
         await ipfs.pin(cid);
 
-        return cid;
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ISM.SUCCESS_UPLOADING_RECORD,
+          data: cid,
+        });
       }
 
       throw new Error('Failed to upload medical record: No CID returned');

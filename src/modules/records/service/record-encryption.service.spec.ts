@@ -35,6 +35,7 @@ describe('MedicalRecordEncryptionService', () => {
       const diagnosis = ['Patient is suffering from malaria'];
 
       const result = await service.encryptMedicalRecord({
+        title: 'Patient Medical Record',
         clinicalNotes,
         diagnosis,
       });

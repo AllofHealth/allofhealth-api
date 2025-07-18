@@ -1,13 +1,14 @@
 export interface ICreateRecord extends IEncryptRecord {
-  title: string;
+  approvalId: string;
   practitionerId: string;
   patientId: string;
-  attachment1?: File;
-  attachment2?: File;
-  attachment3?: File;
+  attachment1?: Express.Multer.File;
+  attachment2?: Express.Multer.File;
+  attachment3?: Express.Multer.File;
 }
 
 export interface IEncryptRecord {
+  title: string;
   clinicalNotes: string[];
   diagnosis: string[];
   labResults?: string[];

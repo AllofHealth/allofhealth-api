@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  NotImplementedException,
 } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { eq } from 'drizzle-orm';
@@ -25,6 +26,7 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { CreateSmartAccountQueue } from '@/shared/queues/account/account.queue';
 import { AuthUtils } from '@/shared/utils/auth.utils';
+import { formatDateToReadable, calculateAge } from '@/shared/utils/date.utils';
 import {
   USER_ERROR_MESSAGES as UEM,
   USER_SUCCESS_MESSAGE as USM,
@@ -32,10 +34,12 @@ import {
 import { UserError } from '../error/user.error';
 import {
   ICreateUser,
-  IHandleDoctorRegistration,
   IUpdateUser,
   IUserSnippet,
 } from '../interface/user.interface';
+import { WalletService } from '@/modules/wallet/service/wallet.service';
+import { ApprovalService } from '@/modules/approval/service/approval.service';
+import { TRole } from '@/shared/interface/shared.interface';
 
 @Injectable()
 export class UserProvider {
@@ -46,6 +50,8 @@ export class UserProvider {
     private readonly createSmartAccountQueue: CreateSmartAccountQueue,
     private readonly assetService: AssetService,
     private readonly handler: ErrorHandler,
+    private readonly walletService: WalletService,
+    private readonly approvalService: ApprovalService,
   ) {}
 
   private async emitEvent(ctx: ICreateDoctor) {
@@ -88,90 +94,55 @@ export class UserProvider {
     }
   }
 
-  async validateEmailAddress(emailAddress: string) {
-    const user = await this.findUserByEmail(emailAddress);
-    if (user.status === HttpStatus.OK) {
-      return true;
+  private async fetchPatientDashboardData(userId: string) {
+    try {
+      return await this.findUserById(userId);
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
     }
-
-    return false;
   }
 
-  async findUserByEmail(emailAddress: string) {
+  /**
+   *
+   * @param userId
+   * @returns doctor dashboard data
+   * @todo: swap out mock reward data and completion rate
+   */
+  private async fetchDoctorDashboardData(userId: string) {
     try {
-      const user = await this.db
-        .select()
-        .from(schema.user)
-        .where(eq(schema.user.emailAddress, emailAddress))
-        .limit(1);
+      const [baseData, approvalData] = await Promise.all([
+        this.findUserById(userId),
+        this.approvalService.fetchDoctorApprovals(userId),
+      ]);
 
-      if (!user || user.length === 0) {
-        console.log('user not found');
+      if (!('data' in baseData) || !baseData || !baseData.data) {
         return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: UEM.USER_NOT_FOUND,
-          data: null,
+          status: baseData.status,
+          message: baseData.message,
         });
       }
 
-      const usersnippet = {
-        userId: user[0].id,
-        fullName: user[0].fullName,
-        email: user[0].emailAddress,
-        gender: user[0].gender,
-        profilePicture: user[0].profilePicture,
-        role: user[0].role,
-        password: user[0].password,
-        isFirstimeUser: user[0].isFirstTime,
-      };
+      if (!('data' in approvalData) || !approvalData || !approvalData.data) {
+        return this.handler.handleReturn({
+          status: approvalData.status,
+          message: approvalData.message,
+        });
+      }
 
+      const userData = baseData.data;
+      const approvals = approvalData.data;
       return this.handler.handleReturn({
         status: HttpStatus.OK,
-        message: USM.USER_FETCHED_SUCCESSFULLY,
-        data: usersnippet,
+        message: USM.SUCCESS_FETCHING_DASHBOARD_DATA,
+        data: {
+          ...userData,
+          pendingApprovals: approvals.length,
+          totalReward: 0,
+          dailyTaskCompletion: 0,
+        },
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
-    }
-  }
-
-  async findUserById(id: string) {
-    try {
-      const user = await this.db
-        .select()
-        .from(schema.user)
-        .where(eq(schema.user.id, id))
-        .limit(1);
-
-      const parsedUser = {
-        userId: user[0].id,
-        fullName: user[0].fullName,
-        email: user[0].emailAddress,
-        gender: user[0].gender,
-        profilePicture: user[0].profilePicture,
-        role: user[0].role,
-      } as IUserSnippet;
-
-      return this.handler.handleReturn({
-        status: HttpStatus.OK,
-        message: USM.USER_FETCHED_SUCCESSFULLY,
-        data: parsedUser,
-      });
-    } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
-    }
-  }
-
-  @OnEvent(SharedEvents.DELETE_USER)
-  async deleteUser(ctx: DeleteUser) {
-    try {
-      await this.db.delete(schema.user).where(eq(schema.user.id, ctx.userId));
-      return this.handler.handleReturn({
-        status: HttpStatus.OK,
-        message: USM.USER_DELETED_SUCCESSFULLY,
-      });
-    } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_DELETING_USER);
+      return this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
     }
   }
 
@@ -237,6 +208,149 @@ export class UserProvider {
         `${UEM.ERROR_HANDLING_DOCTOR_REGISTRATION}, ${e}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async validateEmailAddress(emailAddress: string) {
+    const user = await this.findUserByEmail(emailAddress);
+    if (user.status === HttpStatus.OK) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async findUserByEmail(emailAddress: string) {
+    try {
+      const user = await this.db
+        .select()
+        .from(schema.user)
+        .where(eq(schema.user.emailAddress, emailAddress))
+        .limit(1);
+
+      if (!user || user.length === 0) {
+        console.log('user not found');
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: UEM.USER_NOT_FOUND,
+          data: null,
+        });
+      }
+
+      const usersnippet = {
+        userId: user[0].id,
+        fullName: user[0].fullName,
+        email: user[0].emailAddress,
+        gender: user[0].gender,
+        profilePicture: user[0].profilePicture,
+        role: user[0].role,
+        password: user[0].password,
+        isFirstimeUser: user[0].isFirstTime,
+      };
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.USER_FETCHED_SUCCESSFULLY,
+        data: usersnippet,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
+    }
+  }
+
+  async findUserById(id: string) {
+    try {
+      const user = await this.db
+        .select()
+        .from(schema.user)
+        .where(eq(schema.user.id, id))
+        .limit(1);
+
+      const walletInfo = await this.walletService.fetchUserWallet(user[0].id);
+
+      if (
+        !('data' in walletInfo) ||
+        !walletInfo ||
+        walletInfo.status !== HttpStatus.OK ||
+        !walletInfo.data
+      ) {
+        return this.handler.handleReturn({
+          status: walletInfo.status,
+          message: walletInfo.message,
+        });
+      }
+
+      const updatedParsedUser = {
+        userId: user[0].id,
+        fullName: user[0].fullName,
+        email: user[0].emailAddress,
+        gender: user[0].gender,
+        profilePicture: user[0].profilePicture,
+        role: user[0].role,
+        dob: calculateAge(user[0].dateOfBirth),
+        updatedAt: formatDateToReadable(user[0].updatedAt),
+        walletData: {
+          walletAddress: walletInfo.data.walletAddress,
+          balance: walletInfo.data.balance,
+          lastTransactionDate: formatDateToReadable(
+            walletInfo.data.lastUpdated,
+          ),
+        },
+      };
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.USER_FETCHED_SUCCESSFULLY,
+        data: updatedParsedUser,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
+    }
+  }
+
+  async fetchDashboardData(userId: string) {
+    try {
+      const role = await this.db
+        .select({ role: schema.user.role })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId))
+        .limit(1);
+
+      if (!role || role.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: UEM.USER_NOT_FOUND,
+        });
+      }
+
+      const userRole = role[0].role as TRole;
+
+      switch (userRole) {
+        case 'PATIENT':
+          return await this.fetchPatientDashboardData(userId);
+        case 'DOCTOR':
+          return await this.fetchDoctorDashboardData(userId);
+        default:
+          throw new NotImplementedException({
+            status: HttpStatus.NOT_IMPLEMENTED,
+            message: UEM.DASHBOARD_DATA_NOT_IMPLEMENTED,
+          });
+      }
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
+    }
+  }
+
+  @OnEvent(SharedEvents.DELETE_USER)
+  async deleteUser(ctx: DeleteUser) {
+    try {
+      await this.db.delete(schema.user).where(eq(schema.user.id, ctx.userId));
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.USER_DELETED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_DELETING_USER);
     }
   }
 

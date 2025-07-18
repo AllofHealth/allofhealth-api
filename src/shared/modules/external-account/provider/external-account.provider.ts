@@ -18,6 +18,7 @@ import { Database } from '@/shared/drizzle/drizzle.types';
 
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AuthUtils } from '@/shared/utils/auth.utils';
+import { ExternalAccountErrorMessage } from '../data/external-account.data';
 
 @Injectable()
 export class ExternalAccountProvider {
@@ -109,5 +110,17 @@ export class ExternalAccountProvider {
       privateKey: wallet.privateKey,
       walletAddress: wallet.address,
     };
+  }
+
+  async getBalance(walletAddress: string) {
+    try {
+      const provider = this.handleGetProvider();
+      const balance = await provider.getBalance(walletAddress);
+      return ethers.formatEther(balance);
+    } catch (e) {
+      throw new InternalServerErrorException(
+        `${ExternalAccountErrorMessage.ERROR_FETCHING_BALANCE}, ${e}`,
+      );
+    }
   }
 }
