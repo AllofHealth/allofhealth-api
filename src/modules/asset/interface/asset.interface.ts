@@ -17,10 +17,11 @@ export interface IHandleImageKitUpload {
   userId: string;
   folderPath: string;
   fileBuffer: NonSharedBuffer;
-  uploadContext: TUploadContext;
+  uploadContext: string;
 }
 
 export interface IUploadProfilePicture {
   userId: string;
   profilePictureFilePath: string;
+  context?: string;
 }
