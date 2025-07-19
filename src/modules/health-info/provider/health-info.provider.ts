@@ -39,6 +39,7 @@ export class HealthInfoProvider {
       const uploadResult = await this.assetService.uploadProfilePicture({
         profilePictureFilePath: attachmentFilePath,
         userId,
+        context: 'health-info',
       });
 
       if (!('data' in uploadResult && uploadResult.data)) {
@@ -86,7 +87,7 @@ export class HealthInfoProvider {
     }
     if (attachmentFilePath) {
       const { url, fileId } = await this.handleAttachmentUpload({
-        userId: ctx.userId,
+        userId,
         attachmentFilePath: attachmentFilePath,
       });
 
