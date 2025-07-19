@@ -147,7 +147,11 @@ export class AssetProvider {
   }
 
   async uploadProfilePicture(ctx: IUploadProfilePicture) {
-    const { userId, profilePictureFilePath } = ctx;
+    const {
+      userId,
+      profilePictureFilePath,
+      context = TUploadContext.PROFILE_PICTURE,
+    } = ctx;
     const folderPath = `/${userId}`;
     const filesToCleanup: string[] = [];
     try {
@@ -168,7 +172,7 @@ export class AssetProvider {
         userId,
         fileBuffer: profilePictureBuffer,
         folderPath,
-        uploadContext: TUploadContext.PROFILE_PICTURE,
+        uploadContext: context,
       });
 
       await this.cleanupLocalFiles(filesToCleanup);
