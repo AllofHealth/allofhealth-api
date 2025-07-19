@@ -12,6 +12,10 @@ export class ContractConfig {
   CONTRACT_ADDRESS: string;
 
   @IsNotEmpty()
+  @Value('TOKEN_ADDRESS')
+  TOKEN_ADDRESS: string;
+
+  @IsNotEmpty()
   @Value('SUPER_PRIVATE_KEY')
   SUPER_PRIVATE_KEY: string;
 }
