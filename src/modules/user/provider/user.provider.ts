@@ -40,6 +40,7 @@ import {
 import { WalletService } from '@/modules/wallet/service/wallet.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { TRole } from '@/shared/interface/shared.interface';
+import { ContractService } from '@/modules/contract/service/contract.service';
 
 @Injectable()
 export class UserProvider {
@@ -52,6 +53,7 @@ export class UserProvider {
     private readonly handler: ErrorHandler,
     private readonly walletService: WalletService,
     private readonly approvalService: ApprovalService,
+    private readonly contractService: ContractService,
   ) {}
 
   private async emitEvent(ctx: ICreateDoctor) {
@@ -104,9 +106,7 @@ export class UserProvider {
 
   /**
    *
-   * @param userId
-   * @returns doctor dashboard data
-   * @todo: swap out mock reward data and completion rate
+   * @todo: swap out completion rate
    */
   private async fetchDoctorDashboardData(userId: string) {
     try {
@@ -131,13 +131,23 @@ export class UserProvider {
 
       const userData = baseData.data;
       const approvals = approvalData.data;
+
+      const tokenBalanceResult =
+        await this.contractService.fetchTokenBalance(userId);
+      if (!('data' in tokenBalanceResult && tokenBalanceResult.data)) {
+        return this.handler.handleReturn({
+          status: tokenBalanceResult.status,
+          message: tokenBalanceResult.message,
+        });
+      }
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: USM.SUCCESS_FETCHING_DASHBOARD_DATA,
         data: {
           ...userData,
           pendingApprovals: approvals.length,
-          totalReward: 0,
+          totalReward: tokenBalanceResult.data,
           dailyTaskCompletion: 0,
         },
       });
