@@ -95,7 +95,7 @@ export class UserController {
               lastTransactionDate: '2025-02-24T10:30:00Z',
             },
             pendingApprovals: 5,
-            totalReward: 0,
+            totalReward: '0.5',
             dailyTaskCompletion: 0,
           },
         },
