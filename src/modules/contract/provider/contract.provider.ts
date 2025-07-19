@@ -1,34 +1,32 @@
-import { PaymasterMode } from '@biconomy/account';
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
-import { ethers } from 'ethers';
-import { encodeFunctionData } from 'viem';
 import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
-import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
-import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
-import {
-  ABI,
-  ContractErrorMessages as CEM,
-  ContractSuccessMessages as CSM,
-  Duration,
-} from '../data/contract.data';
-import {
-  IAddMedicalRecordTx,
-  IApprovedToAddNewRecord,
-  IApproveRecordAccess,
-  IApproveRecordAccessTx,
-  IHandleAddMedicalRecord,
-  IHandleApproval,
-  IHandleApproveAccessToAddNewRecord,
-  IViewerHasAccessToRecords,
-} from '../interface/contract.interface';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { SharedEvents } from '@/shared/events/shared.events';
 import {
   EApproveRecordAccess,
   EApproveWriteRecord,
   EDeleteApproval,
 } from '@/shared/dtos/event.dto';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
+import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
+import { PaymasterMode } from '@biconomy/account';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { ethers } from 'ethers';
+import { encodeFunctionData } from 'viem';
+import {
+  ABI,
+  ContractErrorMessages as CEM,
+  ContractSuccessMessages as CSM,
+  Duration,
+  RewardAmount,
+  TOKEN_ABI,
+} from '../data/contract.data';
+import {
+  IAddMedicalRecordTx,
+  IApprovedToAddNewRecord, IApproveRecordAccessTx,
+  IHandleAddMedicalRecord,
+  IHandleApproval, IViewerHasAccessToRecords
+} from '../interface/contract.interface';
 
 @Injectable()
 export class ContractProvider {
@@ -38,7 +36,7 @@ export class ContractProvider {
     private readonly handlerService: ErrorHandler,
     private readonly aaService: AccountAbstractionService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   private provideABI() {
     return ABI;
@@ -120,6 +118,14 @@ export class ContractProvider {
       this.provideABI(),
       this.eoaService.provideAdminSigner(),
     );
+  }
+
+  provideAdminTokenInstance() {
+    return new ethers.Contract(
+      this.contractConfig.TOKEN_ADDRESS,
+      TOKEN_ABI,
+      this.eoaService.provideAdminSigner(),
+    )
   }
 
   async provideContract(userId: string) {
@@ -607,6 +613,44 @@ export class ContractProvider {
         e,
         CEM.ERROR_ADDING_MEDICAL_RECORD,
       );
+    }
+  }
+
+  async handleMint(userId: string) {
+    try {
+
+      const userAddress = await this.getPatientSmartAddress(userId);
+      const contract = this.provideAdminTokenInstance();
+
+      const tx = await contract.mint(userAddress, RewardAmount.MIN);
+      await tx.wait();
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.TOKEN_MINTED_SUCCESSFULLY,
+
+      });
+
+    } catch (e) {
+      return this.handlerService.handleError(e, CEM.ERROR_MINTING_TOKEN)
+    }
+  }
+
+  async handleFetchTokenBalance(userId: string) {
+    try {
+      const userAddress = await this.getPatientSmartAddress(userId);
+      const contract = this.provideAdminTokenInstance();
+
+      const balance = await contract.balanceOf(userAddress);
+      const formattedBalance = ethers.formatEther(balance)
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.TOKEN_BALANCE_FETCHED_SUCCESSFULLY,
+        data: formattedBalance,
+      });
+    } catch (e) {
+      return this.handlerService.handleError(e, CEM.ERROR_FETCHING_TOKEN_BALANCE);
     }
   }
 }
