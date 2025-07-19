@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Ip,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseGuards,
@@ -114,7 +115,7 @@ export class UserController {
     return this.userService.fetchDashboardData(userId);
   }
 
-  @Post('updateUser')
+  @Put('updateUser')
   @UseInterceptors(
     FileInterceptor('profilePicture', {
       storage: diskStorage({
