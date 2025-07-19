@@ -9,6 +9,7 @@ import { UserProvider } from './provider/user.provider';
 import { UserService } from './service/user.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { ApprovalModule } from '../approval/approval.module';
+import { ContractModule } from '../contract/contract.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ApprovalModule } from '../approval/approval.module';
     AssetModule,
     forwardRef(() => WalletModule),
     forwardRef(() => ApprovalModule),
+    forwardRef(() => ContractModule),
   ],
   providers: [UserProvider, UserService, AuthUtils, ErrorHandler],
   controllers: [UserController],
