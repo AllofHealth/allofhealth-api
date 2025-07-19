@@ -12,6 +12,8 @@ export enum ContractErrorMessages {
   ERROR_VERIFYING_PRACTITIONER_ACCESS = 'Error verifying if practitioner has access to medical record ',
   RECORD_ID_REQUIRED = 'Record ID is required',
   ERROR_ADDING_MEDICAL_RECORD = 'Error adding medical record',
+  ERROR_MINTING_TOKEN = 'Error minting token',
+  ERROR_FETCHING_TOKEN_BALANCE = 'Error fetching token balance',
 }
 
 export enum ContractSuccessMessages {
@@ -29,10 +31,16 @@ export enum ContractSuccessMessages {
   READ_ACCESS_APPROVED = 'Read access approved successfully',
   WRITE_ACCESS_APPROVED = 'Write access approved successfully',
   MEDICAL_RECORD_ADDED_SUCCESSFULLY = 'Medical record added successfully',
+  TOKEN_MINTED_SUCCESSFULLY = 'Token minted successfully',
+  TOKEN_BALANCE_FETCHED_SUCCESSFULLY = 'Token balance fetched successfully',
 }
 
 export enum Duration {
   A_DAY = 86400000,
+}
+
+export enum RewardAmount {
+  MIN = 10000000000000000 //0.01 in wei
 }
 
 export const ABI = [
