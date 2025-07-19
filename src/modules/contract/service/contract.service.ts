@@ -51,4 +51,12 @@ export class ContractService {
       practitionerId,
     );
   }
+
+  async mintHealthTokens(userId) {
+    return await this.contractProvider.handleMint(userId);
+  }
+
+  async fetchTokenBalance(userId) {
+    return await this.contractProvider.handleFetchTokenBalance(userId);
+  }
 }
