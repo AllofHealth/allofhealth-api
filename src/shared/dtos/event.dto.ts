@@ -33,6 +33,11 @@ export class StoreId {
 export class CreateSmartAccount {
   constructor(readonly userId: string) {}
 }
+
+export class MintHealthToken {
+  constructor(readonly userId: string) {}
+}
+
 export class EUpdateUser {
   constructor(
     readonly userId: string,
