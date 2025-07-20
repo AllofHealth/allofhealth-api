@@ -14,9 +14,11 @@ import {
 } from '../data/reward.data';
 import * as schema from '@/schemas/schema';
 import { eq, sql } from 'drizzle-orm';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class RewardProvider {
+  private readonly logger = new MyLoggerService(RewardProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
@@ -55,14 +57,14 @@ export class RewardProvider {
         data: reward[0],
       });
     } catch (e) {
-      throw new InternalServerErrorException(e, REM.NOT_FOUND);
+      this.logger.debug(`No reward found creating reward`);
     }
   }
 
   async incrementDailyCount(userId: string) {
     try {
       const reward = await this.fetchReward(userId);
-      if (!reward.data || reward.status !== HttpStatus.OK) {
+      if (!reward || !reward.data || reward.status !== HttpStatus.OK) {
         return await this.createReward(userId);
       }
 
