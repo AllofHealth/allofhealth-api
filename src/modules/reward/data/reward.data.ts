@@ -7,4 +7,6 @@ export enum REWARD_ERROR_MESSAGES {
 export enum REWARD_SUCCESS_MESSAGES {
   REWARD_CREATED = 'Reward created successfully',
   REWARD_UPDATED = 'Reward updated successfully',
+  REWARD_FETCHED = 'Reward fetched successfully',
 }
+
