@@ -32,6 +32,9 @@ import {
   IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
 import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { EUpdateTaskCount } from '@/shared/dtos/event.dto';
 
 @Injectable()
 export class ApprovalProvider {
@@ -40,6 +43,7 @@ export class ApprovalProvider {
     private readonly handler: ErrorHandler,
     private readonly aaService: AccountAbstractionService,
     private readonly contractService: ContractService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private async getSmartAddress(practitionerId: string) {
@@ -374,6 +378,9 @@ export class ApprovalProvider {
         });
       }
 
+      const taskData = new EUpdateTaskCount(doctorId);
+
+      this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_ACCEPTED,
