@@ -5,9 +5,14 @@ import { ExternalAccountModule } from '@/shared/modules/external-account/externa
 import { ContractController } from './controller/contract.controller';
 import { ContractProvider } from './provider/contract.provider';
 import { ContractService } from './service/contract.service';
+import { RewardModule } from '../reward/reward.module';
 
 @Module({
-  imports: [ExternalAccountModule, forwardRef(() => AccountAbstractionModule)],
+  imports: [
+    ExternalAccountModule,
+    forwardRef(() => AccountAbstractionModule),
+    forwardRef(() => RewardModule),
+  ],
   providers: [ContractService, ContractProvider, ErrorHandler],
   controllers: [ContractController],
   exports: [ContractService],
