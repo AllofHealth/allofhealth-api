@@ -26,6 +26,7 @@ import { OtpModule } from './modules/otp/otp.module';
 import { AssetModule } from './modules/asset/asset.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { HealthInfoModule } from './modules/health-info/health-info.module';
+import { RewardModule } from './modules/reward/reward.module';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { HealthInfoModule } from './modules/health-info/health-info.module';
     AssetModule,
     WalletModule,
     HealthInfoModule,
+    RewardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
