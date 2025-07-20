@@ -208,7 +208,7 @@ export const dailyReward = pgTable('daily_reward', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' })
     .unique(),
-  dailyTaskCount: integer('daily_task_count').notNull().default(0),
+  dailyTaskCount: integer('daily_task_count').notNull().default(1),
   isTokenMinted: boolean('is_token_minted').notNull().default(false),
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
