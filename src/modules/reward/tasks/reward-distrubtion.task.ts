@@ -71,7 +71,7 @@ export class RewardDistributionService {
     try {
       this.logger.log('Starting daily reward reset at midnight');
 
-      const result = await this.db.update(schema.dailyReward).set({
+      await this.db.update(schema.dailyReward).set({
         isTokenMinted: false,
         dailyTaskCount: 0,
       });
