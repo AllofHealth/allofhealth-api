@@ -14,4 +14,5 @@ export enum SharedEvents {
   DELETE_APPROVAL = 'delete.approval',
   MINT_HEALTH_TOKEN = 'mint.health.token',
   BATCH_MINT_HEALTH_TOKEN = 'batch.mint.health.token',
+  TASK_COMPLETED = 'task.completed',
 }
