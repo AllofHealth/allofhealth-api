@@ -28,6 +28,7 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - **👥 Multi-Role Access Control**: Tailored interfaces for patients, doctors, hospitals, pharmacies, and administrators
 - **🔗 Blockchain Security**: Immutable record storage with smart contract-based access permissions on Lisk blockchain
 - **🌐 Decentralized Storage**: IPFS integration for secure, distributed medical data storage
+- **🎁 Gamified Reward System**: Blockchain-based token rewards for daily health activities and engagement
 - **🏥 Integrated Healthcare Ecosystem**: Complete platform combining medical records, telemedicine, and pharmacy coordination
 
 ## 🎯 Target Users
@@ -114,6 +115,16 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - ✅ Error handling and validation for encryption operations
 - ✅ Comprehensive encryption service with proper key management
 
+#### Gamified Reward System
+- ✅ Daily task tracking and completion monitoring
+- ✅ Blockchain-based health token rewards (0.01 tokens per daily target)
+- ✅ Automated reward distribution with cron jobs
+- ✅ Queue-based token minting system with retry mechanisms
+- ✅ Daily task reset at midnight (automatic cleanup)
+- ✅ Dashboard integration showing token balance and progress
+- ✅ Event-driven task completion tracking
+- ✅ Multi-activity reward triggers (health journaling, approvals)
+
 ### 🔄 In Progress Features
 
 - 🔄 Advanced patient portal features
@@ -122,6 +133,8 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - 🔄 Enhanced security features and audit logging
 - 🔄 Real-time notifications system
 - 🔄 Medical records retrieval interface
+- 🔄 Reward system expansion with more task types
+- 🔄 Achievement badges and milestone rewards
 
 ### 🔮 Advanced Features (Planned)
 
@@ -130,6 +143,8 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - **📊 Health Analytics**: AI-powered health insights and recommendations
 - **🌐 Interoperability**: HL7 FHIR compliance for seamless data exchange
 - **📱 Mobile Applications**: React Native apps for iOS and Android
+- **🏆 Advanced Reward Features**: NFT achievements, streak bonuses, and tiered reward systems
+- **💱 Token Marketplace**: Exchange health tokens for healthcare services and benefits
 
 ## 🛠 Tech Stack
 
@@ -218,7 +233,7 @@ sudo pacman -S kubo
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/allofhealth-api.git
+   git clone https://github.com/AllofHealth/allofhealth-api.git
    cd allofhealth-api
    ```
 
@@ -231,7 +246,7 @@ sudo pacman -S kubo
    ```bash
    # Copy environment template
    cp .env.example .env
-   
+
    # Edit .env with your configuration
    # Database URLs, JWT secrets, IPFS configuration, etc.
    ```
@@ -240,7 +255,7 @@ sudo pacman -S kubo
    ```bash
    # Run database migrations
    npm run migrate
-   
+
    # Generate database schema (if needed)
    npm run generate
    ```
@@ -321,11 +336,19 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - `GET /doctor/fetchAllDoctors` - Get all verified doctors (paginated)
 
 ### Health Journal
-- `POST /health-journal/addJournalEntry` - Add personal health journal entry
+- `POST /health-journal/addJournalEntry` - Add personal health journal entry (triggers daily task completion)
 - `GET /health-journal/fetchUserJournals` - Fetch user's health journal entries
 
 ### IPFS Integration
 - `GET /ipfs/testIpfs` - Test IPFS functionality and upload
+
+### Reward System
+- **Internal Service**: `RewardService` - Daily task tracking and reward management
+- **Automated Distribution**: Cron-based reward distribution every minute for qualified users
+- **Daily Reset**: Automatic daily task counter reset at midnight
+- **Token Minting**: Queue-based health token minting (0.01 tokens per daily target)
+- **Task Triggers**: Health journal entries, approval acceptances
+- **Dashboard Integration**: Token balance and progress displayed in user dashboards
 
 ### Record Encryption Service
 - **Internal Service**: `RecordsEncryptionService` - Medical record encryption/decryption
@@ -337,6 +360,11 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - `GET /contract/system-admin-count` - Get system administrator count
 - `GET /contract/patientCount` - Get total patient count
 - `GET /contract/patientContractId` - Get patient contract ID by address
+- **Internal Service**: `ContractService.fetchTokenBalance` - Get user's health token balance
+- **Internal Service**: `ContractService.mintHealthTokens` - Mint health tokens for qualified users
+
+### User Dashboard
+- `GET /user/dashboard` - Fetch role-based dashboard data including token balance and daily progress
 
 *Additional endpoints are available and documented in the Swagger UI.*
 
@@ -406,6 +434,12 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [x] **Automated startup script**
 - [x] **Record encryption service with AES-256-CBC**
 - [x] **Batch encryption/decryption for medical records**
+- [x] **Gamified reward system with daily task tracking**
+- [x] **Blockchain-based health token rewards**
+- [x] **Automated reward distribution and daily resets**
+- [x] **Queue-based token minting system**
+- [x] **Event-driven task completion tracking**
+- [x] **Dashboard integration for reward display**
 
 ### 🔄 In Progress
 - [ ] Frontend web application development
@@ -415,6 +449,8 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [ ] Enhanced security features and audit logging
 - [ ] Prescription management system
 - [ ] Real-time notifications system
+- [ ] Reward system expansion with more task types
+- [ ] Achievement system and milestone tracking
 
 ### 📋 Planned
 - [ ] One-time prescription keys with automatic expiration
@@ -427,6 +463,10 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [ ] Insurance integration
 - [ ] Lab results integration
 - [ ] Appointment scheduling system
+- [ ] NFT-based achievement badges
+- [ ] Health token marketplace and exchange
+- [ ] Streak bonuses and tiered rewards
+- [ ] Social features and health challenges
 
 ## 📊 Success Metrics
 
@@ -437,11 +477,16 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **Encryption Success Rate**: Target 99.9%
 - **Registration Success Rate**: Target 85%
 - **Security Incidents**: Target 0
+- **Reward Distribution Success Rate**: Target 99.5%
+- **Token Minting Success Rate**: Target 99.9%
 
 ### User Engagement
 - **Monthly Active Users**: Target 10,000 in Year 1
 - **Feature Adoption Rate**: Target 70% for core features
 - **User Satisfaction**: Target 4.5/5
+- **Daily Task Completion Rate**: Target 60%
+- **Token Earning Users**: Target 8,000 in Year 1
+- **Average Daily Tasks per User**: Target 3.5
 
 ## 🔒 Security & Compliance
 
@@ -513,6 +558,10 @@ IPFS_API_SECRET=       # Optional for hosted IPFS
 # Record Encryption
 RECORD_ENCRYPTION_KEY= # Base64 encoded 32-byte key for AES-256-CBC encryption
 #                     # Example: generate with crypto.randomBytes(32).toString('base64')
+
+# Reward System
+DAILY_TARGET=5         # Number of daily tasks required for token reward
+REWARD_AMOUNT=0.01     # Amount of tokens minted per daily target completion (in ETH)
 
 # Database
 DATABASE_URL=postgresql://...
