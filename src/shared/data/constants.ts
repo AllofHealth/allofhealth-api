@@ -4,6 +4,7 @@ config();
 
 //Auth
 export const SALT_ROUNDS = 12;
+export const DAILY_TARGET = 5;
 
 export const EXPIRES_IN = '7d';
 export const PORT = 3000;
