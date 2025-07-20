@@ -116,8 +116,7 @@ export const health_journal = pgTable('health_journal', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   userId: uuid('user_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' })
-    .unique(),
+    .references(() => user.id, { onDelete: 'cascade' }),
   mood: varchar('mood', { length: 255 }).notNull(),
   symptoms: jsonb('symptoms').default('[]'),
   activities: jsonb('activities').default('[]'),
