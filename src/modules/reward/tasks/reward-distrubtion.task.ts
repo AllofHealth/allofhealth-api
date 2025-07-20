@@ -65,4 +65,21 @@ export class RewardDistributionService {
       this.logger.error('Error while rewarding users', e);
     }
   }
+
+  @Cron('0 0 * * *') // Runs at midnight every day
+  async resetDailyRewards() {
+    try {
+      this.logger.log('Starting daily reward reset at midnight');
+
+      const result = await this.db.update(schema.dailyReward).set({
+        isTokenMinted: false,
+        dailyTaskCount: 0,
+      });
+
+      this.logger.log('Successfully reset daily rewards for all users');
+    } catch (e) {
+      this.logger.error('Error while resetting daily rewards', e);
+      throw new InternalServerErrorException('Failed to reset daily rewards');
+    }
+  }
 }
