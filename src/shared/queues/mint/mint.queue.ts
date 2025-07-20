@@ -1,4 +1,4 @@
-import { MintHealthToken } from '@/shared/dtos/event.dto';
+import { BatchMintHealthToken, MintHealthToken } from '@/shared/dtos/event.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import type { Queue } from 'bull';
@@ -10,8 +10,8 @@ export class MintTokenQueue {
     private readonly mintTokenQueue: Queue,
   ) {}
 
-  async mintHealthTokenJob(data: MintHealthToken) {
-    await this.mintTokenQueue.add('mint-health-token', data, {
+  async mintHealthTokenJob(data: BatchMintHealthToken) {
+    await this.mintTokenQueue.add('batch-mint-health-token', data, {
       attempts: 3,
       backoff: {
         type: 'exponential',
