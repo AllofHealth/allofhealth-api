@@ -12,12 +12,16 @@ import {
   IFetchJournal,
 } from '../interface/health-journal.interface';
 import { eq, sql } from 'drizzle-orm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EUpdateTaskCount } from '@/shared/dtos/event.dto';
+import { SharedEvents } from '@/shared/events/shared.events';
 
 @Injectable()
 export class HealthJournalProvider {
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private formatDate(date: Date | string): string {
@@ -48,6 +52,9 @@ export class HealthJournalProvider {
           message: HEM.ERROR_ADDING_ENTRY,
         });
       }
+
+      const taskData = new EUpdateTaskCount(userId);
+      this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
