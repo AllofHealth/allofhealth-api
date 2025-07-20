@@ -38,6 +38,10 @@ export class MintHealthToken {
   constructor(readonly userId: string) {}
 }
 
+export class EUpdateTaskCount {
+  constructor(readonly userId: string) {}
+}
+
 export class BatchMintHealthToken {
   constructor(
     readonly userIds: string[],
