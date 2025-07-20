@@ -23,10 +23,13 @@ import {
 } from '../data/contract.data';
 import {
   IAddMedicalRecordTx,
-  IApprovedToAddNewRecord, IApproveRecordAccessTx,
+  IApprovedToAddNewRecord,
+  IApproveRecordAccessTx,
   IHandleAddMedicalRecord,
-  IHandleApproval, IViewerHasAccessToRecords
+  IHandleApproval,
+  IViewerHasAccessToRecords,
 } from '../interface/contract.interface';
+import { RewardService } from '@/modules/reward/service/reward.service';
 
 @Injectable()
 export class ContractProvider {
@@ -35,8 +38,9 @@ export class ContractProvider {
     private readonly eoaService: ExternalAccountService,
     private readonly handlerService: ErrorHandler,
     private readonly aaService: AccountAbstractionService,
+    private readonly rewardServicce: RewardService,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   private provideABI() {
     return ABI;
@@ -125,7 +129,7 @@ export class ContractProvider {
       this.contractConfig.TOKEN_ADDRESS,
       TOKEN_ABI,
       this.eoaService.provideAdminSigner(),
-    )
+    );
   }
 
   async provideContract(userId: string) {
@@ -618,21 +622,22 @@ export class ContractProvider {
 
   async handleMint(userId: string) {
     try {
-
       const userAddress = await this.getPatientSmartAddress(userId);
       const contract = this.provideAdminTokenInstance();
 
       const tx = await contract.mint(userAddress, RewardAmount.MIN);
       await tx.wait();
 
+      await this.rewardServicce.updateMintedState(userId, true);
+
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.TOKEN_MINTED_SUCCESSFULLY,
-
       });
-
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_MINTING_TOKEN)
+      await this.rewardServicce.updateMintedState(userId, false);
+
+      return this.handlerService.handleError(e, CEM.ERROR_MINTING_TOKEN);
     }
   }
 
@@ -642,7 +647,7 @@ export class ContractProvider {
       const contract = this.provideAdminTokenInstance();
 
       const balance = await contract.balanceOf(userAddress);
-      const formattedBalance = ethers.formatEther(balance)
+      const formattedBalance = ethers.formatEther(balance);
 
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
@@ -650,7 +655,10 @@ export class ContractProvider {
         data: formattedBalance,
       });
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_FETCHING_TOKEN_BALANCE);
+      return this.handlerService.handleError(
+        e,
+        CEM.ERROR_FETCHING_TOKEN_BALANCE,
+      );
     }
   }
 }
