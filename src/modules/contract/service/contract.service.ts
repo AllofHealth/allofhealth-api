@@ -3,6 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import {
   EAddMedicalRecordToContract,
   ERegisterEntity,
+  MintHealthToken,
 } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { ContractProvider } from '../provider/contract.provider';
@@ -52,11 +53,12 @@ export class ContractService {
     );
   }
 
-  async mintHealthTokens(userId) {
-    return await this.contractProvider.handleMint(userId);
+  @OnEvent(SharedEvents.MINT_HEALTH_TOKEN, { async: true })
+  async mintHealthTokens(ctx: MintHealthToken) {
+    return await this.contractProvider.handleMint(ctx.userId);
   }
 
-  async fetchTokenBalance(userId) {
+  async fetchTokenBalance(userId: string) {
     return await this.contractProvider.handleFetchTokenBalance(userId);
   }
 }
