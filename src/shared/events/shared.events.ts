@@ -12,4 +12,5 @@ export enum SharedEvents {
   APPROVE_WRITE_ACCESS = 'approve.write.access',
   ADD_MEDICAL_RECORD_TO_CONTRACT = 'add.medical.record.to.contract',
   DELETE_APPROVAL = 'delete.approval',
+  MINT_HEALTH_TOKEN = 'mint.health.token',
 }
