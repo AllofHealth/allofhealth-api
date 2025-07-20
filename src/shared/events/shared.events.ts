@@ -13,4 +13,5 @@ export enum SharedEvents {
   ADD_MEDICAL_RECORD_TO_CONTRACT = 'add.medical.record.to.contract',
   DELETE_APPROVAL = 'delete.approval',
   MINT_HEALTH_TOKEN = 'mint.health.token',
+  BATCH_MINT_HEALTH_TOKEN = 'batch.mint.health.token',
 }
