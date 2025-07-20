@@ -83,12 +83,12 @@ export class RewardProvider {
     }
   }
 
-  async updateMintedState(userId: string) {
+  async updateMintedState(userId: string, state: boolean) {
     try {
       await this.db
         .update(schema.dailyReward)
         .set({
-          isTokenMinted: true,
+          isTokenMinted: state,
         })
         .where(eq(schema.dailyReward.userId, userId));
     } catch (e) {
