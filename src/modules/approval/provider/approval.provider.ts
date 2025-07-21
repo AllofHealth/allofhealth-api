@@ -147,7 +147,7 @@ export class ApprovalProvider {
         });
       }
 
-      if (accessLevel === 'write' || accessLevel === 'full') {
+      if (accessLevel === 'full') {
         if (!recordId) {
           return this.handler.handleReturn({
             status: HttpStatus.BAD_REQUEST,
