@@ -303,3 +303,13 @@ export class UpdateUserDto {
   @IsString()
   locationOfHospital?: string;
 }
+
+export class ResendOtpDto {
+  @ApiProperty({
+    description: 'The email address to resend OTP to',
+    example: 'john.doe@example.com',
+  })
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+}
