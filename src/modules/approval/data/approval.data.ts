@@ -26,7 +26,7 @@ export enum APPROVAL_SUCCESS_MESSAGE {
   APPROVAL_CREATED = 'Approval created successfully',
   APPROVAL_FETCHED = 'Approval fetched successfully',
   APPROVAL_ACCEPTED = 'Approval accepted successfully',
-  APPROVAL_REJECTED = 'Approval rejected successfully',
+  APPROVAL_REJECTED = 'Approval rejected ',
   APPROVAL_DELETED = 'Approval deleted successfully',
   APPROVAL_FOUND = 'Approval found successfully',
 }
