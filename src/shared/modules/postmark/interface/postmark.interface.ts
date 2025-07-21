@@ -1,1 +1,4 @@
-export interface Postmark {}
+export interface ISendEmail {
+  to: string;
+  body: string;
+}
