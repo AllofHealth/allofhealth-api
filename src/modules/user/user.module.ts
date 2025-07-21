@@ -10,6 +10,8 @@ import { UserService } from './service/user.service';
 import { WalletModule } from '../wallet/wallet.module';
 import { ApprovalModule } from '../approval/approval.module';
 import { ContractModule } from '../contract/contract.module';
+import { OtpModule } from '../otp/otp.module';
+import { PostmarkModule } from '@/shared/modules/postmark/postmark.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { ContractModule } from '../contract/contract.module';
     forwardRef(() => WalletModule),
     forwardRef(() => ApprovalModule),
     forwardRef(() => ContractModule),
+    forwardRef(() => OtpModule),
+    forwardRef(() => PostmarkModule),
   ],
   providers: [UserProvider, UserService, AuthUtils, ErrorHandler],
   controllers: [UserController],
