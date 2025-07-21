@@ -15,4 +15,5 @@ export enum SharedEvents {
   MINT_HEALTH_TOKEN = 'mint.health.token',
   BATCH_MINT_HEALTH_TOKEN = 'batch.mint.health.token',
   TASK_COMPLETED = 'task.completed',
+  SEND_OTP = 'send.otp',
 }
