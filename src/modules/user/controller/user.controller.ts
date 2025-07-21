@@ -31,10 +31,11 @@ import {
   USER_ERROR_MESSAGES as UEM,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
-import { UpdateUserDto } from '../dto/user.dto';
+import { ResendOtpDto, UpdateUserDto } from '../dto/user.dto';
 import { UserError } from '../error/user.error';
 import { OwnerGuard } from '../guard/user.guard';
 import { UserService } from '../service/user.service';
+import { ESendOtp } from '@/shared/dtos/event.dto';
 
 @ApiTags('User Operations')
 @Controller('user')
@@ -113,6 +114,45 @@ export class UserController {
   async fetchDashboardData(@Ip() ip: string, @Query('userId') userId: string) {
     this.logger.log(`Fetching dashboard data for user ${userId} from ${ip}`);
     return this.userService.fetchDashboardData(userId);
+  }
+
+  @Post('resend-otp')
+  @ApiOperation({
+    summary: 'Resend OTP to user email',
+    description: 'Resends OTP verification code to the specified email address',
+  })
+  @ApiBody({
+    description: 'Email address to resend OTP to',
+    type: ResendOtpDto,
+  })
+  @ApiOkResponse({
+    description: 'OTP resent successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: 200,
+      message: USM.SUCCESS_SENDING_OTP,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid email address',
+    type: UserError,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Invalid email address',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error sending OTP',
+    type: UserError,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: UEM.ERROR_SENDING_EMAIL,
+    },
+  })
+  async resendOtp(@Ip() ip: string, @Body() ctx: ResendOtpDto) {
+    this.logger.log(`Resending OTP to email ${ctx.email} from ${ip}`);
+    const sendOtpEvent = new ESendOtp(ctx.email);
+    return this.userService.resendOtp(sendOtpEvent);
   }
 
   @Put('updateUser')
