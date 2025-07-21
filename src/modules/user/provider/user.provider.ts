@@ -21,6 +21,7 @@ import {
   EHandleRegisterDoctor,
   EHandleRegisterPatient,
   ERegisterEntity,
+  ESendOtp,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -41,6 +42,8 @@ import { WalletService } from '@/modules/wallet/service/wallet.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { TRole } from '@/shared/interface/shared.interface';
 import { ContractService } from '@/modules/contract/service/contract.service';
+import { OtpService } from '@/modules/otp/service/otp.service';
+import { PostmarkService } from '@/shared/modules/postmark/service/postmark.service';
 
 @Injectable()
 export class UserProvider {
@@ -54,6 +57,8 @@ export class UserProvider {
     private readonly walletService: WalletService,
     private readonly approvalService: ApprovalService,
     private readonly contractService: ContractService,
+    private readonly otpService: OtpService,
+    private readonly postmarkService: PostmarkService,
   ) {}
 
   private async emitEvent(ctx: ICreateDoctor) {
@@ -364,6 +369,20 @@ export class UserProvider {
     }
   }
 
+  @OnEvent(SharedEvents.SEND_OTP)
+  async sendOtp(ctx: ESendOtp) {
+    try {
+      const otp = this.otpService.generateOtp();
+      const body = `Here's your OTP: ${otp}`;
+      await this.postmarkService.sendEmail({
+        to: ctx.email,
+        body,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_SENDING_EMAIL);
+    }
+  }
+
   async createUser(ctx: ICreateUser) {
     try {
       const hashedPassword = await this.authUtils.hash(ctx.password);
@@ -430,6 +449,11 @@ export class UserProvider {
             role: ctx.role,
           };
 
+          this.eventEmitter.emit(
+            SharedEvents.SEND_OTP,
+            new ESendOtp(ctx.emailAddress),
+          );
+
           return this.handler.handleReturn({
             status: HttpStatus.OK,
             message: USM.USER_CREATED,
@@ -465,6 +489,11 @@ export class UserProvider {
             gender: ctx.gender,
             role: ctx.role,
           };
+
+          this.eventEmitter.emit(
+            SharedEvents.SEND_OTP,
+            new ESendOtp(ctx.emailAddress),
+          );
 
           return this.handler.handleReturn({
             status: HttpStatus.OK,
