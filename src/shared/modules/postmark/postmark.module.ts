@@ -5,5 +5,6 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 
 @Module({
   providers: [PostmarkProvider, PostmarkService, ErrorHandler],
+  exports: [PostmarkService],
 })
 export class PostmarkModule {}
