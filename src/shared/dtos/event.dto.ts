@@ -126,3 +126,7 @@ export class EAddMedicalRecordToContract {
 export class EDeleteApproval {
   constructor(readonly approvalId: string) {}
 }
+
+export class ESendOtp {
+  constructor(readonly email: string) {}
+}
