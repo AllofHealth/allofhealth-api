@@ -7,5 +7,6 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 @Module({
   providers: [OtpService, OtpProvider, ErrorHandler],
   controllers: [OtpController],
+  exports: [OtpService],
 })
 export class OtpModule {}
