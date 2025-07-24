@@ -32,7 +32,7 @@ export class AuthProvider {
 
   async generateTokens(payload: IGenerateTokens) {
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '15m',
+      expiresIn: '30m',
     });
 
     const refreshToken = await this.jwtService.signAsync(
