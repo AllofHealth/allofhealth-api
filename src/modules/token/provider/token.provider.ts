@@ -45,7 +45,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN
+        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN,
       );
     }
   }
@@ -79,7 +79,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_CREATING_REFRESH_TOKEN
+        TokenErrorMessages.ERROR_CREATING_REFRESH_TOKEN,
       );
     }
   }
@@ -87,7 +87,6 @@ export class TokenProvider {
   async findValidToken(args: IFindValidToken) {
     const { userId, token } = args;
     try {
-      const now = new Date();
       const [result] = await this.db
         .select()
         .from(schema.refresh_tokens)
@@ -95,9 +94,7 @@ export class TokenProvider {
           and(
             eq(schema.refresh_tokens.userId, userId),
             eq(schema.refresh_tokens.token, token),
-            isNull(schema.refresh_tokens.revokedAt),
-            gt(schema.refresh_tokens.expiresAt, now)
-          )
+          ),
         );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -107,7 +104,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN
+        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN,
       );
     }
   }
@@ -132,7 +129,7 @@ export class TokenProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        TokenErrorMessages.ERROR_REVOKING_TOKEN
+        TokenErrorMessages.ERROR_REVOKING_TOKEN,
       );
     }
   }
