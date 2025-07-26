@@ -30,6 +30,7 @@ import {
   AcceptApprovalDto,
   CreateApprovalDto,
   FetchDoctorApprovalsDto,
+  FetchPatientApprovalsDto,
   RejectApprovalDto,
 } from '../dto/approval.dto';
 import { ApprovalService } from '../service/approval.service';
@@ -167,6 +168,78 @@ export class ApprovalController {
   ) {
     this.logger.log(`Fetching approvals for doctor ${ctx.userId} from ${ip}`);
     return await this.approvalService.fetchDoctorApprovals(ctx.userId);
+  }
+
+  @Post('fetchPatientApprovals')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiOperation({
+    summary: 'Fetch approvals for a patient',
+    description:
+      'Retrieve all approval requests associated with a specific patient, with pagination support.',
+  })
+  @ApiOkResponse({
+    description: ASM.PATIENT_APPROVALS_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.PATIENT_APPROVALS_FETCHED,
+      data: {
+        approvals: [
+          {
+            id: 'approval-id-123',
+            userId: 'patient-id-456',
+            practitionerAddress: '0x123...abc',
+            recordId: 1,
+            healthInfoId: '123455',
+            duration: 3600,
+            accessLevel: 'read',
+            isRequestAccepted: false,
+            practitionerFullName: 'Dr. Jane Smith',
+            createdAt: '2024-01-01',
+            updatedAt: '2024-01-01',
+          },
+        ],
+        pagination: {
+          page: 1,
+          limit: 12,
+          total: 25,
+          totalPages: 3,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.NOT_A_VALID_PRACTITIONER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.NOT_A_VALID_PRACTITIONER,
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: AEM.PATIENT_ONLY,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.UNAUTHORIZED,
+      message: AEM.PATIENT_ONLY,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_FETCHING_PATIENT_APPROVALS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_PATIENT_APPROVALS,
+    },
+  })
+  async fetchPatientApprovals(
+    @Ip() ip: string,
+    @Body() ctx: FetchPatientApprovalsDto,
+  ) {
+    this.logger.log(
+      `Fetching approvals for patient ${ctx.userId} from ${ip} - Page: ${ctx.page || 1}, Limit: ${ctx.limit || 12}`,
+    );
+    return await this.approvalService.fetchPatientApprovals(ctx);
   }
 
   @Post('acceptApproval')
