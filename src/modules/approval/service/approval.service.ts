@@ -2,6 +2,7 @@ import { IHandleApproval } from '@/modules/contract/interface/contract.interface
 import { Injectable } from '@nestjs/common';
 import {
   IAcceptApproval,
+  IFetchPatientApprovals,
   IRejectApproval,
   IValidateApprovalDuration,
   IValidatePractitionerIsApproved,
@@ -54,6 +55,10 @@ export class ApprovalService {
 
   async fetchApproval(approvalId: string) {
     return await this.approvalProvider.fetchApproval(approvalId);
+  }
+
+  async fetchPatientApprovals(ctx: IFetchPatientApprovals) {
+    return await this.approvalProvider.fetchPatientApprovals(ctx);
   }
 
   validateApprovalDuration(ctx: IValidateApprovalDuration) {
