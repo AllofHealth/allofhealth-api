@@ -20,6 +20,7 @@ export enum APPROVAL_ERROR_MESSAGE {
   ERROR_FINDING_APPROVAL = 'Error finding approval',
   HEALTH_INFO_NOT_FOUND = 'Health information not found',
   ERROR_FETCHING_APPROVAL = 'Error fetching approval',
+  ERROR_FETCHING_PATIENT_APPROVALS = 'Error fetching patient approvals',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
@@ -29,4 +30,6 @@ export enum APPROVAL_SUCCESS_MESSAGE {
   APPROVAL_REJECTED = 'Approval rejected ',
   APPROVAL_DELETED = 'Approval deleted successfully',
   APPROVAL_FOUND = 'Approval found successfully',
+  APPROVALS_FOUND = 'Approvals found successfully',
+  PATIENT_APPROVALS_FETCHED = 'Patient approvals fetched successfully',
 }
