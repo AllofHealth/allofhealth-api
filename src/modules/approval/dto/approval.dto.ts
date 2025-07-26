@@ -99,6 +99,34 @@ export class RejectApprovalDto {
   approvalId: string;
 }
 
+export class FetchPatientApprovalsDto {
+  @ApiProperty({
+    description: 'Patient User ID to fetch approvals for',
+    example: '1234567890',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiPropertyOptional({
+    description: 'Page number for pagination',
+    example: 1,
+    default: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  page?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of items per page',
+    example: 12,
+    default: 12,
+  })
+  @IsOptional()
+  @IsNumber()
+  limit?: number;
+}
+
 export class FindApprovalDto {
   @ApiProperty({
     description: 'Approval ID to find',
