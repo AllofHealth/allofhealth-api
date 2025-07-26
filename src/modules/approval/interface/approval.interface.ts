@@ -3,7 +3,7 @@ export interface IAcceptApproval {
   approvalId: string;
 }
 
-export interface IRejectApproval extends IAcceptApproval { }
+export interface IRejectApproval extends IAcceptApproval {}
 
 export interface IValidateApprovalDuration {
   createdAt: string;
@@ -15,4 +15,10 @@ export interface IValidatePractitionerIsApproved {
   approvalId: string;
   practitionerAddress: string;
   recordId?: number;
+}
+
+export interface IFetchPatientApprovals {
+  userId: string;
+  page?: number;
+  limit?: number;
 }
