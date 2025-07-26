@@ -19,7 +19,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { and, eq, or } from 'drizzle-orm';
+import { and, eq, or, sql } from 'drizzle-orm';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
   APPROVAL_SUCCESS_MESSAGE as ASM,
@@ -27,6 +27,7 @@ import {
 import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
 import {
   IAcceptApproval,
+  IFetchPatientApprovals,
   IRejectApproval,
   IValidateApprovalDuration,
   IValidatePractitionerIsApproved,
@@ -575,6 +576,43 @@ export class ApprovalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVAL);
+    }
+  }
+
+  async fetchPatientApprovals(ctx: IFetchPatientApprovals) {
+    const { userId, page = 1, limit = 12 } = ctx;
+    const skip = (page - 1) * limit;
+    try {
+      const totalPatientApprovalsResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.approvals)
+        .where(eq(schema.approvals.userId, userId));
+
+      const totalCount = Number(totalPatientApprovalsResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const patientApprovals = await this.db
+        .select()
+        .from(schema.approvals)
+        .where(eq(schema.approvals.userId, userId))
+        .limit(limit)
+        .offset(skip);
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.PATIENT_APPROVALS_FETCHED,
+        data: patientApprovals,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_FETCHING_PATIENT_APPROVALS);
     }
   }
 }
