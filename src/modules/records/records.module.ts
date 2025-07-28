@@ -10,6 +10,7 @@ import { RecordsProvider } from './provider/records.provider';
 import { RecordsEncryptionService } from './service/record-encryption.service';
 import { RecordsService } from './service/records.service';
 import { TokenModule } from '../token/token.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TokenModule } from '../token/token.module';
     forwardRef(() => ApprovalModule),
     forwardRef(() => ContractModule),
     forwardRef(() => TokenModule),
+    forwardRef(() => UserModule),
   ],
   providers: [
     RecordsProvider,
