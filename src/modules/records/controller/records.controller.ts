@@ -29,9 +29,10 @@ import {
   RECORDS_ERROR_MESSAGES as REM,
   RECORDS_SUCCESS_MESSAGES as RSM,
 } from '../data/records.data';
-import { CreateRecordDto } from '../dto/records.dto';
+import { CreateRecordDto, FetchRecordsDto } from '../dto/records.dto';
 import { RecordsService } from '../service/records.service';
 import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { OwnerGuard } from '@/modules/user/guard/user.guard';
 
 @ApiTags('Medical Records Operations')
 @Controller('records')
@@ -242,5 +243,105 @@ export class RecordsController {
       attachment2: files.attachment2?.[0],
       attachment3: files.attachment3?.[0],
     });
+  }
+
+  @Post('fetchRecords')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiOperation({
+    summary: 'Fetch patient medical records',
+    description:
+      'Retrieve paginated medical records for a specific patient. Only the patient themselves or approved practitioners can access these records.',
+  })
+  @ApiBody({
+    description: 'Patient ID and pagination parameters',
+    schema: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          format: 'uuid',
+          description: 'The unique identifier of the patient',
+          example: '550e8400-e29b-41d4-a716-446655440001',
+        },
+        page: {
+          type: 'number',
+          description: 'Page number for pagination (default: 1)',
+          example: 1,
+          minimum: 1,
+          default: 1,
+        },
+        limit: {
+          type: 'number',
+          description: 'Number of records per page (default: 12)',
+          example: 12,
+          minimum: 1,
+          default: 12,
+        },
+      },
+      required: ['userId'],
+    },
+  })
+  @ApiSecurity('Authorization')
+  @ApiOkResponse({
+    description: RSM.SUCCESS_FETCHING_RECORDS,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: RSM.SUCCESS_FETCHING_RECORDS,
+      data: [
+        {
+          id: 'uuid-string',
+          title: 'Annual Physical Examination',
+          recordType: 'general',
+          practitionerName: 'Dr. John Smith',
+          status: 'active',
+          createdAt: '2024-01-01',
+        },
+        {
+          id: 'uuid-string-2',
+          title: 'Follow-up Consultation',
+          recordType: 'consultation',
+          practitionerName: 'Dr. Jane Doe',
+          status: 'active',
+          createdAt: '2024-01-15',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalPages: 5,
+        totalCount: 50,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: REM.ERROR_FETCHING_RECORDS,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: REM.ERROR_FETCHING_RECORDS,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation errors',
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Invalid pagination parameters or user ID format.',
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Access denied',
+    example: {
+      status: HttpStatus.FORBIDDEN,
+      message: 'You are not authorized to access these records.',
+    },
+  })
+  async fetchRecords(@Ip() ip: string, @Body() ctx: FetchRecordsDto) {
+    this.logger.log(
+      `Fetch records request from ${ip} for patient: ${ctx.userId}`,
+    );
+
+    return await this.recordsService.fetchRecords(ctx);
   }
 }
