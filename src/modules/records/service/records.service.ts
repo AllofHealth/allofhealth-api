@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { RecordsProvider } from '../provider/records.provider';
-import { ICreateRecord } from '../interface/records.interface';
+import {
+  ICreateRecord,
+  IFetchPatientRecords,
+} from '../interface/records.interface';
 
 @Injectable()
 export class RecordsService {
@@ -8,5 +11,9 @@ export class RecordsService {
 
   async createRecord(ctx: ICreateRecord) {
     return await this.recordsProvider.createRecord(ctx);
+  }
+
+  async fetchRecords(ctx: IFetchPatientRecords) {
+    return await this.recordsProvider.fetchRecords(ctx);
   }
 }
