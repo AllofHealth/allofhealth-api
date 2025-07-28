@@ -1,6 +1,7 @@
 import { TAccess } from '@/modules/contract/interface/contract.interface';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsArray,
   IsBoolean,
   IsNotEmpty,
   IsNumber,
@@ -20,12 +21,14 @@ export class CreateApprovalDto {
   practitionerId: string;
 
   @ApiPropertyOptional({
-    description: 'Medical record contract id',
-    example: 1,
+    description: 'Array of medical record contract IDs',
+    example: [1, 2, 3],
+    type: [Number],
   })
   @IsOptional()
-  @IsNumber()
-  recordId?: number;
+  @IsArray()
+  @IsNumber({}, { each: true })
+  recordIds?: number[];
 
   @ApiPropertyOptional({
     description: 'Access Duration in milliseconds',
