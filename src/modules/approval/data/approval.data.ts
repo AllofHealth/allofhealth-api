@@ -1,6 +1,6 @@
 export enum APPROVAL_ERROR_MESSAGE {
   ERROR_CREATING_APPROVAL = 'Error creating approval',
-  RECORD_ID_IS_REQUIRED = 'Record ID is required',
+  RECORD_ID_IS_REQUIRED = 'Record IDs are required for full access level',
   ERROR_VERIFYING_PRACTITIONER = 'Error verifying practitioner',
   NOT_A_VALID_PRACTITIONER = 'Not a valid practitioner',
   ERROR_FETCHING_DOCTOR_APPROVAL = 'Error fetching doctor approval',
@@ -24,7 +24,7 @@ export enum APPROVAL_ERROR_MESSAGE {
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
-  APPROVAL_CREATED = 'Approval created successfully',
+  APPROVAL_CREATED = 'Approvals created successfully',
   APPROVAL_FETCHED = 'Approval fetched successfully',
   APPROVAL_ACCEPTED = 'Approval accepted successfully',
   APPROVAL_REJECTED = 'Approval rejected ',
