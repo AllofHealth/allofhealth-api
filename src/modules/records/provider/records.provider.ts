@@ -16,13 +16,18 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import {
+  RECORDS_STATUS,
   RECORDS_ERROR_MESSAGES as REM,
   RECORDS_SUCCESS_MESSAGES as RSM,
 } from '../data/records.data';
-import { ICreateRecord } from '../interface/records.interface';
+import {
+  ICreateRecord,
+  IFetchPatientRecords,
+} from '../interface/records.interface';
 import { RecordsEncryptionService } from '../service/record-encryption.service';
+import { formatDateToStandard } from '@/shared/utils/date.utils';
 
 @Injectable()
 export class RecordsProvider {
@@ -52,6 +57,7 @@ export class RecordsProvider {
       approvalId,
       practitionerId,
       patientId,
+      recordType,
       clinicalNotes,
       diagnosis,
       labResults,
@@ -103,6 +109,7 @@ export class RecordsProvider {
           title,
           medicationsPrscribed,
           labResults,
+          recordType,
         });
 
       const encryptedResult = encryptedRecordResult.data;
@@ -149,7 +156,9 @@ export class RecordsProvider {
             userId: patientId,
             recordChainId: nextChainId,
             title: title,
+            recordType: recordType,
             practitionerName: name,
+            status: RECORDS_STATUS.COMPLETED,
           })
           .returning();
 
@@ -201,6 +210,79 @@ export class RecordsProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, REM.ERROR_CREATING_RECORD);
+    }
+  }
+
+  async fetchRecords(ctx: IFetchPatientRecords) {
+    const { userId, page = 1, limit = 12 } = ctx;
+    const skip = (page - 1) * limit;
+    try {
+      const totalPatientRecordsResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.records)
+        .where(eq(schema.records.userId, userId));
+
+      const totalCount = Number(totalPatientRecordsResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const patientRecords = await this.db
+        .select({
+          id: schema.records.id,
+          userId: schema.records.userId,
+          title: schema.records.title,
+          recordType: schema.records.recordType,
+          practitionerName: schema.records.practitionerName,
+          status: schema.records.status,
+          createdAt: schema.records.createdAt,
+        })
+        .from(schema.records)
+        .where(eq(schema.records.userId, userId))
+        .limit(limit)
+        .offset(skip);
+
+      if (!patientRecords) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: RSM.SUCCESS_FETCHING_RECORDS,
+          data: [],
+          meta: {
+            currentPage: page,
+            totalPages,
+            totalCount,
+            itemsPerPage: limit,
+            hasNextPage: page < totalPages,
+            hasPreviousPage: page > 1,
+          },
+        });
+      }
+
+      const recordSnippet = patientRecords.map((record) => {
+        const dateAdded = formatDateToStandard(record.createdAt as string);
+        return {
+          id: record.id,
+          title: record.title,
+          recordType: record.recordType,
+          practitionerName: record.practitionerName,
+          status: record.status,
+          createdAt: dateAdded,
+        };
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: RSM.SUCCESS_FETCHING_RECORDS,
+        data: recordSnippet,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
     }
   }
 }
