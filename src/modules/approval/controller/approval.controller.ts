@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBody,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -44,9 +45,55 @@ export class ApprovalController {
   @Post('createApproval')
   @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({
-    summary: 'Create a new approval',
+    summary: 'Create new approvals',
     description:
-      "Creates a new approval request for a practitioner to access patient records. When shareHealthInfo is set to true, the patient's health information will be automatically shared with the practitioner upon approval creation. This requires the patient to have existing health information on file.",
+      "Creates approval requests for a practitioner to access patient records. Supports creating multiple approvals atomically - either all approvals are created or none are created. When shareHealthInfo is set to true, the patient's health information will be automatically shared with the practitioner upon approval creation. This requires the patient to have existing health information on file.",
+  })
+  @ApiBody({
+    description: 'Approval creation data',
+    schema: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          description: 'Patient User ID',
+          example: '1234567890',
+        },
+        practitionerId: {
+          type: 'string',
+          description: 'Practitioner ID',
+          example: '1234567890',
+        },
+        recordIds: {
+          type: 'array',
+          items: {
+            type: 'number',
+          },
+          description:
+            'Array of medical record contract IDs (required for full access)',
+          example: [1, 2, 3],
+        },
+        duration: {
+          type: 'number',
+          description: 'Access Duration in milliseconds',
+          example: 3600,
+        },
+        accessLevel: {
+          type: 'string',
+          enum: ['read', 'write', 'full'],
+          description: 'Access Level',
+          example: 'full',
+        },
+        shareHealthInfo: {
+          type: 'boolean',
+          description:
+            'Whether to share health information with the practitioner',
+          example: false,
+          default: false,
+        },
+      },
+      required: ['userId', 'practitionerId', 'accessLevel'],
+    },
   })
   @ApiOkResponse({
     description: ASM.APPROVAL_CREATED,
@@ -55,7 +102,8 @@ export class ApprovalController {
       status: HttpStatus.OK,
       message: ASM.APPROVAL_CREATED,
       data: {
-        approvalId: 'approval-id-123',
+        approvalIds: ['approval-id-123', 'approval-id-456', 'approval-id-789'],
+        totalCreated: 3,
       },
     },
   })
@@ -88,7 +136,7 @@ export class ApprovalController {
     type: ErrorResponseDto,
     example: {
       status: HttpStatus.BAD_REQUEST,
-      message: AEM.APPROVAL_ALREADY_EXISTS,
+      message: AEM.APPROVAL_ALREADY_EXISTS + ' for record ID: 123',
     },
   })
   @ApiUnauthorizedResponse({
@@ -116,7 +164,9 @@ export class ApprovalController {
     },
   })
   async createApproval(@Ip() ip: string, @Body() ctx: CreateApprovalDto) {
-    this.logger.log(`Creating approval for user ${ctx.userId} from ${ip}`);
+    this.logger.log(
+      `Creating ${ctx.recordIds?.length || 1} approval(s) for user ${ctx.userId} from ${ip}`,
+    );
     return await this.approvalService.createApproval(ctx);
   }
 
