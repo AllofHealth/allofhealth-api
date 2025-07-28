@@ -490,11 +490,17 @@ export class ContractProvider {
   }
 
   async handleRecordApproval(ctx: IHandleApproval) {
-    const { accessLevel, practitionerId, userId, recordId, duration } = ctx;
+    const {
+      accessLevel,
+      practitionerId,
+      userId,
+      recordIds = [],
+      duration,
+    } = ctx;
 
     switch (accessLevel) {
       case 'full':
-        if (!recordId) {
+        if (!recordIds || recordIds.length === 0) {
           return this.handlerService.handleReturn({
             status: HttpStatus.BAD_REQUEST,
             message: CEM.RECORD_ID_REQUIRED,
@@ -513,10 +519,18 @@ export class ContractProvider {
           });
         }
 
-        this.eventEmitter.emit(
-          SharedEvents.APPROVE_RECORD_ACCESS,
-          new EApproveRecordAccess(practitionerId, userId, recordId, duration),
-        );
+        // Emit events for each record ID
+        for (const recordId of recordIds) {
+          this.eventEmitter.emit(
+            SharedEvents.APPROVE_RECORD_ACCESS,
+            new EApproveRecordAccess(
+              practitionerId,
+              userId,
+              recordId,
+              duration,
+            ),
+          );
+        }
 
         return this.handlerService.handleReturn({
           status: HttpStatus.OK,
@@ -524,16 +538,25 @@ export class ContractProvider {
         });
 
       case 'read':
-        if (!recordId) {
+        if (!recordIds || recordIds.length === 0) {
           return this.handlerService.handleReturn({
             status: HttpStatus.BAD_REQUEST,
             message: CEM.RECORD_ID_REQUIRED,
           });
         }
-        this.eventEmitter.emit(
-          SharedEvents.APPROVE_RECORD_ACCESS,
-          new EApproveRecordAccess(practitionerId, userId, recordId, duration),
-        );
+
+        // Emit events for each record ID
+        for (const recordId of recordIds) {
+          this.eventEmitter.emit(
+            SharedEvents.APPROVE_RECORD_ACCESS,
+            new EApproveRecordAccess(
+              practitionerId,
+              userId,
+              recordId,
+              duration,
+            ),
+          );
+        }
 
         return this.handlerService.handleReturn({
           status: HttpStatus.OK,
