@@ -112,7 +112,7 @@ export class ApprovalProvider {
       userId,
       accessLevel,
       duration = Duration.A_DAY,
-      recordId,
+      recordIds = [],
       shareHealthInfo = false,
     } = ctx;
     try {
@@ -149,103 +149,112 @@ export class ApprovalProvider {
       }
 
       if (accessLevel === 'full') {
-        if (!recordId) {
+        if (!recordIds || recordIds.length === 0) {
           return this.handler.handleReturn({
             status: HttpStatus.BAD_REQUEST,
             message: AEM.RECORD_ID_IS_REQUIRED,
           });
         }
 
-        const existingApproval = await this.db
-          .select({ id: schema.approvals.id })
-          .from(schema.approvals)
-          .where(
-            and(
-              eq(schema.approvals.recordId, recordId),
-              eq(schema.approvals.userId, userId),
-              or(
-                eq(schema.approvals.accessLevel, 'write'),
-                eq(schema.approvals.accessLevel, 'full'),
+        // Check for existing approvals for any of the record IDs
+        for (const recordId of recordIds) {
+          const existingApproval = await this.db
+            .select({ id: schema.approvals.id })
+            .from(schema.approvals)
+            .where(
+              and(
+                eq(schema.approvals.recordId, recordId),
+                eq(schema.approvals.userId, userId),
+                or(
+                  eq(schema.approvals.accessLevel, 'write'),
+                  eq(schema.approvals.accessLevel, 'full'),
+                ),
               ),
-            ),
-          )
-          .limit(1);
+            )
+            .limit(1);
 
-        if (existingApproval.length > 0) {
-          return this.handler.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: AEM.APPROVAL_ALREADY_EXISTS,
-          });
+          if (existingApproval.length > 0) {
+            return this.handler.handleReturn({
+              status: HttpStatus.BAD_REQUEST,
+              message: `${AEM.APPROVAL_ALREADY_EXISTS} for record ID: ${recordId}`,
+            });
+          }
         }
       }
 
       const practitionerAddress = await this.getSmartAddress(practitionerId);
 
-      if (shareHealthInfo) {
-        const healthInfo = await this.db.query.healthInformation.findFirst({
-          where: eq(schema.healthInformation.userId, userId),
-        });
+      // Use database transaction to ensure atomicity
+      const result = await this.db.transaction(async (tx) => {
+        let healthInfoId: string | undefined;
 
-        if (!healthInfo) {
-          return this.handler.handleReturn({
-            status: HttpStatus.NOT_FOUND,
-            message: AEM.HEALTH_INFO_NOT_FOUND,
+        if (shareHealthInfo) {
+          const healthInfo = await tx.query.healthInformation.findFirst({
+            where: eq(schema.healthInformation.userId, userId),
           });
+
+          if (!healthInfo) {
+            throw new Error(AEM.HEALTH_INFO_NOT_FOUND);
+          }
+
+          healthInfoId = healthInfo.id;
         }
 
-        const healthInfoId = healthInfo.id;
+        const createdApprovals: any[] = [];
 
-        const approval = await this.db
-          .insert(schema.approvals)
-          .values({
-            userId,
-            recordId,
-            practitionerAddress,
-            accessLevel: accessLevel,
-            duration,
-            userHealthInfoId: healthInfoId,
-          })
-          .returning();
+        // If no recordIds specified, create a single approval without recordId
+        if (!recordIds || recordIds.length === 0) {
+          const approval = await tx
+            .insert(schema.approvals)
+            .values({
+              userId,
+              recordId: null,
+              practitionerAddress,
+              accessLevel: accessLevel,
+              duration,
+              userHealthInfoId: healthInfoId,
+            })
+            .returning();
 
-        if (!approval || approval.length === 0) {
-          return this.handler.handleReturn({
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: AEM.ERROR_CREATING_APPROVAL,
-          });
+          if (!approval || approval.length === 0) {
+            throw new Error(AEM.ERROR_CREATING_APPROVAL);
+          }
+
+          createdApprovals.push(...approval);
+        } else {
+          // Create approvals for each recordId
+          for (const recordId of recordIds) {
+            const approval = await tx
+              .insert(schema.approvals)
+              .values({
+                userId,
+                recordId,
+                practitionerAddress,
+                accessLevel: accessLevel,
+                duration,
+                userHealthInfoId: healthInfoId,
+              })
+              .returning();
+
+            if (!approval || approval.length === 0) {
+              throw new Error(
+                `${AEM.ERROR_CREATING_APPROVAL} for record ID: ${recordId}`,
+              );
+            }
+
+            createdApprovals.push(...approval);
+          }
         }
 
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: ASM.APPROVAL_CREATED,
-          data: {
-            approvalId: approval[0].id,
-          },
-        });
-      }
-
-      const approval = await this.db
-        .insert(schema.approvals)
-        .values({
-          userId,
-          recordId,
-          practitionerAddress,
-          accessLevel: accessLevel,
-          duration,
-        })
-        .returning();
-
-      if (!approval || approval.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: AEM.ERROR_CREATING_APPROVAL,
-        });
-      }
+        return createdApprovals;
+      });
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_CREATED,
         data: {
-          approvalId: approval[0].id,
+          approvalIds: result.map((approval) => approval.id),
+          totalCreated: result.length,
         },
       });
     } catch (e) {
@@ -365,7 +374,7 @@ export class ApprovalProvider {
           accessLevel: approval.accessLevel as TAccess,
           practitionerId: doctorId,
           duration: approval.duration || undefined,
-          recordId: approval.recordId || undefined,
+          recordIds: approval.recordId ? [approval.recordId] : undefined,
         });
 
       if (approvalContractResult.status !== HttpStatus.OK) {
