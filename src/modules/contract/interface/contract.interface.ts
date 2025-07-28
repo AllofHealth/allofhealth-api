@@ -33,7 +33,7 @@ export interface IApproveRecordAccessTx {
 export interface IHandleApproval {
   userId: string;
   practitionerId: string;
-  recordId?: number;
+  recordIds?: number[];
   duration?: number;
   accessLevel: TAccess;
   shareHealthInfo?: boolean;
