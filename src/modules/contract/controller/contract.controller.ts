@@ -1,6 +1,10 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ContractService } from '../service/contract.service';
+import {
+  IsApprovedToAddRecordDto,
+  ViewMedicalRecordDto,
+} from '../dto/contract.dto';
 
 @ApiTags('Contract Operations')
 @Controller('contract')
@@ -23,12 +27,15 @@ export class ContractController {
   }
 
   @Post('isApprovedToAddNewRecord')
-  async isApprovedToAddNewRecord(
-    @Body() ctx: { patientId: number; doctorAddress: string },
-  ) {
+  async isApprovedToAddNewRecord(@Body() ctx: IsApprovedToAddRecordDto) {
     return await this.contractService.isApprovedToAddNewRecord({
       patientId: ctx.patientId,
       doctorAddress: ctx.doctorAddress,
     });
+  }
+
+  @Post('viewMedicalRecord')
+  async viewMedicalRecord(@Body() ctx: ViewMedicalRecordDto) {
+    return await this.contractService.viewMedicalRecord(ctx);
   }
 }
