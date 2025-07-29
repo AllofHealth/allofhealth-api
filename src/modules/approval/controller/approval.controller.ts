@@ -170,7 +170,7 @@ export class ApprovalController {
     return await this.approvalService.createApproval(ctx);
   }
 
-  @Post('fetchDoctorApprovals')
+  @Get('fetchDoctorApprovals')
   @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: 'Fetch approvals for a doctor' })
   @ApiOkResponse({
