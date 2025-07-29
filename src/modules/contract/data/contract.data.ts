@@ -34,6 +34,7 @@ export enum ContractSuccessMessages {
   MEDICAL_RECORD_ADDED_SUCCESSFULLY = 'Medical record added successfully',
   TOKEN_MINTED_SUCCESSFULLY = 'Token minted successfully',
   TOKEN_BALANCE_FETCHED_SUCCESSFULLY = 'Token balance fetched successfully',
+  MEDICAL_RECORD_FETCHED_SUCCESSFULLY = 'Medical record fetched successfully',
 }
 
 export enum Duration {
