@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ContractService } from '../service/contract.service';
 
@@ -20,5 +20,15 @@ export class ContractController {
   @Get('patientContractId')
   async patientContractId(@Query('smartAddress') smartAddress: string) {
     return await this.contractService.getPatientContractId(smartAddress);
+  }
+
+  @Post('isApprovedToAddNewRecord')
+  async isApprovedToAddNewRecord(
+    @Body() ctx: { patientId: number; doctorAddress: string },
+  ) {
+    return await this.contractService.isApprovedToAddNewRecord({
+      patientId: ctx.patientId,
+      doctorAddress: ctx.doctorAddress,
+    });
   }
 }
