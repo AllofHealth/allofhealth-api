@@ -162,8 +162,7 @@ export const records = pgTable('records', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   userId: uuid('user_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' })
-    .unique(),
+    .references(() => user.id, { onDelete: 'cascade' }),
   recordChainId: integer('record_chain_id').notNull().default(0),
   title: varchar('title', { length: 255 }).notNull(),
   recordType: jsonb('record_type').notNull().default('[]'),
