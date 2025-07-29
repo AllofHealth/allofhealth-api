@@ -28,6 +28,7 @@ import {
   IHandleAddMedicalRecord,
   IHandleApproval,
   IViewerHasAccessToRecords,
+  IViewMedicalRecord,
 } from '../interface/contract.interface';
 import { RewardService } from '@/modules/reward/service/reward.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
@@ -196,6 +197,7 @@ export class ContractProvider {
         },
       });
     } catch (e) {
+      console.error(e);
       return this.handlerService.handleError(
         e,
         CEM.ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION,
@@ -686,6 +688,32 @@ export class ContractProvider {
       return this.handlerService.handleError(
         e,
         CEM.ERROR_FETCHING_TOKEN_BALANCE,
+      );
+    }
+  }
+
+  async viewMedicalRecord(ctx: IViewMedicalRecord) {
+    const { userId, recordId, viewerAddress } = ctx;
+    try {
+      const patientAddress = await this.getPatientSmartAddress(userId);
+      const patientChainId = await this.handleGetPatientId(patientAddress);
+
+      const contract = await this.provideContract(userId);
+      const recordURI = await contract.viewMedicalRecord(
+        recordId,
+        patientChainId,
+        viewerAddress,
+      );
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.MEDICAL_RECORD_FETCHED_SUCCESSFULLY,
+        data: String(recordURI),
+      });
+    } catch (e) {
+      return this.handlerService.handleError(
+        e,
+        CEM.ERROR_VIEWING_MEDICAL_RECORD,
       );
     }
   }
