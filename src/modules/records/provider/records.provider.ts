@@ -77,11 +77,12 @@ export class RecordsProvider {
           userId: patientId,
         });
 
-      if (
-        (!isPractitionerApprovedToAccessRecord.isApproved &&
-          isPractitionerApprovedToAccessRecord.permissions !== 'write') ||
-        isPractitionerApprovedToAccessRecord.permissions !== 'full'
-      ) {
+      console.debug(isPractitionerApprovedToAccessRecord);
+      const practitionerPermission =
+        isPractitionerApprovedToAccessRecord.permissions;
+      const allowPermissions = ['write', 'full'];
+
+      if (!allowPermissions.includes(practitionerPermission)) {
         return this.handler.handleReturn({
           status: HttpStatus.FORBIDDEN,
           message: REM.PRACTITIONER_NOT_APPROVED_TO_ACCESS_RECORD,
