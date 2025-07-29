@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as fs from 'fs';
 
 interface IpfsConfig {
   host: string;
@@ -33,7 +34,7 @@ export class CustomIpfsClient {
 
   async createFolder(userId: string): Promise<IpfsAddResult> {
     const response = await fetch(
-      `${this.baseUrl}/api/v0/files/mkdir?arg=/${userId}`,
+      `${this.baseUrl}/api/v0/files/mkdir?arg=/${encodeURIComponent(userId)}&parents=true`,
       {
         method: 'POST',
         headers: this.headers,
@@ -69,6 +70,31 @@ export class CustomIpfsClient {
     } catch (error) {
       return false;
     }
+  }
+
+  private async fileExists(path: string): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/v0/files/stat?arg=${encodeURIComponent(path)}`,
+        {
+          method: 'POST',
+          headers: this.headers,
+        },
+      );
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  private async deleteFile(path: string): Promise<void> {
+    await fetch(
+      `${this.baseUrl}/api/v0/files/rm?arg=${encodeURIComponent(path)}&force=true`,
+      {
+        method: 'POST',
+        headers: this.headers,
+      },
+    );
   }
 
   async add(data: Buffer | string, userId?: string): Promise<IpfsAddResult> {
@@ -107,33 +133,38 @@ export class CustomIpfsClient {
     });
 
     if (!response.ok) {
+      const errText = await response.text();
+
       throw new Error(
         `IPFS add failed: ${response.status} ${response.statusText}`,
       );
     }
 
-    const result = await response.json();
-    console.log('IPFS API Response:', result);
+    // Parse NDJSON response
+    const text = await response.text();
+    const lines = text
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    const fileEntry = lines.find((entry) => entry.Name && entry.Name !== '');
+
+    let targetPath: string = '';
 
     if (userId) {
-      await this.moveToUserFolder(result.Hash, userId, result.Name);
+      const filePath = await this.moveToUserFolder(fileEntry.Hash, userId);
+      if (filePath) {
+        targetPath = filePath;
+      }
     }
 
-    const returnObject = {
-      cid: {
-        toString: () => result.Hash,
-      },
-      path: userId ? `/${userId}/${result.Name}` : result.Name,
-      size: result.Size,
+    return {
+      cid: fileEntry.Hash,
+      path: targetPath,
+      size: fileEntry.Size,
     };
-
-    return returnObject;
   }
 
-  async uploadImage(
-    file: Express.Multer.File,
-    userId?: string,
-  ): Promise<IpfsAddResult> {
+  async uploadImage(file: Express.Multer.File, userId?: string) {
     if (userId) {
       const folderExists = await this.folderExists(userId);
       if (!folderExists) {
@@ -145,7 +176,7 @@ export class CustomIpfsClient {
       '----FormBoundary' + Math.random().toString(36).substr(2, 9);
 
     // Convert Express.Multer.File to Buffer
-    const buffer = file.buffer;
+    const buffer = fs.readFileSync(file.path);
 
     const body = Buffer.concat([
       Buffer.from(`--${boundary}\r\n`),
@@ -159,14 +190,17 @@ export class CustomIpfsClient {
       Buffer.from(`\r\n--${boundary}--\r\n`),
     ]);
 
-    const response = await fetch(`${this.baseUrl}/api/v0/add`, {
-      method: 'POST',
-      body,
-      headers: {
-        ...this.headers,
-        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+    const response = await fetch(
+      `${this.baseUrl}/api/v0/add?wrap-with-directory=true&pin=true`,
+      {
+        method: 'POST',
+        body,
+        headers: {
+          ...this.headers,
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -174,31 +208,73 @@ export class CustomIpfsClient {
       );
     }
 
-    const result = await response.json();
-    console.log('IPFS Image Upload Response:', result);
-
-    if (userId) {
-      await this.moveToUserFolder(result.Hash, userId, file.originalname);
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(
+        `IPFS image upload failed: ${response.status} ${response.statusText} - ${errText}`,
+      );
     }
 
-    const returnObject = {
-      cid: {
-        toString: () => result.Hash,
-      },
-      path: userId ? `/${userId}/${file.originalname}` : file.originalname,
-      size: result.Size,
-    };
+    // Parse NDJSON response
+    const text = await response.text();
+    const lines = text
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line));
+    const fileEntry = lines.find((entry) => entry.Name && entry.Name !== '');
 
-    return returnObject;
+    console.log('IPFS Image Upload Response:', fileEntry);
+
+    let targetPath: string = '';
+
+    if (userId) {
+      const filePath = await this.moveToUserFolder(
+        fileEntry.Hash,
+        userId,
+        file.originalname,
+      );
+      if (filePath) {
+        targetPath = filePath;
+      }
+    }
+
+    return {
+      cid: fileEntry.Hash,
+      path: userId ? targetPath : file.originalname,
+      size: fileEntry.Size,
+    };
   }
 
   private async moveToUserFolder(
     hash: string,
     userId: string,
-    fileName: string,
-  ): Promise<void> {
+    fileName?: string,
+  ): Promise<string> {
+    // Generate random file name if none is provided
+    if (!fileName) {
+      const randomText = crypto.randomUUID(); // 8-char random string
+      fileName = `record-${userId}.${randomText}`;
+    }
+
+    let targetPath = `/${userId}/${fileName}`;
+
+    // Check if file already exists
+    if (await this.fileExists(targetPath)) {
+      const ext = fileName.includes('.')
+        ? fileName.substring(fileName.lastIndexOf('.') + 1)
+        : '';
+      const base = fileName.includes('.')
+        ? fileName.substring(0, fileName.lastIndexOf('.'))
+        : fileName;
+      const timestamp = Date.now();
+      const newFileName = ext
+        ? `${base}-${timestamp}.${ext}`
+        : `${base}-${timestamp}`;
+      targetPath = `/${userId}/${newFileName}`;
+    }
+
     const response = await fetch(
-      `${this.baseUrl}/api/v0/files/cp?arg=/ipfs/${hash}&arg=/${userId}/${fileName}`,
+      `${this.baseUrl}/api/v0/files/cp?arg=/ipfs/${hash}&arg=${encodeURIComponent(targetPath)}`,
       {
         method: 'POST',
         headers: this.headers,
@@ -206,10 +282,13 @@ export class CustomIpfsClient {
     );
 
     if (!response.ok) {
+      const errorText = await response.text();
       throw new Error(
-        `IPFS move to user folder failed: ${response.status} ${response.statusText}`,
+        `IPFS move to user folder failed: ${response.status} ${response.statusText} - ${errorText}`,
       );
     }
+
+    return targetPath;
   }
 
   async cat(cid: string): Promise<Buffer> {
