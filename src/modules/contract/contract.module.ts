@@ -6,12 +6,14 @@ import { ContractController } from './controller/contract.controller';
 import { ContractProvider } from './provider/contract.provider';
 import { ContractService } from './service/contract.service';
 import { RewardModule } from '../reward/reward.module';
+import { ApprovalModule } from '../approval/approval.module';
 
 @Module({
   imports: [
     ExternalAccountModule,
     forwardRef(() => AccountAbstractionModule),
     forwardRef(() => RewardModule),
+    forwardRef(() => ApprovalModule),
   ],
   providers: [ContractService, ContractProvider, ErrorHandler],
   controllers: [ContractController],
