@@ -8,8 +8,10 @@ import {
 import { SharedEvents } from '@/shared/events/shared.events';
 import { ContractProvider } from '../provider/contract.provider';
 import {
+  IApprovedToAddNewRecord,
   IHandleAddMedicalRecord,
   IHandleApproval,
+  IViewMedicalRecord,
 } from '../interface/contract.interface';
 
 @Injectable()
@@ -60,5 +62,12 @@ export class ContractService {
 
   async fetchTokenBalance(userId: string) {
     return await this.contractProvider.handleFetchTokenBalance(userId);
+  }
+  async isApprovedToAddNewRecord(ctx: IApprovedToAddNewRecord) {
+    return await this.contractProvider.isApprovedToAddNewRecord(ctx);
+  }
+
+  async viewMedicalRecord(ctx: IViewMedicalRecord) {
+    return this.contractProvider.viewMedicalRecord(ctx);
   }
 }

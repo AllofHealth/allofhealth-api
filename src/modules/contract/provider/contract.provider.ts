@@ -9,7 +9,12 @@ import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
 import { PaymasterMode } from '@biconomy/account';
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { ethers } from 'ethers';
 import { encodeFunctionData } from 'viem';
@@ -28,9 +33,11 @@ import {
   IHandleAddMedicalRecord,
   IHandleApproval,
   IViewerHasAccessToRecords,
+  IViewMedicalRecord,
 } from '../interface/contract.interface';
 import { RewardService } from '@/modules/reward/service/reward.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { ApprovalService } from '@/modules/approval/service/approval.service';
 
 @Injectable()
 export class ContractProvider {
@@ -42,6 +49,7 @@ export class ContractProvider {
     private readonly aaService: AccountAbstractionService,
     private readonly rewardServicce: RewardService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly approvalService: ApprovalService,
   ) {}
 
   private provideABI() {
@@ -196,6 +204,7 @@ export class ContractProvider {
         },
       });
     } catch (e) {
+      console.error(e);
       return this.handlerService.handleError(
         e,
         CEM.ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION,
@@ -231,6 +240,10 @@ export class ContractProvider {
   async handleGetPatientId(patientAddress: string) {
     try {
       const contract = this.provideAdminContractInstance();
+      if (!contract) {
+        throw new InternalServerErrorException('Can not instantiate contract');
+      }
+
       const id = await contract.patientIds(patientAddress);
 
       return this.handlerService.handleReturn({
@@ -630,10 +643,9 @@ export class ContractProvider {
 
       const { transactionHash } = await opResponse.waitForTxHash();
 
-      this.eventEmitter.emit(
-        SharedEvents.DELETE_APPROVAL,
-        new EDeleteApproval(approvalId),
-      );
+      await this.approvalService.deleteApproval({
+        approvalId,
+      });
 
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
@@ -686,6 +698,42 @@ export class ContractProvider {
       return this.handlerService.handleError(
         e,
         CEM.ERROR_FETCHING_TOKEN_BALANCE,
+      );
+    }
+  }
+
+  async viewMedicalRecord(ctx: IViewMedicalRecord) {
+    const { userId, recordId, viewerAddress } = ctx;
+    try {
+      const patientAddress = await this.getPatientSmartAddress(userId);
+
+      const patientIdResult = await this.handleGetPatientId(patientAddress);
+      if (!('data' in patientIdResult && patientIdResult.data)) {
+        return this.handlerService.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: patientIdResult.message,
+        });
+      }
+
+      const patientId = patientIdResult.data.patientId;
+      console.log(`patientId`);
+
+      const contract = await this.provideContract(userId);
+      const recordURI = await contract.viewMedicalRecord(
+        recordId,
+        patientId,
+        viewerAddress,
+      );
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.MEDICAL_RECORD_FETCHED_SUCCESSFULLY,
+        data: String(recordURI),
+      });
+    } catch (e) {
+      return this.handlerService.handleError(
+        e,
+        CEM.ERROR_VIEWING_MEDICAL_RECORD,
       );
     }
   }

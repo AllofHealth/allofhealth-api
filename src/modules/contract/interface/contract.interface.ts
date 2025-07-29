@@ -52,3 +52,9 @@ export interface IHandleAddMedicalRecord {
   cid: string;
   approvalId: string;
 }
+
+export interface IViewMedicalRecord {
+  userId: string;
+  recordId: number;
+  viewerAddress: string;
+}
