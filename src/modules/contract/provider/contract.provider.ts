@@ -9,7 +9,12 @@ import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
 import { PaymasterMode } from '@biconomy/account';
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { ethers } from 'ethers';
 import { encodeFunctionData } from 'viem';
@@ -233,6 +238,10 @@ export class ContractProvider {
   async handleGetPatientId(patientAddress: string) {
     try {
       const contract = this.provideAdminContractInstance();
+      if (!contract) {
+        throw new InternalServerErrorException('Can not instantiate contract');
+      }
+
       const id = await contract.patientIds(patientAddress);
 
       return this.handlerService.handleReturn({
@@ -696,12 +705,22 @@ export class ContractProvider {
     const { userId, recordId, viewerAddress } = ctx;
     try {
       const patientAddress = await this.getPatientSmartAddress(userId);
-      const patientChainId = await this.handleGetPatientId(patientAddress);
+
+      const patientIdResult = await this.handleGetPatientId(patientAddress);
+      if (!('data' in patientIdResult && patientIdResult.data)) {
+        return this.handlerService.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: patientIdResult.message,
+        });
+      }
+
+      const patientId = patientIdResult.data.patientId;
+      console.log(`patientId`);
 
       const contract = await this.provideContract(userId);
       const recordURI = await contract.viewMedicalRecord(
         recordId,
-        patientChainId,
+        patientId,
         viewerAddress,
       );
 
