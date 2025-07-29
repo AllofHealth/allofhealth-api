@@ -84,17 +84,20 @@ export class IpfsProvider implements OnModuleInit {
     const { files, userId } = ctx;
     const ipfs = this.getIpfsClient();
 
-    const uploadResults = await Promise.all(
+    let uploadedImageCid: string[] = [];
+
+    await Promise.all(
       files.map(async (file) => {
         try {
           const uploadResult = await ipfs.uploadImage(file, userId);
 
+          console.log(`upload result ${JSON.stringify(uploadResult)}`);
+
           if (uploadResult.cid) {
             const cid = uploadResult.cid.toString();
             await ipfs.pin(cid);
+            uploadedImageCid.push(cid);
           }
-
-          throw new Error('Upload failed: No CID returned');
         } catch (error) {
           console.error(`Failed to upload file ${file.originalname}:`, error);
           throw error;
@@ -102,7 +105,7 @@ export class IpfsProvider implements OnModuleInit {
       }),
     );
 
-    return uploadResults;
+    return uploadedImageCid;
   }
 
   async handleRecordUpload(ctx: IMedicalRecord) {
