@@ -331,7 +331,7 @@ export class ApprovalProvider {
         });
       }
 
-      const isOtpVerified = isOtpVerifiedResult[0].isOtpVeried;
+      const isOtpVerified = isOtpVerifiedResult.isOtpVerified;
 
       if (!isOtpVerified) {
         return this.handler.handleReturn({
@@ -468,6 +468,8 @@ export class ApprovalProvider {
           eq(schema.approvals.id, approvalId),
         ),
       });
+
+      console.debug(JSON.stringify(approval));
 
       if (!approval || typeof approval === undefined) {
         throw new HttpException(AEM.APPROVAL_NOT_FOUND, HttpStatus.NOT_FOUND);
