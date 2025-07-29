@@ -46,1147 +46,1792 @@ export enum RewardAmount {
 }
 
 export const ABI = [
-  { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },
-  { type: 'receive', stateMutability: 'payable' },
   {
-    type: 'function',
-    name: 'addDoctorToHospital',
-    inputs: [
+    "type": "constructor",
+    "inputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "addDoctorToHospital",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
-      { name: '_hospitalId', type: 'uint256', internalType: 'uint256' },
+      {
+        "name": "_hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'addMedicalRecord',
-    inputs: [
+    "type": "function",
+    "name": "addMedicalRecord",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '_patientAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_patientAddress",
+        "type": "address",
+        "internalType": "address"
       },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
       {
-        name: '_recordDetailsUri',
-        type: 'string',
-        internalType: 'string',
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_recordDetailsUri",
+        "type": "string",
+        "internalType": "string"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'addMedicalRecordForFamilyMember',
-    inputs: [
+    "type": "function",
+    "name": "addMedicalRecordForFamilyMember",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_familyMemberId',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "_familyMemberId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_recordDetailsUri',
-        type: 'string',
-        internalType: 'string',
-      },
+        "name": "_recordDetailsUri",
+        "type": "string",
+        "internalType": "string"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'addPatient',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "type": "function",
+    "name": "addPatient",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'addPatientFamilyMember',
-    inputs: [
+    "type": "function",
+    "name": "addPatientFamilyMember",
+    "inputs": [
       {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'addPharmacistToHospital',
-    inputs: [
+    "type": "function",
+    "name": "addPharmacistToHospital",
+    "inputs": [
       {
-        name: '_pharmacistAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_pharmacistAddress",
+        "type": "address",
+        "internalType": "address"
       },
-      { name: '_hospitalId', type: 'uint256', internalType: 'uint256' },
+      {
+        "name": "_hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'addSystemAdmin',
-    inputs: [{ name: '_admin', type: 'address', internalType: 'address' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'approveAccessToAddNewRecord',
-    inputs: [
+    "type": "function",
+    "name": "addSystemAdmin",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
+        "name": "_admin",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'approveAccessToAddNewRecordForFamilyMember',
-    inputs: [
+    "type": "function",
+    "name": "approveAccessToAddNewRecord",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
       {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'approveFamilyMemberMedicalRecordAccess',
-    inputs: [
+    "type": "function",
+    "name": "approveAccessToAddNewRecordForFamilyMember",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_familyMemberId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
-      { name: '_duration', type: 'uint256', internalType: 'uint256' },
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'approveHospital',
-    inputs: [{ name: '_hospitalId', type: 'uint256', internalType: 'uint256' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'approveMedicalRecordAccess',
-    inputs: [
+    "type": "function",
+    "name": "approveFamilyMemberMedicalRecordAccess",
+    "inputs": [
       {
-        name: '_practitionerAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
-      { name: '_duration', type: 'uint256', internalType: 'uint256' },
+      {
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_familyMemberId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_duration",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'createDoctor',
-    inputs: [
+    "type": "function",
+    "name": "approveHospital",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "_hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'createHospital',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'createPharmacist',
-    inputs: [{ name: '_address', type: 'address', internalType: 'address' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'doctorCount',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'doctorExists',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'doctorIds',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'doctors',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [
-      { name: 'doctorId', type: 'uint256', internalType: 'uint256' },
-      { name: 'doctor', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "approveMedicalRecordAccess",
+    "inputs": [
+      {
+        "name": "_practitionerAddress",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_duration",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'hospitalCount',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'hospitalExists',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'hospitalIds',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'hospitals',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [
-      { name: 'hospitalId', type: 'uint256', internalType: 'uint256' },
+    "type": "function",
+    "name": "createDoctor",
+    "inputs": [
       {
-        name: 'doctorsCount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'pharmacistsCount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      { name: 'admin', type: 'address', internalType: 'address' },
-      {
-        name: 'approvalStatus',
-        type: 'uint8',
-        internalType: 'enum AllofHealthV3.approvalType',
-      },
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'isApprovedByPatientToAddNewRecord',
-    inputs: [
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "createHospital",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "createPharmacist",
+    "inputs": [
+      {
+        "name": "_address",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'isApprovedByPatientToAddNewRecordForFamilyMember',
-    inputs: [
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "doctorCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'isDoctor',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'isHospitalDoctor',
-    inputs: [
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "doctorExists",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'isHospitalPharmacist',
-    inputs: [
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'address', internalType: 'address' },
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'isPatient',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'isPatientApprovedDoctorForFamilyMember',
-    inputs: [
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "doctorIds",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'isPatientApprovedDoctors',
-    inputs: [
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'address', internalType: 'address' },
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'isPatientFamilyMember',
-    inputs: [
-      { name: '', type: 'uint256', internalType: 'uint256' },
-      { name: '', type: 'uint256', internalType: 'uint256' },
+    "type": "function",
+    "name": "doctors",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'isPharmacist',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'patientCount',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'patientIds',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'patients',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [
-      { name: 'patientId', type: 'uint256', internalType: 'uint256' },
+    "outputs": [
       {
-        name: 'patientMedicalRecordCount',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "doctorId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'patientFamilyMemberCount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'walletAddress',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "doctor",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'pharmacistCount',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'pharmacistExists',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'pharmacistIds',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'pharmacists',
-    inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    outputs: [
+    "type": "function",
+    "name": "hospitalCount",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'pharmacistId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      { name: 'pharmacist', type: 'address', internalType: 'address' },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'reassignHospitalAdmin',
-    inputs: [
-      { name: '_hospitalId', type: 'uint256', internalType: 'uint256' },
-      { name: '_admin', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "hospitalExists",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'rejectHospital',
-    inputs: [{ name: '_hospitalId', type: 'uint256', internalType: 'uint256' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'removeDoctorFromHospital',
-    inputs: [
+    "outputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-      { name: '_hospitalId', type: 'uint256', internalType: 'uint256' },
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'removePharmacistFromHospital',
-    inputs: [
+    "type": "function",
+    "name": "hospitalIds",
+    "inputs": [
       {
-        name: '_pharmacistAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-      { name: '_hospitalId', type: 'uint256', internalType: 'uint256' },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'removeSystemAdmin',
-    inputs: [{ name: '_admin', type: 'address', internalType: 'address' }],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'revokeAccessToAddNewRecord',
-    inputs: [
+    "outputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'revokeAccessToAddNewRecordForFamilyMember',
-    inputs: [
+    "type": "function",
+    "name": "hospitals",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
-      {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "doctorsCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "pharmacistsCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "admin",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "approvalStatus",
+        "type": "uint8",
+        "internalType": "enum AllofHealthV3.approvalType"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'revokeFamilyMemberMedicalRecordAccess',
-    inputs: [
+    "type": "function",
+    "name": "isApprovedByPatientToAddNewRecord",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
-      },
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
-      {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_familyMemberId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'revokeMedicalRecordAccess',
-    inputs: [
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
+    "type": "function",
+    "name": "isApprovedByPatientToAddNewRecordForFamilyMember",
+    "inputs": [
       {
-        name: '_doctorAddress',
-        type: 'address',
-        internalType: 'address',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'systemAdminCount',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-    stateMutability: 'view',
+    "type": "function",
+    "name": "isDoctor",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'systemAdmins',
-    inputs: [{ name: '', type: 'address', internalType: 'address' }],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
+    "type": "function",
+    "name": "isHospitalDoctor",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'viewFamilyMemberMedicalRecord',
-    inputs: [
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
+    "type": "function",
+    "name": "isHospitalPharmacist",
+    "inputs": [
       {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_familyMemberId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      { name: '_viewer', type: 'address', internalType: 'address' },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [
-      { name: '_recordDetails', type: 'string', internalType: 'string' },
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'viewMedicalRecord',
-    inputs: [
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
-      { name: '_viewer', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "isPatient",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [
-      { name: '_recordDetails', type: 'string', internalType: 'string' },
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'viewerHasAccessToMedicalRecord',
-    inputs: [
-      { name: '_viewer', type: 'address', internalType: 'address' },
-      { name: '_patientId', type: 'uint256', internalType: 'uint256' },
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
+    "type": "function",
+    "name": "isPatientApprovedDoctorForFamilyMember",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'viewerHasAccessToPatientFamilyMemberMedicalRecord',
-    inputs: [
-      { name: '_viewer', type: 'address', internalType: 'address' },
+    "type": "function",
+    "name": "isPatientApprovedDoctors",
+    "inputs": [
       {
-        name: '_principalPatientId',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_familyMemberId',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
-      { name: '_recordId', type: 'uint256', internalType: 'uint256' },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
-    stateMutability: 'view',
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'AdminAdded',
-    inputs: [
+    "type": "function",
+    "name": "isPatientFamilyMember",
+    "inputs": [
       {
-        name: 'admin',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'AdminRemoved',
-    inputs: [
+    "type": "function",
+    "name": "isPharmacist",
+    "inputs": [
       {
-        name: 'admin',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'DoctorAdded',
-    inputs: [
+    "type": "function",
+    "name": "patientCount",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'doctorId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'DoctorRejected',
-    inputs: [
+    "type": "function",
+    "name": "patientIds",
+    "inputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'doctorId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'FamilyMemberMedicalRecordAdded',
-    inputs: [
+    "type": "function",
+    "name": "patients",
+    "inputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-      {
-        name: 'principalPatient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'familyMemberId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
-      {
-        name: 'medicalRecordId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "patientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "patientMedicalRecordCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "patientFamilyMemberCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "walletAddress",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'HospitalAddedDoctor',
-    inputs: [
+    "type": "function",
+    "name": "pharmacistCount",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'hospitalId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'HospitalAddedPharmacist',
-    inputs: [
+    "type": "function",
+    "name": "pharmacistExists",
+    "inputs": [
       {
-        name: 'pharmacist',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'hospitalId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'HospitalApproved',
-    inputs: [
+    "type": "function",
+    "name": "pharmacistIds",
+    "inputs": [
       {
-        name: 'hospitalId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'HospitalCreated',
-    inputs: [
+    "type": "function",
+    "name": "pharmacists",
+    "inputs": [
       {
-        name: 'admin',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'hospitalId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "pharmacistId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "pharmacist",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'HospitalRejected',
-    inputs: [
+    "type": "function",
+    "name": "reassignHospitalAdmin",
+    "inputs": [
       {
-        name: 'hospitalId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_admin",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'HospitalRemovedDoctor',
-    inputs: [
+    "type": "function",
+    "name": "rejectHospital",
+    "inputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'hospitalId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "_hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'HospitalRemovedPharmacist',
-    inputs: [
+    "type": "function",
+    "name": "removeDoctorFromHospital",
+    "inputs": [
       {
-        name: 'pharmacist',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'hospitalId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "_hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'MedicalRecordAccessApproved',
-    inputs: [
+    "type": "function",
+    "name": "removePharmacistFromHospital",
+    "inputs": [
       {
-        name: 'patient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_pharmacistAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'approvedDoctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'medicalRecordId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "_hospitalId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'MedicalRecordAccessed',
-    inputs: [
+    "type": "function",
+    "name": "removeSystemAdmin",
+    "inputs": [
       {
-        name: 'recordDetailsUri',
-        type: 'string',
-        indexed: true,
-        internalType: 'string',
-      },
+        "name": "_admin",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'MedicalRecordAdded',
-    inputs: [
+    "type": "function",
+    "name": "revokeAccessToAddNewRecord",
+    "inputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'patient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'medicalRecordId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'PatientAdded',
-    inputs: [
+    "type": "function",
+    "name": "revokeAccessToAddNewRecordForFamilyMember",
+    "inputs": [
       {
-        name: 'patient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'patientId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'PatientFamilyMemberAdded',
-    inputs: [
+    "type": "function",
+    "name": "revokeFamilyMemberMedicalRecordAccess",
+    "inputs": [
       {
-        name: 'principalPatientId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'patientId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_familyMemberId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'PharmacistAdded',
-    inputs: [
+    "type": "function",
+    "name": "revokeMedicalRecordAccess",
+    "inputs": [
       {
-        name: 'pharmacist',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'pharmacistId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_doctorAddress",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'RecordAccessRevoked',
-    inputs: [
+    "type": "function",
+    "name": "systemAdminCount",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'patient',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'approvedDoctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'medicalRecordId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'SystemAdminAdded',
-    inputs: [
+    "type": "function",
+    "name": "systemAdmins",
+    "inputs": [
       {
-        name: 'admin',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'adminId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'SystemAdminRemoved',
-    inputs: [
+    "type": "function",
+    "name": "viewFamilyMemberMedicalRecord",
+    "inputs": [
       {
-        name: 'admin',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'adminId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_familyMemberId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_viewer",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "_recordDetails",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'WriteAccessGranted',
-    inputs: [
+    "type": "function",
+    "name": "viewMedicalRecord",
+    "inputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: 'patientId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_viewer",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "_recordDetails",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'WriteAccessRevoked',
-    inputs: [
+    "type": "function",
+    "name": "viewerHasAccessToMedicalRecord",
+    "inputs": [
       {
-        name: 'doctor',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "_viewer",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        name: 'patientId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
+        "name": "_patientId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
   },
-  { type: 'error', name: 'AccessAlreadyGranted', inputs: [] },
-  { type: 'error', name: 'AccessNotGranted', inputs: [] },
-  { type: 'error', name: 'AccessToRecordAlreadyGranted', inputs: [] },
-  { type: 'error', name: 'AccessToRecordNotGranted', inputs: [] },
-  { type: 'error', name: 'DoctorAlreadyRejected', inputs: [] },
-  { type: 'error', name: 'DoctorNotApproved', inputs: [] },
-  { type: 'error', name: 'DoctorNotFound', inputs: [] },
-  { type: 'error', name: 'DuplicateDoctorAddress', inputs: [] },
-  { type: 'error', name: 'DuplicateDoctorRegNo', inputs: [] },
-  { type: 'error', name: 'DuplicateHospitalRegNo', inputs: [] },
-  { type: 'error', name: 'DuplicatePatientAddress', inputs: [] },
-  { type: 'error', name: 'DuplicatePatientFamilyMember', inputs: [] },
-  { type: 'error', name: 'DuplicatePharmacistAddress', inputs: [] },
-  { type: 'error', name: 'HospitalNotApproved', inputs: [] },
-  { type: 'error', name: 'InvalidAddress', inputs: [] },
-  { type: 'error', name: 'InvalidDoctorId', inputs: [] },
-  { type: 'error', name: 'InvalidFamilyMemberId', inputs: [] },
-  { type: 'error', name: 'InvalidHospitalId', inputs: [] },
-  { type: 'error', name: 'InvalidMedicalRecordDetail', inputs: [] },
-  { type: 'error', name: 'InvalidMedicalRecordId', inputs: [] },
-  { type: 'error', name: 'InvalidPatientId', inputs: [] },
-  { type: 'error', name: 'InvalidPharmacistId', inputs: [] },
-  { type: 'error', name: 'InvalidPractitioner', inputs: [] },
-  { type: 'error', name: 'InvalidRecordType', inputs: [] },
-  { type: 'error', name: 'InvalidRegNo', inputs: [] },
-  { type: 'error', name: 'MedicalRecordAccessRevoked', inputs: [] },
-  { type: 'error', name: 'MedicalRecordNotFound', inputs: [] },
-  { type: 'error', name: 'NotRecordOwner', inputs: [] },
-  { type: 'error', name: 'OnlyAdminAllowed', inputs: [] },
-  { type: 'error', name: 'OnlyPatientAllowed', inputs: [] },
-  { type: 'error', name: 'OnlySystemAdminAllowed', inputs: [] },
-  { type: 'error', name: 'PharmacistAlreadyRejected', inputs: [] },
-  { type: 'error', name: 'PharmacistNotApproved', inputs: [] },
-  { type: 'error', name: 'PharmacistNotFound', inputs: [] },
-  { type: 'error', name: 'PractitionerNotApproved', inputs: [] },
-  { type: 'error', name: 'RecordNotFound', inputs: [] },
-  { type: 'error', name: 'Unauthorized', inputs: [] },
-];
+  {
+    "type": "function",
+    "name": "viewerHasAccessToPatientFamilyMemberMedicalRecord",
+    "inputs": [
+      {
+        "name": "_viewer",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_principalPatientId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_familyMemberId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_recordId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "AdminAdded",
+    "inputs": [
+      {
+        "name": "admin",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AdminRemoved",
+    "inputs": [
+      {
+        "name": "admin",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DoctorAdded",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "doctorId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DoctorRejected",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "doctorId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FamilyMemberMedicalRecordAdded",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "principalPatient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "familyMemberId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "medicalRecordId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HospitalAddedDoctor",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HospitalAddedPharmacist",
+    "inputs": [
+      {
+        "name": "pharmacist",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HospitalApproved",
+    "inputs": [
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HospitalCreated",
+    "inputs": [
+      {
+        "name": "admin",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HospitalRejected",
+    "inputs": [
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HospitalRemovedDoctor",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "HospitalRemovedPharmacist",
+    "inputs": [
+      {
+        "name": "pharmacist",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "hospitalId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MedicalRecordAccessApproved",
+    "inputs": [
+      {
+        "name": "patient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "approvedDoctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "medicalRecordId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MedicalRecordAccessed",
+    "inputs": [
+      {
+        "name": "recordDetailsUri",
+        "type": "string",
+        "indexed": true,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MedicalRecordAdded",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "patient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "medicalRecordId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PatientAdded",
+    "inputs": [
+      {
+        "name": "patient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "patientId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PatientFamilyMemberAdded",
+    "inputs": [
+      {
+        "name": "principalPatientId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "patientId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PharmacistAdded",
+    "inputs": [
+      {
+        "name": "pharmacist",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "pharmacistId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RecordAccessRevoked",
+    "inputs": [
+      {
+        "name": "patient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "approvedDoctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "medicalRecordId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SystemAdminAdded",
+    "inputs": [
+      {
+        "name": "admin",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "adminId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SystemAdminRemoved",
+    "inputs": [
+      {
+        "name": "admin",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "adminId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "WriteAccessGranted",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "patientId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "WriteAccessRevoked",
+    "inputs": [
+      {
+        "name": "doctor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "patientId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AccessAlreadyGranted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "AccessNotGranted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "AccessToRecordAlreadyGranted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "AccessToRecordNotGranted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DoctorAlreadyRejected",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DoctorNotApproved",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DoctorNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DuplicateDoctorAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DuplicateDoctorRegNo",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DuplicateHospitalRegNo",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DuplicatePatientAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DuplicatePatientFamilyMember",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "DuplicatePharmacistAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "HospitalNotApproved",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidDoctorId",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidFamilyMemberId",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidHospitalId",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMedicalRecordDetail",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMedicalRecordId",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidPatientId",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidPharmacistId",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidPractitioner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidRecordType",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidRegNo",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MedicalRecordAccessRevoked",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MedicalRecordNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotRecordOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyAdminAllowed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyPatientAllowed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlySystemAdminAllowed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PharmacistAlreadyRejected",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PharmacistNotApproved",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PharmacistNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PractitionerNotApproved",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RecordNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  }
+]
 export const TOKEN_ABI = [
   {
     type: 'constructor',
