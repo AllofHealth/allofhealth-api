@@ -30,9 +30,11 @@ import {
   IViewerHasAccessToRecords,
 } from '../interface/contract.interface';
 import { RewardService } from '@/modules/reward/service/reward.service';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class ContractProvider {
+  private readonly logger = new MyLoggerService(ContractProvider.name);
   constructor(
     private readonly contractConfig: ContractConfig,
     private readonly eoaService: ExternalAccountService,
@@ -575,6 +577,7 @@ export class ContractProvider {
   }
 
   async handleAddMedicalRecord(ctx: IHandleAddMedicalRecord) {
+    this.logger.debug(`Is event being received ${ctx.approvalId}`);
     const { practitionerId, userId, cid, approvalId } = ctx;
     try {
       const smartWallet = await this.aaService.provideSmartWallet(userId);
@@ -611,6 +614,8 @@ export class ContractProvider {
       }
 
       const patientId = patientIdResult.data.patientId;
+
+      this.logger.log(`PatientId ${patientId}`);
 
       const tx = this.addMedicalRecordTx({
         doctorAddress: practitionerSmartAddress,
