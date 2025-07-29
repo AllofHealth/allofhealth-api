@@ -21,9 +21,9 @@ export class ContractController {
     return await this.contractService.getPatientCount();
   }
 
-  @Get('patientContractId')
-  async patientContractId(@Query('smartAddress') smartAddress: string) {
-    return await this.contractService.getPatientContractId(smartAddress);
+  @Post('patientContractId')
+  async patientContractId(@Body() ctx: { smartAddress: string }) {
+    return await this.contractService.getPatientContractId(ctx.smartAddress);
   }
 
   @Post('isApprovedToAddNewRecord')
