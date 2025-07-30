@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateApprovalDto {
   @ApiProperty({ description: 'User ID', example: '1234567890' })
@@ -106,6 +107,8 @@ export class FetchPatientApprovalsDto {
   @ApiProperty({
     description: 'Patient User ID to fetch approvals for',
     example: '1234567890',
+    required: true,
+    type: String,
   })
   @IsNotEmpty()
   @IsString()
@@ -115,19 +118,21 @@ export class FetchPatientApprovalsDto {
     description: 'Page number for pagination',
     example: 1,
     default: 1,
+    type: Number,
   })
   @IsOptional()
-  @IsNumber()
-  page?: number;
+  @Type(() => Number)
+  page?: number = 1;
 
   @ApiPropertyOptional({
     description: 'Number of items per page',
     example: 12,
     default: 12,
+    type: Number,
   })
   @IsOptional()
-  @IsNumber()
-  limit?: number;
+  @Type(() => Number)
+  limit?: number = 12;
 }
 
 export class FindApprovalDto {

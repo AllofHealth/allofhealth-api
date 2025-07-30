@@ -170,6 +170,10 @@ export class RecordsProvider {
         return { recordId: nextChainId };
       });
 
+      if (!dbResult.recordId) {
+        throw new Error('Failed to insert record');
+      }
+
       const ipfsResult = await this.ipfsService.uploadRecordToIpfs({
         userId: patientId,
         clinicalNotes: encryptedResult.clinicalNotes,
