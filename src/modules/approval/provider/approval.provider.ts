@@ -4,13 +4,18 @@ import {
   TAccess,
 } from '@/modules/contract/interface/contract.interface';
 import { ContractService } from '@/modules/contract/service/contract.service';
+import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
+import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
+import { EUpdateTaskCount } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -19,12 +24,12 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, eq, or, sql } from 'drizzle-orm';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
   APPROVAL_SUCCESS_MESSAGE as ASM,
 } from '../data/approval.data';
-import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
 import {
   IAcceptApproval,
   IFetchPatientApprovals,
@@ -32,10 +37,6 @@ import {
   IValidateApprovalDuration,
   IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
-import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { SharedEvents } from '@/shared/events/shared.events';
-import { EUpdateTaskCount } from '@/shared/dtos/event.dto';
 
 @Injectable()
 export class ApprovalProvider {
@@ -45,7 +46,7 @@ export class ApprovalProvider {
     private readonly aaService: AccountAbstractionService,
     private readonly contractService: ContractService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   private async getSmartAddress(practitionerId: string) {
     const result = await this.aaService.getSmartAddress(practitionerId);
