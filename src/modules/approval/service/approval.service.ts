@@ -12,13 +12,15 @@ import { ApprovalCleanupService } from '../tasks/approval-cleanup.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { EDeleteApproval } from '@/shared/dtos/event.dto';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class ApprovalService {
+  private readonly logger = new MyLoggerService(ApprovalService.name);
   constructor(
     private readonly approvalProvider: ApprovalProvider,
     private readonly approvalCleanupService: ApprovalCleanupService,
-  ) {}
+  ) { }
 
   async createApproval(ctx: IHandleApproval) {
     return await this.approvalProvider.createApproval(ctx);
@@ -48,8 +50,9 @@ export class ApprovalService {
     return await this.approvalProvider.findApprovalById(approvalId);
   }
 
-  @OnEvent(SharedEvents.DELETE_APPROVAL)
+  @OnEvent(SharedEvents.DELETE_APPROVAL, { async: true })
   async deleteApproval(ctx: EDeleteApproval) {
+    this.logger.debug(`Delete Approval Event emitted`)
     return await this.approvalProvider.deleteApproval(ctx.approvalId);
   }
 

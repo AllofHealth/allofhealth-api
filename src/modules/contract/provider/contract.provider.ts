@@ -12,6 +12,7 @@ import { PaymasterMode } from '@biconomy/account';
 import {
   BadRequestException,
   HttpStatus,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -49,8 +50,8 @@ export class ContractProvider {
     private readonly aaService: AccountAbstractionService,
     private readonly rewardServicce: RewardService,
     private readonly eventEmitter: EventEmitter2,
-    private readonly approvalService: ApprovalService,
-  ) {}
+
+  ) { }
 
   private provideABI() {
     return ABI;
@@ -643,9 +644,7 @@ export class ContractProvider {
 
       const { transactionHash } = await opResponse.waitForTxHash();
 
-      await this.approvalService.deleteApproval({
-        approvalId,
-      });
+      await this.eventEmitter.emitAsync(SharedEvents.DELETE_APPROVAL, new EDeleteApproval(approvalId))
 
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
