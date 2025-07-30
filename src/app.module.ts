@@ -71,7 +71,6 @@ import { RewardModule } from './modules/reward/reward.module';
     AuthModule,
     ContractModule,
     HealthJournalModule,
-    ApprovalModule,
     IpfsModule,
     AdminModule,
     RecordsModule,
@@ -80,8 +79,9 @@ import { RewardModule } from './modules/reward/reward.module';
     WalletModule,
     HealthInfoModule,
     RewardModule,
+    ApprovalModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
