@@ -214,13 +214,13 @@ export class ApprovalController {
   })
   async fetchDoctorApprovals(
     @Ip() ip: string,
-    @Body() ctx: FetchDoctorApprovalsDto,
+    @Query() query: FetchDoctorApprovalsDto,
   ) {
-    this.logger.log(`Fetching approvals for doctor ${ctx.userId} from ${ip}`);
-    return await this.approvalService.fetchDoctorApprovals(ctx.userId);
+    this.logger.log(`Fetching approvals for doctor ${query.userId} from ${ip}`);
+    return await this.approvalService.fetchDoctorApprovals(query.userId);
   }
 
-  @Post('fetchPatientApprovals')
+  @Get('fetchPatientApprovals')
   @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Fetch approvals for a patient',
@@ -284,12 +284,12 @@ export class ApprovalController {
   })
   async fetchPatientApprovals(
     @Ip() ip: string,
-    @Body() ctx: FetchPatientApprovalsDto,
+    @Query() query: FetchPatientApprovalsDto,
   ) {
     this.logger.log(
-      `Fetching approvals for patient ${ctx.userId} from ${ip} - Page: ${ctx.page || 1}, Limit: ${ctx.limit || 12}`,
+      `Fetching approvals for patient ${query.userId} from ${ip} - Page: ${query.page || 1}, Limit: ${query.limit || 12}`,
     );
-    return await this.approvalService.fetchPatientApprovals(ctx);
+    return await this.approvalService.fetchPatientApprovals(query);
   }
 
   @Post('acceptApproval')
