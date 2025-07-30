@@ -55,4 +55,6 @@ export class PostmarkProvider {
       return this.handler.handleError(e, PEM.ERROR_SENDING_EMAIL);
     }
   }
+
+  // todo: implement templated mails
 }
