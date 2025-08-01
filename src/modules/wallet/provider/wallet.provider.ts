@@ -9,14 +9,24 @@ import {
   WALLET_ERROR_MESSAGES as WEM,
   WALLET_SUCCESS_MESSAGES as WSM,
 } from '../data/wallet.data';
+import { ContractService } from '@/modules/contract/service/contract.service';
 
 @Injectable()
 export class WalletProvider {
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly eoaService: ExternalAccountService,
+    private readonly contractService: ContractService,
     private readonly handler: ErrorHandler,
   ) {}
+
+  async fetchUserTokenBalance(userId: string) {
+    try {
+      return await this.contractService.fetchTokenBalance(userId);
+    } catch (e) {
+      return this.handler.handleError(e, WEM.ERROR_FETCHING_TOKEN_BALANCE);
+    }
+  }
 
   async fetchUserWallet(userId: string) {
     try {
