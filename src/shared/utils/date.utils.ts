@@ -88,3 +88,29 @@ export function calculateAge(dateOfBirth: Date | string): string {
 
   return `${age} years`;
 }
+
+/**
+ * Formats a duration given in milliseconds to a human-readable string.
+ * Example output: "1day, 2hrs, 30 minutes, 20 secs"
+ * @param ms - Duration in milliseconds
+ * @returns Readable duration string
+ */
+export function formatDuration(ms: number): string {
+  if (typeof ms !== 'number' || isNaN(ms) || ms < 0) {
+    throw new Error('Invalid duration provided');
+  }
+
+  const seconds = Math.floor((ms / 1000) % 60);
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}day${days > 1 ? 's' : ''}`);
+  if (hours > 0) parts.push(`${hours}hr${hours > 1 ? 's' : ''}`);
+  if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
+  if (seconds > 0 || parts.length === 0)
+    parts.push(`${seconds} sec${seconds !== 1 ? 's' : ''}`);
+
+  return parts.join(', ');
+}
