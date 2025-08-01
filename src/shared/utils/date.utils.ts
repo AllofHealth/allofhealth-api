@@ -106,8 +106,8 @@ export function formatDuration(ms: number): string {
   const days = Math.floor(ms / (1000 * 60 * 60 * 24));
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days}day${days > 1 ? 's' : ''}`);
-  if (hours > 0) parts.push(`${hours}hr${hours > 1 ? 's' : ''}`);
+  if (days > 0) parts.push(`${days} day${days > 1 ? 's' : ''}`);
+  if (hours > 0) parts.push(`${hours} hr${hours > 1 ? 's' : ''}`);
   if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? 's' : ''}`);
   if (seconds > 0 || parts.length === 0)
     parts.push(`${seconds} sec${seconds !== 1 ? 's' : ''}`);
