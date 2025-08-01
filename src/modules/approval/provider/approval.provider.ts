@@ -36,6 +36,7 @@ import {
   IValidateApprovalDuration,
   IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
+import { calculateAge, formatDuration } from '@/shared/utils/date.utils';
 
 @Injectable()
 export class ApprovalProvider {
@@ -285,10 +286,18 @@ export class ApprovalProvider {
           accessLevel: schema.approvals.accessLevel,
           isRequestAccepted: schema.approvals.isRequestAccepted,
           patientFullName: schema.user.fullName,
+          email: schema.user.emailAddress,
           userHealthInfoId: schema.approvals.userHealthInfoId || null,
+          gender: schema.user.gender,
+          dob: schema.user.dateOfBirth,
+          knownConditions: schema.healthInformation.knownConditions,
         })
         .from(schema.approvals)
         .innerJoin(schema.user, eq(schema.approvals.userId, schema.user.id))
+        .innerJoin(
+          schema.healthInformation,
+          eq(schema.healthInformation.userId, schema.user.id),
+        )
         .where(eq(schema.approvals.practitionerAddress, doctorAddress));
 
       if (!approvals || approvals.length === 0) {
@@ -299,10 +308,22 @@ export class ApprovalProvider {
         });
       }
 
+      const parsedApproval = approvals.map((approval) => {
+        const parsedAge = calculateAge(approval.dob);
+        const parsedDuration = formatDuration(approval.duration as number);
+
+        return {
+          ...approval,
+          age: parsedAge,
+          duration: parsedDuration,
+          knownConditions: approval.knownConditions || [],
+        };
+      });
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_FETCHED,
-        data: approvals,
+        data: parsedApproval,
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_FETCHING_DOCTOR_APPROVAL);
