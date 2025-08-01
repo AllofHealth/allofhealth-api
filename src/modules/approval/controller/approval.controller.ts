@@ -293,7 +293,7 @@ export class ApprovalController {
   }
 
   @Post('acceptApproval')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Accept an approval request' })
   @ApiOkResponse({
     description: ASM.APPROVAL_ACCEPTED,
