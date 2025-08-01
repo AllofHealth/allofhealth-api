@@ -16,4 +16,8 @@ export class RewardService {
   async incrementDailyCount(ctx: EUpdateTaskCount) {
     return await this.rewardProvider.incrementDailyCount(ctx.userId);
   }
+
+  async fetchRewardMetrics(userId: string) {
+    return await this.rewardProvider.fetchRewardMetrics(userId);
+  }
 }
