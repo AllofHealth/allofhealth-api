@@ -409,6 +409,12 @@ export class ApprovalController {
         isRequestAccepted: true,
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
+        patientFullName: 'john doe',
+        email: 'john.doe@example.com',
+        userHealthInfoId: 'health-info-id-123',
+        gender: 'male',
+        dob: '1990-01-01',
+        knownConditions: 'none',
       },
     },
   })
