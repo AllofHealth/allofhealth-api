@@ -171,7 +171,7 @@ export class ApprovalController {
   }
 
   @Get('fetchDoctorApprovals')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Fetch approvals for a doctor' })
   @ApiOkResponse({
     description: ASM.APPROVAL_FETCHED,
