@@ -171,7 +171,7 @@ export class ApprovalController {
   }
 
   @Get('fetchDoctorApprovals')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: 'Fetch approvals for a doctor' })
   @ApiOkResponse({
     description: ASM.APPROVAL_FETCHED,
@@ -190,13 +190,6 @@ export class ApprovalController {
           accessLevel: 'read',
           isRequestAccepted: false,
           patientFullName: 'John Doe',
-          eamil: 'johndoe@email.com',
-          gender: 'male',
-          age: 30,
-          knownConditions: ['peanut allergy'],
-          dob: '1996-04-25',
-          createdAt: '2024-01-01',
-          updatedAt: '2024-01-01',
         },
       ],
     },
