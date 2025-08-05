@@ -49,3 +49,6 @@ export const IPFS_API_SECRET = process.env.IPFS_API_SECRET;
 
 //RECORDS
 export const RECORD_ENCRYPTION_KEY = process.env.RECORD_ENCRYPTION_KEY;
+
+// EMAIL RESEND
+export const RESEND_API_KEY = process.env.RESEND_API_KEY;
