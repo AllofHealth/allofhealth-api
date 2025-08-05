@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OtpProvider } from '../provider/otp.provider';
 import * as OTPAuth from 'otpauth';
+import { ICreateOtp } from '../interface/otp.interface';
 
 @Injectable()
 export class OtpService {
@@ -10,7 +11,7 @@ export class OtpService {
     return this.otpProvider.generateOtp();
   }
 
-  validateOtp(token: string) {
+  async validateOtp(token: string) {
     return this.otpProvider.validateOtp(token);
   }
 
@@ -24,5 +25,9 @@ export class OtpService {
 
   generateSecret() {
     return this.otpProvider.generateSecret();
+  }
+
+  async storeOtp(ctx: ICreateOtp) {
+    return await this.otpProvider.createOTP(ctx);
   }
 }
