@@ -150,8 +150,8 @@ export class UserController {
     },
   })
   async resendOtp(@Ip() ip: string, @Body() ctx: ResendOtpDto) {
-    this.logger.log(`Resending OTP to email ${ctx.email} from ${ip}`);
-    const sendOtpEvent = new ESendOtp(ctx.email);
+    this.logger.log(`Resending OTP to email ${ctx.emailAddress} from ${ip}`);
+    const sendOtpEvent = new ESendOtp(ctx.emailAddress);
     return this.userService.resendOtp(sendOtpEvent);
   }
 
