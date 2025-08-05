@@ -584,6 +584,69 @@ export class ApprovalProvider {
     }
   }
 
+  async fetchApprovedApprovals(userId: string) {
+    try {
+      const approvals = await this.db
+        .select({
+          id: schema.approvals.id,
+          userId: schema.approvals.userId,
+          practitionerAddress: schema.approvals.practitionerAddress,
+          recordId: schema.approvals.recordId,
+          duration: schema.approvals.duration,
+          createdAt: schema.approvals.createdAt,
+          updatedAt: schema.approvals.updatedAt,
+          accessLevel: schema.approvals.accessLevel,
+          isRequestAccepted: schema.approvals.isRequestAccepted,
+          patientFullName: schema.user.fullName,
+          email: schema.user.emailAddress,
+          userHealthInfoId: schema.approvals.userHealthInfoId || null,
+          gender: schema.user.gender,
+          dob: schema.user.dateOfBirth,
+          knownConditions: schema.healthInformation.knownConditions,
+        })
+        .from(schema.approvals)
+        .innerJoin(schema.user, eq(schema.approvals.userId, schema.user.id))
+        .innerJoin(
+          schema.healthInformation,
+          eq(schema.healthInformation.userId, schema.user.id),
+        )
+        .where(
+          and(
+            eq(schema.approvals.userId, userId),
+            eq(schema.approvals.isRequestAccepted, true),
+          ),
+        );
+
+      if (!approvals || approvals.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.NO_APPROVALS_FOUND,
+          data: [],
+        });
+      }
+
+      const parsedApprovals = approvals.map((approval) => {
+        const parsedAge = calculateAge(approval.dob);
+        const parsedDuration = formatDuration(approval.duration as number);
+
+        return {
+          ...approval,
+          age: parsedAge,
+          duration: parsedDuration,
+          knownConditions: approval.knownConditions || [],
+        };
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVED_APPROVALS_FETCHED,
+        data: parsedApprovals,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVED_APPROVALS);
+    }
+  }
+
   async deleteApproval(approvalId: string) {
     try {
       const approvalResult = await this.findApprovalById(approvalId);
