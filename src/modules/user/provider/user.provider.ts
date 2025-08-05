@@ -304,6 +304,7 @@ export class UserProvider {
         role: user[0].role,
         dob: calculateAge(user[0].dateOfBirth),
         updatedAt: formatDateToReadable(user[0].updatedAt),
+        isOtpVerified: user[0].isOtpVerified,
         walletData: {
           walletAddress: walletInfo.data.walletAddress,
           balance: walletInfo.data.balance,
@@ -373,11 +374,20 @@ export class UserProvider {
   async sendOtp(ctx: ESendOtp) {
     try {
       const otp = this.otpService.generateOtp();
+      await this.otpService.storeOtp({
+        emailAddress: ctx.email,
+        code: otp,
+      });
       const body = `Here's your OTP: ${otp}`;
       await this.resendService.sendEmail({
         to: ctx.email,
         body,
         subject: 'OTP Verification',
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.SUCCESS_SENDING_OTP,
       });
     } catch (e) {
       return this.handler.handleError(e, UEM.ERROR_SENDING_EMAIL);
@@ -620,6 +630,23 @@ export class UserProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, UEM.ERROR_UPDATING_USER);
+    }
+  }
+
+  async validateOtp(emailAddress: string) {
+    try {
+      await this.db
+        .update(schema.user)
+        .set({
+          isOtpVerified: true,
+        })
+        .where(eq(schema.user.emailAddress, emailAddress));
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.OTP_VALIDATED,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_VALIDATING_OTP);
     }
   }
 }
