@@ -586,6 +586,24 @@ export class ApprovalProvider {
 
   async fetchApprovedApprovals(userId: string) {
     try {
+      const isCompliant = await this.practitionerCompliance(userId);
+      if (!isCompliant) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: AEM.NOT_A_VALID_PRACTITIONER,
+        });
+      }
+
+      const smartAddressResult = await this.aaService.getSmartAddress(userId);
+      if (!('data' in smartAddressResult && smartAddressResult.data)) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: smartAddressResult.message,
+        });
+      }
+
+      const smartAddress = smartAddressResult.data.smartAddress;
+
       const approvals = await this.db
         .select({
           id: schema.approvals.id,
@@ -612,7 +630,7 @@ export class ApprovalProvider {
         )
         .where(
           and(
-            eq(schema.approvals.userId, userId),
+            eq(schema.approvals.practitionerAddress, smartAddress),
             eq(schema.approvals.isRequestAccepted, true),
           ),
         );
