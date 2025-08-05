@@ -43,7 +43,7 @@ import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { TRole } from '@/shared/interface/shared.interface';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import { OtpService } from '@/modules/otp/service/otp.service';
-import { PostmarkService } from '@/shared/modules/postmark/service/postmark.service';
+import { ResendService } from '@/shared/modules/resend/service/resend.service';
 
 @Injectable()
 export class UserProvider {
@@ -58,7 +58,7 @@ export class UserProvider {
     private readonly approvalService: ApprovalService,
     private readonly contractService: ContractService,
     private readonly otpService: OtpService,
-    private readonly postmarkService: PostmarkService,
+    private readonly resendService: ResendService,
   ) {}
 
   private async emitEvent(ctx: ICreateDoctor) {
@@ -374,9 +374,10 @@ export class UserProvider {
     try {
       const otp = this.otpService.generateOtp();
       const body = `Here's your OTP: ${otp}`;
-      await this.postmarkService.sendEmail({
+      await this.resendService.sendEmail({
         to: ctx.email,
         body,
+        subject: 'OTP Verification',
       });
     } catch (e) {
       return this.handler.handleError(e, UEM.ERROR_SENDING_EMAIL);
