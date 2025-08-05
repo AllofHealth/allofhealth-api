@@ -311,5 +311,5 @@ export class ResendOtpDto {
   })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  emailAddress: string;
 }
