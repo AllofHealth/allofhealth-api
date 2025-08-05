@@ -20,7 +20,7 @@ export class ApprovalService {
   constructor(
     private readonly approvalProvider: ApprovalProvider,
     private readonly approvalCleanupService: ApprovalCleanupService,
-  ) { }
+  ) {}
 
   async createApproval(ctx: IHandleApproval) {
     return await this.approvalProvider.createApproval(ctx);
@@ -52,7 +52,7 @@ export class ApprovalService {
 
   @OnEvent(SharedEvents.DELETE_APPROVAL, { async: true })
   async deleteApproval(ctx: EDeleteApproval) {
-    this.logger.debug(`Delete Approval Event emitted`)
+    this.logger.debug(`Delete Approval Event emitted`);
     return await this.approvalProvider.deleteApproval(ctx.approvalId);
   }
 
@@ -66,5 +66,9 @@ export class ApprovalService {
 
   validateApprovalDuration(ctx: IValidateApprovalDuration) {
     return this.approvalProvider.validateApprovalDuration(ctx);
+  }
+
+  async fetchApprovedApprovals(userId: string) {
+    return await this.approvalProvider.fetchApprovedApprovals(userId);
   }
 }
