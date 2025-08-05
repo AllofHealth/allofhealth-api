@@ -87,6 +87,17 @@ export IPFS_PROTOCOL=http
 export IPFS_API_KEY=
 export IPFS_API_SECRET=
 
+# DEBUG: Sanity check before PM2
+echo "📁 Listing /usr/src/app:"
+ls -l /usr/src/app
+
+echo "📁 Listing /usr/src/app/dist:"
+ls -l /usr/src/app/dist || echo "⚠️ dist folder not found!"
+
+# TEMP: Pause to allow inspection
+echo "⏸️ Sleeping for 60 seconds so you can exec into the container..."
+sleep 60
+
 echo "🚀 Starting Node.js application with PM2..."
 pm2 start /usr/src/app/dist/main.js --name allofhealth-api
 
