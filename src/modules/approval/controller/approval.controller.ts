@@ -290,6 +290,67 @@ export class ApprovalController {
     return await this.approvalService.fetchPatientApprovals(query);
   }
 
+  @Get('fetchApprovedApprovals')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiOperation({
+    summary: 'Fetch approved approvals for a user',
+    description:
+      'Retrieve all approved approval requests for a specific user. Returns approvals where isRequestAccepted is true.',
+  })
+  @ApiOkResponse({
+    description: ASM.APPROVED_APPROVALS_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.APPROVED_APPROVALS_FETCHED,
+      data: [
+        {
+          id: 'approval-id-123',
+          userId: 'patient-id-456',
+          practitionerAddress: '0x123...abc',
+          recordId: 1,
+          duration: '1 day',
+          createdAt: '2024-01-01',
+          updatedAt: '2024-01-01',
+          accessLevel: 'read',
+          isRequestAccepted: true,
+          patientFullName: 'John Doe',
+          email: 'john.doe@example.com',
+          userHealthInfoId: 'health-info-id-123',
+          gender: 'male',
+          dob: '1990-01-01',
+          age: 34,
+          knownConditions: ['Diabetes', 'Hypertension'],
+        },
+      ],
+    },
+  })
+  @ApiBadRequestResponse({
+    description: AEM.NOT_A_VALID_PRACTITIONER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: AEM.NOT_A_VALID_PRACTITIONER,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_FETCHING_APPROVED_APPROVALS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_APPROVED_APPROVALS,
+    },
+  })
+  async fetchApprovedApprovals(
+    @Ip() ip: string,
+    @Query() query: FetchDoctorApprovalsDto,
+  ) {
+    this.logger.log(
+      `Fetching approved approvals for user ${query.userId} from ${ip}`,
+    );
+    return await this.approvalService.fetchApprovedApprovals(query.userId);
+  }
+
   @Post('acceptApproval')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Accept an approval request' })
