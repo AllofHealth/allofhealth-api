@@ -1,1 +1,4 @@
-export interface Otp {}
+export interface ICreateOtp {
+  emailAddress: string;
+  code: string;
+}
