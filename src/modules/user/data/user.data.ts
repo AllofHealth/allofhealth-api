@@ -12,6 +12,7 @@ export enum USER_ERROR_MESSAGES {
   ERROR_FETCHING_DASHBOARD_DATA = 'Error fetching dashboard data',
   DASHBOARD_DATA_NOT_IMPLEMENTED = 'Dashboard data not implemented for this role',
   ERROR_SENDING_EMAIL = 'Error sending otp',
+  ERROR_VALIDATING_OTP = 'Error validating otp',
 }
 
 export enum USER_SUCCESS_MESSAGE {
@@ -21,4 +22,5 @@ export enum USER_SUCCESS_MESSAGE {
   USER_UPDATED = 'User updated successfully',
   SUCCESS_FETCHING_DASHBOARD_DATA = 'Dashboard data fetched successfully',
   SUCCESS_SENDING_OTP = 'OTP sent successfully',
+  OTP_VALIDATED = 'OTP validated successfully',
 }
