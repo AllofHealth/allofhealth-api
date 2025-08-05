@@ -11,7 +11,7 @@ import { WalletModule } from '../wallet/wallet.module';
 import { ApprovalModule } from '../approval/approval.module';
 import { ContractModule } from '../contract/contract.module';
 import { OtpModule } from '../otp/otp.module';
-import { PostmarkModule } from '@/shared/modules/postmark/postmark.module';
+import { ResendModule } from '@/shared/modules/resend/resend.module';
 
 @Module({
   imports: [
@@ -22,7 +22,7 @@ import { PostmarkModule } from '@/shared/modules/postmark/postmark.module';
     forwardRef(() => ApprovalModule),
     forwardRef(() => ContractModule),
     forwardRef(() => OtpModule),
-    forwardRef(() => PostmarkModule),
+    forwardRef(() => ResendModule),
   ],
   providers: [UserProvider, UserService, AuthUtils, ErrorHandler],
   controllers: [UserController],
