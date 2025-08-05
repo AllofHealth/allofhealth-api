@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { EOnUserLogin, ESendOtp } from '@/shared/dtos/event.dto';
+import { EOnUserLogin, ESendOtp, EValidateOtp } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { ICreateUser, IUpdateUser } from '../interface/user.interface';
 import { UserProvider } from '../provider/user.provider';
@@ -36,5 +36,10 @@ export class UserService {
 
   async resendOtp(ctx: ESendOtp) {
     return await this.userProvider.sendOtp(ctx);
+  }
+
+  @OnEvent(SharedEvents.VALIDATE_OTP)
+  async validateOtp(ctx: EValidateOtp) {
+    return await this.userProvider.validateOtp(ctx.userId);
   }
 }
