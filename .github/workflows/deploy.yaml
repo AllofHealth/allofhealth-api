@@ -68,3 +68,4 @@ jobs:
             docker run -d -p 3003:3000 --name allofhealthapi ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
 
             
+
