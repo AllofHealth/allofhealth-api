@@ -130,3 +130,7 @@ export class EDeleteApproval {
 export class ESendOtp {
   constructor(readonly email: string) {}
 }
+
+export class EValidateOtp {
+  constructor(readonly userId: string) {}
+}
