@@ -211,3 +211,11 @@ export const dailyReward = pgTable('daily_reward', {
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
 });
+
+export const otp = pgTable('otp', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  emailAddress: varchar('email_address', { length: 255 }).notNull().unique(),
+  otpCode: varchar('otp_code', { length: 6 }).notNull().unique(),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
