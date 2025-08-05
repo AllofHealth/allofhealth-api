@@ -87,6 +87,9 @@ export IPFS_PROTOCOL=http
 export IPFS_API_KEY=
 export IPFS_API_SECRET=
 
+echo "🚀 Starting Node.js application with PM2..."
+pm2 start dist/main.js --name allofhealth-api
+
 # Start the Node.js application
 echo "🚀 Starting Node.js application..."
 echo "✅ AllOfHealth API started successfully!"
@@ -94,6 +97,5 @@ echo "📊 IPFS WebUI: http://localhost:5001/webui"
 echo "🌐 IPFS Gateway: http://localhost:8080"
 echo "🔗 API Server: http://localhost:3001"
 
-# Start the Node.js application in foreground
-exec npm run start:prod
-
+# Run PM2 in Docker-friendly foreground mode
+exec pm2-runtime start allofhealth-api
