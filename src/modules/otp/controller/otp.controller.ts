@@ -29,8 +29,8 @@ export class OtpController {
     type: Boolean,
     example: true,
   })
-  verifyOtp(@Ip() ip: string, @Body() ctx: VerifyOtpDto) {
+  async verifyOtp(@Ip() ip: string, @Body() ctx: VerifyOtpDto) {
     this.logger.log(`Verifying OTP for IP: ${ip}`);
-    return this.otpService.validateOtp(ctx.token);
+    return await this.otpService.validateOtp(ctx.token);
   }
 }
