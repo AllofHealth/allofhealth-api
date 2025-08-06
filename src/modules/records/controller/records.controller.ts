@@ -4,9 +4,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpStatus,
   Ip,
   Post,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -20,6 +22,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
@@ -245,41 +248,35 @@ export class RecordsController {
     });
   }
 
-  @Post('fetchRecords')
+  @Get('fetchRecords')
   @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Fetch patient medical records',
     description:
       'Retrieve paginated medical records for a specific patient. Only the patient themselves or approved practitioners can access these records.',
   })
-  @ApiBody({
-    description: 'Patient ID and pagination parameters',
-    schema: {
-      type: 'object',
-      properties: {
-        userId: {
-          type: 'string',
-          format: 'uuid',
-          description: 'The unique identifier of the patient',
-          example: '550e8400-e29b-41d4-a716-446655440001',
-        },
-        page: {
-          type: 'number',
-          description: 'Page number for pagination (default: 1)',
-          example: 1,
-          minimum: 1,
-          default: 1,
-        },
-        limit: {
-          type: 'number',
-          description: 'Number of records per page (default: 12)',
-          example: 12,
-          minimum: 1,
-          default: 12,
-        },
-      },
-      required: ['userId'],
-    },
+  @ApiQuery({
+    name: 'userId',
+    type: 'string',
+    required: true,
+    description: 'The unique identifier of the patient',
+    example: '550e8400-e29b-41d4-a716-446655440001',
+  })
+  @ApiQuery({
+    name: 'page',
+    type: 'number',
+    required: false,
+    description: 'Page number for pagination (default: 1)',
+    example: 1,
+    minimum: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    type: 'number',
+    required: false,
+    description: 'Number of records per page (default: 12)',
+    example: 12,
+    minimum: 1,
   })
   @ApiSecurity('Authorization')
   @ApiOkResponse({
@@ -337,7 +334,7 @@ export class RecordsController {
       message: 'You are not authorized to access these records.',
     },
   })
-  async fetchRecords(@Ip() ip: string, @Body() ctx: FetchRecordsDto) {
+  async fetchRecords(@Ip() ip: string, @Query() ctx: FetchRecordsDto) {
     this.logger.log(
       `Fetch records request from ${ip} for patient: ${ctx.userId}`,
     );
