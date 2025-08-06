@@ -88,7 +88,7 @@ export IPFS_API_KEY=
 export IPFS_API_SECRET=
 
 echo "🚀 Starting Node.js application with PM2..."
-pm2 start dist/main.js --name allofhealth-api
+pm2 start /usr/src/app/dist/src/main.js --name allofhealth-api
 
 # Start the Node.js application
 echo "🚀 Starting Node.js application..."
