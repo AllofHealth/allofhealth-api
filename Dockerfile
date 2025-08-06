@@ -54,6 +54,8 @@ RUN wget https://dist.ipfs.tech/kubo/v0.24.0/kubo_v0.24.0_linux-amd64.tar.gz && 
     cd .. && \
     rm -rf kubo kubo_v0.24.0_linux-amd64.tar.gz
 
+RUN npm install -g pm2
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -71,4 +73,4 @@ RUN chmod +x start-with-ipfs.sh
 
 EXPOSE 3000
 
-CMD ["./start-with-ipfs.sh"]
+ENTRYPOINT ["./start-with-ipfs.sh"]
