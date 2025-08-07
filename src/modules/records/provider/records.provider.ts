@@ -6,7 +6,10 @@ import { IpfsService } from '@/modules/ipfs/service/ipfs.service';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { EAddMedicalRecordToContract } from '@/shared/dtos/event.dto';
+import {
+  EAddMedicalRecordToContract,
+  EDeleteApproval,
+} from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import {
@@ -15,6 +18,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, eq, sql } from 'drizzle-orm';
@@ -30,7 +34,10 @@ import {
   IFetchRecordById,
 } from '../interface/records.interface';
 import { RecordsEncryptionService } from '../service/record-encryption.service';
-import { formatDateToStandard } from '@/shared/utils/date.utils';
+import {
+  formatDateToReadable,
+  formatDateToStandard,
+} from '@/shared/utils/date.utils';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
 
@@ -354,7 +361,7 @@ export class RecordsProvider {
 
               return {
                 ...recordData,
-                uploadedAt: encryptedRecord.uploadedAt,
+                uploadedAt: formatDateToReadable(encryptedRecord.uploadedAt),
               };
             }
           }),
@@ -374,14 +381,67 @@ export class RecordsProvider {
     let viewerAddress: string | undefined = undefined;
     try {
       if (practitionerId) {
-        viewerAddress =
+        const practitionerAddress =
           await this.contractService.getPractitionerSmartAddress(
             practitionerId,
           );
+
+        const approval = await this.db
+          .select({
+            createdAt: schema.approvals.createdAt,
+            duration: schema.approvals.duration,
+            approvalId: schema.approvals.id,
+            isRequestAccepted: schema.approvals.isRequestAccepted,
+            accessLevel: schema.approvals.accessLevel,
+          })
+          .from(schema.approvals)
+          .where(
+            and(
+              eq(schema.approvals.userId, patientId),
+              eq(schema.approvals.practitionerAddress, practitionerAddress),
+              eq(schema.approvals.recordId, recordChainId),
+            ),
+          )
+          .limit(1);
+
+        if (!approval || approval.length === 0) {
+          throw new UnauthorizedException('Practitioner not authorized');
+        }
+        const approvalDetails = approval[0];
+        const isValid = this.approvalService.validateApprovalDuration({
+          createdAt: approvalDetails.createdAt,
+          duration: approvalDetails.duration as number,
+        });
+        const readPermissions = ['read', 'full'];
+        if (
+          !approvalDetails.isRequestAccepted ||
+          !readPermissions.includes(approvalDetails.accessLevel.toLowerCase())
+        ) {
+          return this.handler.handleReturn({
+            status: HttpStatus.UNAUTHORIZED,
+            message: 'Invalid permissions',
+          });
+        }
+
+        if (!isValid) {
+          this.eventEmitter.emit(
+            SharedEvents.DELETE_APPROVAL,
+            new EDeleteApproval(approvalDetails.approvalId),
+          );
+
+          return this.handler.handleReturn({
+            status: HttpStatus.CONFLICT,
+            message: 'Approval duration expired, deleting approval',
+            data: approvalDetails.approvalId,
+          });
+        }
       }
 
       const patientRecordType = await this.db
-        .select({ recordType: schema.records.recordType })
+        .select({
+          recordType: schema.records.recordType,
+          practitionerName: schema.records.practitionerName,
+        })
         .from(schema.records)
         .where(
           and(
@@ -415,6 +475,7 @@ export class RecordsProvider {
       const enrichedRecord = {
         ...record,
         recordType: recordType,
+        practitionerName: patientRecordType[0].practitionerName,
       };
 
       return this.handler.handleReturn({
