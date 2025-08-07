@@ -12,6 +12,7 @@ import {
   IHandleAddMedicalRecord,
   IHandleApproval,
   IProcessBatchViewMedicalRecord,
+  IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
 
@@ -56,6 +57,10 @@ export class ContractService {
     );
   }
 
+  async getPatientSmartAddress(patientId: string) {
+    return await this.contractProvider.getPatientSmartAddress(patientId);
+  }
+
   @OnEvent(SharedEvents.MINT_HEALTH_TOKEN, { async: true })
   async mintHealthTokens(ctx: MintHealthToken) {
     return await this.contractProvider.handleMint(ctx.userId);
@@ -74,5 +79,9 @@ export class ContractService {
 
   async fetchRecordURIS(ctx: IProcessBatchViewMedicalRecord) {
     return await this.contractProvider.processBatchViewMedicalRecord(ctx);
+  }
+
+  async practitionerHasAccessToRecord(ctx: IViewerHasAccessToRecords) {
+    return await this.contractProvider.practitonerHasAccessToRecords(ctx);
   }
 }
