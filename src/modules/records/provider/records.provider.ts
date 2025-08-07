@@ -11,12 +11,13 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import {
   BadRequestException,
+  HttpException,
   HttpStatus,
   Inject,
   Injectable,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import {
   RECORDS_STATUS,
   RECORDS_ERROR_MESSAGES as REM,
@@ -24,13 +25,18 @@ import {
 } from '../data/records.data';
 import {
   ICreateRecord,
+  IfetchAndDecrypt,
   IFetchPatientRecords,
+  IFetchRecordById,
 } from '../interface/records.interface';
 import { RecordsEncryptionService } from '../service/record-encryption.service';
 import { formatDateToStandard } from '@/shared/utils/date.utils';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
 
 @Injectable()
 export class RecordsProvider {
+  private readonly logger = new MyLoggerService(RecordsProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
@@ -110,7 +116,6 @@ export class RecordsProvider {
           title,
           medicationsPrscribed,
           labResults,
-          recordType,
         });
 
       const encryptedResult = encryptedRecordResult.data;
@@ -287,6 +292,135 @@ export class RecordsProvider {
           hasNextPage: page < totalPages,
           hasPreviousPage: page > 1,
         },
+      });
+    } catch (e) {
+      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
+    }
+  }
+
+  private async fetchUriAndDecrypt(ctx: IfetchAndDecrypt) {
+    const { userId, recordIds, viewerAddress } = ctx;
+    try {
+      const recordUriResult = await this.contractService.fetchRecordURIS({
+        recordIds,
+        userId,
+        viewerAddress,
+      });
+
+      if (!('data' in recordUriResult && recordUriResult)) {
+        throw new HttpException(
+          'Failed to fetch record URIs',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      const recordUris = recordUriResult.data;
+      if (recordUris && recordUris.length > 0) {
+        const decryptedRecords = await Promise.all(
+          recordUris.map(async (uri) => {
+            const encryptedRecord =
+              await this.ipfsService.fetchRecordFromIpfs(uri);
+
+            const isIpfsRecord = (record: any): record is IpfsRecord => {
+              return (
+                record &&
+                typeof record === 'object' &&
+                'userId' in record &&
+                'title' in record &&
+                'clinicalNotes' in record &&
+                'diagnosis' in record &&
+                'uploadedAt' in record
+              );
+            };
+
+            if (isIpfsRecord(encryptedRecord)) {
+              const decryptedRecord =
+                await this.recordEncryptionService.decryptMedicalRecord({
+                  title: encryptedRecord.title,
+                  clinicalNotes: encryptedRecord.clinicalNotes,
+                  diagnosis: encryptedRecord.diagnosis,
+                  labResults: encryptedRecord.labResults,
+                  medicationsPrscribed: encryptedRecord.medicationsPrscribed,
+                });
+
+              const recordData = {
+                title: decryptedRecord.data?.title,
+                clinicalNotes: decryptedRecord.data?.clinicalNotes,
+                diagnosis: decryptedRecord.data?.diagnosis,
+                labResults: decryptedRecord.data?.labResults,
+                medicationsPrscribed:
+                  decryptedRecord.data?.medicationsPrscribed,
+                attachments: encryptedRecord.attachments,
+              };
+
+              return {
+                ...recordData,
+                uploadedAt: encryptedRecord.uploadedAt,
+              };
+            }
+          }),
+        );
+        return decryptedRecords;
+      }
+    } catch (e) {
+      throw new HttpException(
+        'Failed to fetch record URIs',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async fetchRecordByChainId(ctx: IFetchRecordById) {
+    const { patientId, practitionerId, recordChainId } = ctx;
+    let viewerAddress: string | undefined = undefined;
+    try {
+      if (practitionerId) {
+        viewerAddress =
+          await this.contractService.getPractitionerSmartAddress(
+            practitionerId,
+          );
+      }
+
+      const patientRecordType = await this.db
+        .select({ recordType: schema.records.recordType })
+        .from(schema.records)
+        .where(
+          and(
+            eq(schema.records.userId, patientId),
+            eq(schema.records.recordChainId, recordChainId),
+          ),
+        );
+      const recordType = patientRecordType[0].recordType;
+
+      const decryptedRecord = await this.fetchUriAndDecrypt({
+        recordIds: [recordChainId],
+        userId: patientId,
+        viewerAddress,
+      });
+
+      if (!decryptedRecord) {
+        throw new HttpException(
+          'Failed to decrypt record',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const record = decryptedRecord[0];
+      if (!record) {
+        throw new HttpException(
+          'Failed to fetch record',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const enrichedRecord = {
+        ...record,
+        recordType: recordType,
+      };
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: RSM.RECORD_FETCHED_SUCCESSFULLY,
+        data: enrichedRecord,
       });
     } catch (e) {
       return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
