@@ -6,6 +6,7 @@ export enum RECORDS_ERROR_MESSAGES {
   ERROR_DECRYPTING_RECORD = 'Error decrypting record',
   PRACTITIONER_NOT_APPROVED_TO_ACCESS_RECORD = 'Practitioner is not approved to access record',
   ERROR_FETCHING_RECORDS = 'Error fetching records',
+  RECORD_ACCESS_UNAUTHORIZED = 'Access to record has expired or is unauthorized',
 }
 
 export enum RECORDS_SUCCESS_MESSAGES {
