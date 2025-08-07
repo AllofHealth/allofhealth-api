@@ -58,3 +58,9 @@ export interface IViewMedicalRecord {
   recordId: number;
   viewerAddress?: string;
 }
+
+export interface IProcessBatchViewMedicalRecord {
+  userId: string;
+  recordIds: number[];
+  viewerAddress?: string;
+}
