@@ -3,6 +3,7 @@ import { RecordsProvider } from '../provider/records.provider';
 import {
   ICreateRecord,
   IFetchPatientRecords,
+  IFetchRecordById,
 } from '../interface/records.interface';
 
 @Injectable()
@@ -15,5 +16,9 @@ export class RecordsService {
 
   async fetchRecords(ctx: IFetchPatientRecords) {
     return await this.recordsProvider.fetchRecords(ctx);
+  }
+
+  async fetchRecordByChainId(ctx: IFetchRecordById) {
+    return await this.recordsProvider.fetchRecordByChainId(ctx);
   }
 }
