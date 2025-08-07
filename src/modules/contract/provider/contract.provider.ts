@@ -435,6 +435,7 @@ export class ContractProvider {
   @OnEvent(SharedEvents.APPROVE_RECORD_ACCESS)
   async handleApproveMedicalRecordAccess(ctx: EApproveRecordAccess) {
     const { practitionerId, userId, recordId, duration = Duration.A_DAY } = ctx;
+    this.logger.debug(`Granting read access`, recordId, duration);
     try {
       const smartWallet = await this.aaService.provideSmartWallet(userId);
 
@@ -512,6 +513,8 @@ export class ContractProvider {
       recordIds = [],
       duration,
     } = ctx;
+
+    this.logger.log(`Handle record approval, ${duration}, ${recordIds}`);
 
     switch (accessLevel) {
       case 'full':
@@ -722,25 +725,6 @@ export class ContractProvider {
       if (!viewerAddress) {
         viewer = patientAddress;
       } else {
-        const hasAccessResult = await this.practitonerHasAccessToRecords({
-          practitionerAddress: viewerAddress,
-          patientId,
-          recordId,
-        });
-
-        if (!('data' in hasAccessResult && hasAccessResult.data)) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: hasAccessResult.message,
-          });
-        }
-
-        if (!hasAccessResult.data.hasAccess) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.FORBIDDEN,
-            message: CEM.ERROR_NO_ACCESS_TO_RECORD,
-          });
-        }
         viewer = viewerAddress;
       }
 
