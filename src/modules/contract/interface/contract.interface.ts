@@ -56,5 +56,5 @@ export interface IHandleAddMedicalRecord {
 export interface IViewMedicalRecord {
   userId: string;
   recordId: number;
-  viewerAddress: string;
+  viewerAddress?: string;
 }
