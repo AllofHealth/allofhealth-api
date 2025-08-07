@@ -669,7 +669,7 @@ export class ApprovalProvider {
       const approvalResult = await this.findApprovalById(approvalId);
       if (approvalResult.status !== HttpStatus.OK) return approvalResult;
 
-      this.db
+      await this.db
         .delete(schema.approvals)
         .where(eq(schema.approvals.id, approvalId));
 
