@@ -32,7 +32,11 @@ import {
   RECORDS_ERROR_MESSAGES as REM,
   RECORDS_SUCCESS_MESSAGES as RSM,
 } from '../data/records.data';
-import { CreateRecordDto, FetchRecordsDto } from '../dto/records.dto';
+import {
+  CreateRecordDto,
+  FetchRecordByChainIdDto,
+  FetchRecordsDto,
+} from '../dto/records.dto';
 import { RecordsService } from '../service/records.service';
 import { AuthGuard } from '@/modules/auth/guards/auth.guard';
 import { OwnerGuard } from '@/modules/user/guard/user.guard';
@@ -340,5 +344,93 @@ export class RecordsController {
     );
 
     return await this.recordsService.fetchRecords(ctx);
+  }
+
+  @Get('fetchRecordByChainId')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Fetch a specific medical record by chain ID',
+    description:
+      'Retrieve a specific medical record using its chain ID. The record will be fetched from IPFS and decrypted. Only the patient themselves or approved practitioners with appropriate permissions can access the record.',
+  })
+  @ApiQuery({
+    name: 'patientId',
+    type: 'string',
+    required: true,
+    description: 'The unique identifier of the patient',
+    example: '550e8400-e29b-41d4-a716-446655440001',
+  })
+  @ApiQuery({
+    name: 'practitionerId',
+    type: 'string',
+    required: false,
+    description:
+      'The unique identifier of the practitioner (optional - for practitioner access)',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @ApiQuery({
+    name: 'recordChainId',
+    type: 'number',
+    required: true,
+    description: 'The chain ID of the medical record',
+    example: 1,
+    minimum: 1,
+  })
+  @ApiSecurity('Authorization')
+  @ApiOkResponse({
+    description: RSM.RECORD_FETCHED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: RSM.RECORD_FETCHED_SUCCESSFULLY,
+      data: {
+        title: 'Annual Physical Examination',
+        clinicalNotes: [
+          'Patient appears healthy',
+          'Vital signs are normal',
+          'No significant findings',
+        ],
+        diagnosis: ['Hypertension', 'Type 2 Diabetes'],
+        labResults: ['Blood glucose: 120 mg/dL', 'Cholesterol: 180 mg/dL'],
+        medicationsPrscribed: [
+          'Metformin 500mg twice daily',
+          'Lisinopril 10mg once daily',
+        ],
+        attachments: ['attachment1.pdf', 'attachment2.jpg'],
+        recordType: ['Diagnosis', 'Lab Results'],
+        uploadedAt: '2024-01-01T00:00:00.000Z',
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: REM.ERROR_FETCHING_RECORDS,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: REM.ERROR_FETCHING_RECORDS,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation errors',
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Invalid record chain ID or patient ID format.',
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Access denied',
+    example: {
+      status: HttpStatus.FORBIDDEN,
+      message: 'You are not authorized to access this record.',
+    },
+  })
+  async fetchRecordByChainId(
+    @Ip() ip: string,
+    @Query() ctx: FetchRecordByChainIdDto,
+  ) {
+    this.logger.log(
+      `Fetch record by chain ID request from ${ip} for patient: ${ctx.patientId}, record chain ID: ${ctx.recordChainId}`,
+    );
+
+    return await this.recordsService.fetchRecordByChainId(ctx);
   }
 }
