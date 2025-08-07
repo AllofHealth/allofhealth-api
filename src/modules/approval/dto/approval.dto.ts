@@ -144,3 +144,21 @@ export class FindApprovalDto {
   @IsString()
   approvalId: string;
 }
+
+export class DeleteApprovalDto {
+  @ApiProperty({
+    description: 'User ID deleting the approval',
+    example: '1234567890',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiProperty({
+    description: 'Approval ID to delete',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsNotEmpty()
+  @IsString()
+  approvalId: string;
+}
