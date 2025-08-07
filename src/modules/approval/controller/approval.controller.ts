@@ -5,6 +5,7 @@ import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Ip,
@@ -30,6 +31,7 @@ import {
 import {
   AcceptApprovalDto,
   CreateApprovalDto,
+  DeleteApprovalDto,
   FetchDoctorApprovalsDto,
   FetchPatientApprovalsDto,
   RejectApprovalDto,
@@ -542,5 +544,57 @@ export class ApprovalController {
         error: error.message,
       };
     }
+  }
+
+  @Delete('deleteApproval')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiOperation({
+    summary: 'Delete an approval request',
+    description:
+      'Permanently deletes an approval request from the system. This action cannot be undone. Only the patient who created the approval or the practitioner who received it can delete the approval.',
+  })
+  @ApiBody({
+    description: 'Approval deletion data',
+    type: DeleteApprovalDto,
+  })
+  @ApiOkResponse({
+    description: ASM.APPROVAL_DELETED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.APPROVAL_DELETED,
+    },
+  })
+  @ApiNotFoundResponse({
+    description: AEM.APPROVAL_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: AEM.APPROVAL_NOT_FOUND,
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized to delete this approval',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.UNAUTHORIZED,
+      message: 'You are not authorized to delete this approval',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_DELETING_APPROVAL,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_DELETING_APPROVAL,
+    },
+  })
+  async deleteApproval(@Ip() ip: string, @Body() ctx: DeleteApprovalDto) {
+    this.logger.log(
+      `User ${ctx.userId} deleting approval ${ctx.approvalId} from ${ip}`,
+    );
+    return await this.approvalService.deleteApproval({
+      approvalId: ctx.approvalId,
+    });
   }
 }
