@@ -129,8 +129,7 @@ export const approvals = pgTable('approvals', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   userId: uuid('user_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' })
-    .unique(),
+    .references(() => user.id, { onDelete: 'cascade' }),
   practitionerAddress: varchar('practitioner_address', {
     length: 255,
   })
