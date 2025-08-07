@@ -50,10 +50,15 @@ export class ApprovalService {
     return await this.approvalProvider.findApprovalById(approvalId);
   }
 
-  @OnEvent(SharedEvents.DELETE_APPROVAL, { async: true })
-  async deleteApproval(ctx: EDeleteApproval) {
-    this.logger.debug(`Delete Approval Event emitted`);
+  async deleteApproval(ctx: { approvalId: string }) {
+    this.logger.debug(`Deleting approval ${ctx.approvalId}`);
     return await this.approvalProvider.deleteApproval(ctx.approvalId);
+  }
+
+  @OnEvent(SharedEvents.DELETE_APPROVAL, { async: true })
+  async handleDeleteApprovalEvent(ctx: EDeleteApproval) {
+    this.logger.debug(`Delete Approval Event emitted`);
+    return await this.deleteApproval({ approvalId: ctx.approvalId });
   }
 
   async fetchApproval(approvalId: string) {
