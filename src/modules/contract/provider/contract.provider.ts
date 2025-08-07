@@ -38,7 +38,6 @@ import {
 } from '../interface/contract.interface';
 import { RewardService } from '@/modules/reward/service/reward.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { ApprovalService } from '@/modules/approval/service/approval.service';
 
 @Injectable()
 export class ContractProvider {
@@ -50,8 +49,7 @@ export class ContractProvider {
     private readonly aaService: AccountAbstractionService,
     private readonly rewardServicce: RewardService,
     private readonly eventEmitter: EventEmitter2,
-
-  ) { }
+  ) {}
 
   private provideABI() {
     return ABI;
@@ -644,7 +642,10 @@ export class ContractProvider {
 
       const { transactionHash } = await opResponse.waitForTxHash();
 
-      await this.eventEmitter.emitAsync(SharedEvents.DELETE_APPROVAL, new EDeleteApproval(approvalId))
+      await this.eventEmitter.emitAsync(
+        SharedEvents.DELETE_APPROVAL,
+        new EDeleteApproval(approvalId),
+      );
 
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
