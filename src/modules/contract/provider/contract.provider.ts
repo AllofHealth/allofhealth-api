@@ -226,7 +226,7 @@ export class ContractProvider {
         status: HttpStatus.OK,
         message: CSM.TX_EXECUTED_SUCCESSFULLY,
         data: {
-          hasAccess,
+          hasAccess: hasAccess as boolean,
         },
       });
     } catch (e) {
@@ -708,13 +708,6 @@ export class ContractProvider {
     try {
       let viewer: string = '';
       const patientAddress = await this.getPatientSmartAddress(userId);
-
-      if (!viewerAddress) {
-        viewer = patientAddress;
-      } else {
-        viewer = viewerAddress;
-      }
-
       const patientIdResult = await this.handleGetPatientId(patientAddress);
       if (!('data' in patientIdResult && patientIdResult.data)) {
         return this.handlerService.handleReturn({
@@ -725,6 +718,31 @@ export class ContractProvider {
 
       const patientId = patientIdResult.data.patientId;
       console.log(`patientId`);
+
+      if (!viewerAddress) {
+        viewer = patientAddress;
+      } else {
+        const hasAccessResult = await this.practitonerHasAccessToRecords({
+          practitionerAddress: viewerAddress,
+          patientId,
+          recordId,
+        });
+
+        if (!('data' in hasAccessResult && hasAccessResult.data)) {
+          return this.handlerService.handleReturn({
+            status: HttpStatus.BAD_REQUEST,
+            message: hasAccessResult.message,
+          });
+        }
+
+        if (!hasAccessResult.data.hasAccess) {
+          return this.handlerService.handleReturn({
+            status: HttpStatus.FORBIDDEN,
+            message: CEM.ERROR_NO_ACCESS_TO_RECORD,
+          });
+        }
+        viewer = viewerAddress;
+      }
 
       const contract = await this.provideContract(userId);
       const recordURI = await contract.viewMedicalRecord(
@@ -759,10 +777,8 @@ export class ContractProvider {
         });
 
         if (!('data' in recordResult && recordResult.data)) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: recordResult.message,
-          });
+          this.logger.warn(`can not fetch record for this id`);
+          continue;
         }
 
         recordURIS.push(recordResult.data);
