@@ -705,7 +705,14 @@ export class ContractProvider {
   async viewMedicalRecord(ctx: IViewMedicalRecord) {
     const { userId, recordId, viewerAddress } = ctx;
     try {
+      let viewer: string = '';
       const patientAddress = await this.getPatientSmartAddress(userId);
+
+      if (!viewerAddress) {
+        viewer = patientAddress;
+      } else {
+        viewer = viewerAddress;
+      }
 
       const patientIdResult = await this.handleGetPatientId(patientAddress);
       if (!('data' in patientIdResult && patientIdResult.data)) {
@@ -722,7 +729,7 @@ export class ContractProvider {
       const recordURI = await contract.viewMedicalRecord(
         recordId,
         patientId,
-        viewerAddress,
+        viewer,
       );
 
       return this.handlerService.handleReturn({
