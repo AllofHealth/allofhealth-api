@@ -11,6 +11,7 @@ import {
   IApprovedToAddNewRecord,
   IHandleAddMedicalRecord,
   IHandleApproval,
+  IProcessBatchViewMedicalRecord,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
 
@@ -69,5 +70,9 @@ export class ContractService {
 
   async viewMedicalRecord(ctx: IViewMedicalRecord) {
     return this.contractProvider.viewMedicalRecord(ctx);
+  }
+
+  async fetchRecordURIS(ctx: IProcessBatchViewMedicalRecord) {
+    return await this.contractProvider.processBatchViewMedicalRecord(ctx);
   }
 }
