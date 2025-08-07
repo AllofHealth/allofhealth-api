@@ -73,4 +73,4 @@ RUN chmod +x start-with-ipfs.sh
 
 EXPOSE 3000
 
-ENTRYPOINT ["./start-with-ipfs.sh"]
+CMD ["./start-with-ipfs.sh"]
