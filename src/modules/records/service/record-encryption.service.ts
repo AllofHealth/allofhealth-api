@@ -51,7 +51,6 @@ export class RecordsEncryptionService {
       labResults,
       medicationsPrscribed,
       title,
-      recordType,
     } = ctx;
 
     try {
@@ -62,7 +61,6 @@ export class RecordsEncryptionService {
 
       let encryptedLabResults: string[] = [];
       let encryptedMedicationsPrscribed: string[] = [];
-      const encryptedRecordType = await this.batchEncryptRecords(recordType);
 
       if (labResults) {
         encryptedLabResults = await this.batchEncryptRecords(labResults);
@@ -78,7 +76,6 @@ export class RecordsEncryptionService {
         message: RSM.RECORD_ENCRYPTED_SUCCESSFULLY,
         data: {
           title: encryptedTitle,
-          recordType: encryptedRecordType,
           clinicalNotes: encryptedClinicalNotes,
           diagnosis: encryptedDiagnosis,
           labResults: encryptedLabResults,
@@ -93,12 +90,19 @@ export class RecordsEncryptionService {
   }
 
   async decryptMedicalRecord(ctx: IDecryptRecord) {
-    const { clinicalNotes, diagnosis, labResults, medicationsPrscribed } = ctx;
+    const {
+      clinicalNotes,
+      diagnosis,
+      labResults,
+      medicationsPrscribed,
+      title,
+    } = ctx;
 
     try {
       const decryptedClinicalNotes =
         await this.batchDecryptRecords(clinicalNotes);
       const decryptedDiagnosis = await this.batchDecryptRecords(diagnosis);
+      const decryptedTitle = this.decryptRecord(title);
 
       let decryptedLabResults: string[] = [];
       let decryptedMedicationsPrscribed: string[] = [];
@@ -116,6 +120,7 @@ export class RecordsEncryptionService {
         status: HttpStatus.OK,
         message: RSM.RECORD_DECRYPTED_SUCCESSFULLY,
         data: {
+          title: decryptedTitle,
           clinicalNotes: decryptedClinicalNotes,
           diagnosis: decryptedDiagnosis,
           labResults: decryptedLabResults,
