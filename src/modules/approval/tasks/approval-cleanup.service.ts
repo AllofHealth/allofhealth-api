@@ -28,12 +28,9 @@ export class ApprovalCleanupService {
           duration: schema.approvals.duration,
           isRequestAccepted: schema.approvals.isRequestAccepted,
         })
-        .from(schema.approvals)
-        .where(and(eq(schema.approvals.isRequestAccepted, false)));
+        .from(schema.approvals);
 
-      this.logger.debug(
-        `Found ${expiredApprovals.length} non-accepted approvals to check`,
-      );
+      this.logger.debug(`Found ${expiredApprovals.length}  approvals to check`);
 
       const approvalIdsToDelete: string[] = [];
 
@@ -106,12 +103,9 @@ export class ApprovalCleanupService {
           duration: schema.approvals.duration,
           isRequestAccepted: schema.approvals.isRequestAccepted,
         })
-        .from(schema.approvals)
-        .where(and(eq(schema.approvals.isRequestAccepted, false)));
+        .from(schema.approvals);
 
-      this.logger.debug(
-        `Found ${expiredApprovals.length} non-accepted approvals to check`,
-      );
+      this.logger.debug(`Found ${expiredApprovals.length}  approvals to check`);
 
       const approvalIdsToDelete: string[] = [];
 
