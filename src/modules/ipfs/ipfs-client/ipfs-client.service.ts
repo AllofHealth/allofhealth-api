@@ -250,16 +250,15 @@ export class CustomIpfsClient {
     userId: string,
     fileName?: string,
   ): Promise<string> {
-    // Generate random file name if none is provided
     if (!fileName) {
-      const randomText = crypto.randomUUID(); // 8-char random string
+      const randomText = crypto.randomUUID();
       fileName = `record-${userId}.${randomText}`;
     }
 
     let targetPath = `/${userId}/${fileName}`;
 
-    // Check if file already exists
     if (await this.fileExists(targetPath)) {
+      const randomText = crypto.randomUUID();
       const ext = fileName.includes('.')
         ? fileName.substring(fileName.lastIndexOf('.') + 1)
         : '';
@@ -268,8 +267,8 @@ export class CustomIpfsClient {
         : fileName;
       const timestamp = Date.now();
       const newFileName = ext
-        ? `${base}-${timestamp}.${ext}`
-        : `${base}-${timestamp}`;
+        ? `${base}-${timestamp}.${ext}.${randomText}`
+        : `${base}-${timestamp}.${randomText}`;
       targetPath = `/${userId}/${newFileName}`;
     }
 
