@@ -135,3 +135,33 @@ export class FetchRecordsDto {
   @Min(1)
   limit?: number;
 }
+
+export class FetchRecordByChainIdDto {
+  @ApiProperty({
+    description: 'The unique identifier of the patient',
+    example: '550e8400-e29b-41d4-a716-446655440001',
+  })
+  @IsNotEmpty()
+  @IsUUID()
+  patientId: string;
+
+  @ApiPropertyOptional({
+    description:
+      'The unique identifier of the practitioner (optional - for practitioner access)',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsOptional()
+  @IsUUID()
+  practitionerId?: string;
+
+  @ApiProperty({
+    description: 'The chain ID of the medical record',
+    example: 1,
+    minimum: 1,
+  })
+  @IsNotEmpty()
+  @Transform(({ value }) => parseInt(value))
+  @IsNumber()
+  @Min(1)
+  recordChainId: number;
+}
