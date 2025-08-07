@@ -33,6 +33,7 @@ import {
   IApproveRecordAccessTx,
   IHandleAddMedicalRecord,
   IHandleApproval,
+  IProcessBatchViewMedicalRecord,
   IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
@@ -741,6 +742,41 @@ export class ContractProvider {
       return this.handlerService.handleError(
         e,
         CEM.ERROR_VIEWING_MEDICAL_RECORD,
+      );
+    }
+  }
+
+  async processBatchViewMedicalRecord(ctx: IProcessBatchViewMedicalRecord) {
+    const { userId, recordIds, viewerAddress } = ctx;
+    try {
+      let recordURIS: string[] = [];
+
+      for (const recordId of recordIds) {
+        const recordResult = await this.viewMedicalRecord({
+          recordId,
+          userId,
+          viewerAddress,
+        });
+
+        if (!('data' in recordResult && recordResult.data)) {
+          return this.handlerService.handleReturn({
+            status: HttpStatus.BAD_REQUEST,
+            message: recordResult.message,
+          });
+        }
+
+        recordURIS.push(recordResult.data);
+      }
+
+      return this.handlerService.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.MEDICAL_RECORD_FETCHED_SUCCESSFULLY,
+        data: recordURIS,
+      });
+    } catch (e) {
+      return this.handlerService.handleError(
+        e,
+        CEM.ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS,
       );
     }
   }
