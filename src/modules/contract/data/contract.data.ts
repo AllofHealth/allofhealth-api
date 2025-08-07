@@ -16,6 +16,7 @@ export enum ContractErrorMessages {
   ERROR_FETCHING_TOKEN_BALANCE = 'Error fetching token balance',
   ERROR_VIEWING_MEDICAL_RECORD = 'Error viewing medical record',
   ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS = 'Error processing batch view medical record',
+  ERROR_NO_ACCESS_TO_RECORD = 'No access to record',
 }
 
 export enum ContractSuccessMessages {
