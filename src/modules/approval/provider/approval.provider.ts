@@ -223,7 +223,6 @@ export class ApprovalProvider {
 
           createdApprovals.push(...approval);
         } else {
-          // Create approvals for each recordId
           for (const recordId of recordIds) {
             const approval = await tx
               .insert(schema.approvals)
