@@ -11,7 +11,6 @@ export interface ICreateRecord extends IEncryptRecord {
 export interface IEncryptRecord {
   title: string;
   clinicalNotes: string[];
-  recordType: string[];
   diagnosis: string[];
   labResults?: string[];
   medicationsPrscribed?: string[];
@@ -23,4 +22,16 @@ export interface IFetchPatientRecords {
   userId: string;
   page?: number;
   limit?: number;
+}
+
+export interface IfetchAndDecrypt {
+  userId: string;
+  recordIds: number[];
+  viewerAddress?: string;
+}
+
+export interface IFetchRecordById {
+  patientId: string;
+  practitionerId?: string;
+  recordChainId: number;
 }
