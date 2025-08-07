@@ -64,4 +64,14 @@ describe('Ipfs', () => {
       expect(result).toBeDefined();
     }, 10000);
   });
+
+  describe('Records', () => {
+    it.only('should seccessfully fetch record from ipfs', async () => {
+      await provider.onModuleInit();
+      const record = await provider.fetchRecord(
+        'QmXN3eYQtHxvCyQysD1ATCKiNcoYbivcA1pdD5BKU9Yonk',
+      );
+      console.log(record);
+    });
+  });
 });
