@@ -3,6 +3,7 @@ import { HealthJournalProvider } from '../provider/health-journal.provider';
 import {
   IAddEntry,
   IFetchJournal,
+  IFetchMonthlyJournal,
 } from '../interface/health-journal.interface';
 
 @Injectable()
@@ -15,5 +16,9 @@ export class HealthJournalService {
 
   async fetchUserJournals(ctx: IFetchJournal) {
     return await this.journalProvider.fetchUserJournal(ctx);
+  }
+
+  async fetchMonthlyJournal(ctx: IFetchMonthlyJournal) {
+    return await this.journalProvider.fetchMonthlyJournal(ctx);
   }
 }
