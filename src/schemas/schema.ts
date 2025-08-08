@@ -1,11 +1,13 @@
 import {
   boolean,
   date,
+  index,
   integer,
   jsonb,
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
@@ -218,3 +220,22 @@ export const otp = pgTable('otp', {
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
 });
+
+export const moodMetrics = pgTable(
+  'mood_metrics',
+  {
+    id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    averageMoodLevel: text('mood_level').notNull().default('neutral'),
+    year: integer('year').notNull(),
+    month: integer('month').notNull(),
+    createdAt: date('created_at').defaultNow(),
+    updatedAt: date('updated_at').defaultNow(),
+  },
+  (table) => ({
+    userMonthYearUnique: unique().on(table.userId, table.year, table.month),
+    userYearMonthIndex: index().on(table.userId, table.year, table.month),
+  }),
+);
