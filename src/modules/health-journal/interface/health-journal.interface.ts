@@ -18,3 +18,8 @@ export interface IFetchMonthlyJournal {
   userId: string;
   month: number;
 }
+
+export interface ICalculateMonthlyAverageMoodScore {
+  userId: string;
+  month: string;
+}
