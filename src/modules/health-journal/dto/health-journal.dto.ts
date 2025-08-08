@@ -10,7 +10,7 @@ export class AddEntryDto {
 
   @ApiProperty({
     description: 'Mood',
-    examples: ['great', 'good', 'neutral', 'low'],
+    examples: ['great', 'good', 'neutral', 'low', 'bad'],
   })
   @IsNotEmpty()
   @IsString()
