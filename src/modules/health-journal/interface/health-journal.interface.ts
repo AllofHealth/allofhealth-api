@@ -1,4 +1,4 @@
-export type TMood = 'great' | 'good' | 'neutral' | 'low';
+export type TMood = 'great' | 'good' | 'neutral' | 'low' | 'bad';
 
 export interface IAddEntry {
   userId: string;
@@ -12,4 +12,9 @@ export interface IFetchJournal {
   userId: string;
   page?: number;
   limit?: number;
+}
+
+export interface IFetchMonthlyJournal {
+  userId: string;
+  month: number;
 }
