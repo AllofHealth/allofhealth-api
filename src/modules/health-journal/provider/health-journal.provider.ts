@@ -9,19 +9,20 @@ import {
 import * as schema from '@/schemas/schema';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
-  HealthJournalErrorMessages,
   HealthJournalErrorMessages as HEM,
   HealthJournalSuccessMessages as HSM,
 } from '../data/health-journal.data';
 import {
   IAddEntry,
   IFetchJournal,
+  IFetchJournalMetrics,
   IFetchMonthlyJournal,
 } from '../interface/health-journal.interface';
 import { and, eq, sql } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EUpdateTaskCount } from '@/shared/dtos/event.dto';
+import { EUpdateMoodMetrics, EUpdateTaskCount } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
+import { JournalMetricsProvider } from './journal-metrics.provider';
 
 @Injectable()
 export class HealthJournalProvider {
@@ -29,6 +30,7 @@ export class HealthJournalProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
     private readonly eventEmitter: EventEmitter2,
+    private readonly journalMetricsProvider: JournalMetricsProvider,
   ) {}
 
   private formatDate(date: Date | string): string {
@@ -92,7 +94,10 @@ export class HealthJournalProvider {
 
       const taskData = new EUpdateTaskCount(userId);
       this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
-
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_MOOD_METRICS,
+        new EUpdateMoodMetrics(userId),
+      );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: HSM.SUCCESS_ADDING_ENTRY,
@@ -145,5 +150,9 @@ export class HealthJournalProvider {
     } catch (e) {
       return this.handler.handleError(e, HEM.ERROR_FETCHING_JOURNAL);
     }
+  }
+
+  async fetchJournalMetrics(ctx: IFetchJournalMetrics) {
+    return await this.journalMetricsProvider.fetchHealthJournalMetrics(ctx);
   }
 }
