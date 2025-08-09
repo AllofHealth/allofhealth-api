@@ -3,6 +3,7 @@ import { HealthJournalProvider } from '../provider/health-journal.provider';
 import {
   IAddEntry,
   IFetchJournal,
+  IFetchJournalMetrics,
   IFetchMonthlyJournal,
 } from '../interface/health-journal.interface';
 
@@ -20,5 +21,9 @@ export class HealthJournalService {
 
   async fetchMonthlyJournal(ctx: IFetchMonthlyJournal) {
     return await this.journalProvider.fetchMonthlyJournal(ctx);
+  }
+
+  async fetchJournalMetrics(ctx: IFetchJournalMetrics) {
+    return await this.journalProvider.fetchJournalMetrics(ctx);
   }
 }
