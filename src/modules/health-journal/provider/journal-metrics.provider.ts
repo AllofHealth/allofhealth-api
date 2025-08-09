@@ -10,7 +10,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import {
   HealthJournalErrorMessages as HEM,
   HealthJournalSuccessMessages as HSM,
@@ -20,10 +20,8 @@ import {
   ICalculateMoodScore,
   ICreateMetrics,
   IFetchJournalMetrics,
-  IUpdateMonthlyMood,
   TMood,
 } from '../interface/health-journal.interface';
-import { HealthJournalService } from '../service/health-journal.service';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { EUpdateMoodMetrics } from '@/shared/dtos/event.dto';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -33,7 +31,6 @@ export class JournalMetricsProvider {
   private readonly logger = new MyLoggerService(JournalMetricsProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
-    private readonly journalService: HealthJournalService,
     private readonly handler: ErrorHandler,
   ) {}
 
@@ -96,10 +93,18 @@ export class JournalMetricsProvider {
   private async calculateMonthlyAverageMoodScore(ctx: ICalculateMoodScore) {
     const { userId, month } = ctx;
     try {
-      const monthlyJournal = await this.journalService.fetchMonthlyJournal({
-        userId,
-        month,
-      });
+      const year = new Date().getFullYear();
+
+      const monthlyJournal = await this.db
+        .select()
+        .from(schema.health_journal)
+        .where(
+          and(
+            eq(schema.health_journal.userId, userId),
+            sql`EXTRACT(MONTH FROM ${schema.health_journal.createdAt}) = ${month}`,
+            sql`EXTRACT(YEAR FROM ${schema.health_journal.createdAt}) = ${year}`,
+          ),
+        );
 
       let moodScores: number[] = [];
 
