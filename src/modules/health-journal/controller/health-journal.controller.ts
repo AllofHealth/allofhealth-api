@@ -13,6 +13,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiTags,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { HealthJournalService } from '../service/health-journal.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
@@ -24,6 +25,7 @@ import {
   HealthJournalSuccessMessages as HSM,
 } from '../data/health-journal.data';
 import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
+import { TDuration } from '../interface/health-journal.interface';
 
 @ApiTags('Journal Operations')
 @Controller('health-journal')
@@ -102,6 +104,102 @@ export class HealthJournalController {
       userId,
       page,
       limit,
+    });
+  }
+
+  @Get('fetchJournalMetrics')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiOperation({
+    summary: 'Fetch health journal metrics',
+    description:
+      'Fetch monthly or yearly mood metrics. For monthly, returns mood data for a specific month. For yearly, returns up to 12 years of aggregated mood data.',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    type: String,
+    description: 'User ID to fetch metrics for',
+  })
+  @ApiQuery({
+    name: 'duration',
+    required: true,
+    enum: ['monthly', 'yearly'],
+    description: 'Duration type for metrics (monthly or yearly)',
+  })
+  @ApiQuery({
+    name: 'year',
+    required: false,
+    type: Number,
+    description:
+      'Year for metrics. For yearly duration, limits results to max 12 years from current',
+  })
+  @ApiOkResponse({
+    description:
+      HSM.SUCCESS_FETCHING_JOURNAL_METRICS ||
+      'Journal metrics fetched successfully',
+    type: SuccessResponseDto,
+    examples: {
+      monthly: {
+        summary: 'Returns monthly journal metrics',
+        value: {
+          status: HttpStatus.OK,
+          message: 'Journal metrics fetched successfully',
+          data: [
+            {
+              month: 'Feb',
+              averageMoodLevel: 'good',
+            },
+          ],
+        },
+      },
+      yearly: {
+        summary: 'Returns yearly journal metrics',
+        value: {
+          status: HttpStatus.OK,
+          message: 'Journal metrics fetched successfully',
+          data: [
+            {
+              year: 2024,
+              averageMoodLevel: 'good',
+            },
+            {
+              year: 2023,
+              averageMoodLevel: 'neutral',
+            },
+          ],
+          summary: {
+            totalYears: 12,
+            yearsWithData: 5,
+            overallAverageMood: 'good',
+          },
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: HEM.ERROR_FETCHING_HEALTH_JOURNAL_METRICS,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: HEM.ERROR_FETCHING_HEALTH_JOURNAL_METRICS,
+    },
+  })
+  async fetchJournalMetrics(
+    @Ip() ip: string,
+    @Query('userId') userId: string,
+    @Query('duration') duration: TDuration,
+    @Query('year') year?: number,
+  ) {
+    this.logger.log(
+      `Fetching ${duration} journal metrics for ${userId} from ${ip}`,
+    );
+
+    const parsedYear = year ? Number(year) : undefined;
+
+    return await this.journalService.fetchJournalMetrics({
+      userId,
+      duration,
+      year: parsedYear,
     });
   }
 }
