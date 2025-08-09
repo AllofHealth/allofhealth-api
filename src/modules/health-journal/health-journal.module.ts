@@ -5,7 +5,7 @@ import { HealthJournalController } from './controller/health-journal.controller'
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { TokenModule } from '../token/token.module';
 import { UserModule } from '../user/user.module';
-import { JournalMetrics } from './provider/journal-metrics.provider';
+import { JournalMetricsProvider } from './provider/journal-metrics.provider';
 
 @Module({
   imports: [forwardRef(() => TokenModule), forwardRef(() => UserModule)],
@@ -13,7 +13,7 @@ import { JournalMetrics } from './provider/journal-metrics.provider';
     HealthJournalService,
     HealthJournalProvider,
     ErrorHandler,
-    JournalMetrics,
+    JournalMetricsProvider,
   ],
   controllers: [HealthJournalController],
 })
