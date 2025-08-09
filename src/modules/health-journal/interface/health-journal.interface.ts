@@ -1,4 +1,5 @@
 export type TMood = 'great' | 'good' | 'neutral' | 'low' | 'bad';
+export type TDuration = 'monthly' | 'yearly';
 
 export interface IAddEntry {
   userId: string;
@@ -14,12 +15,28 @@ export interface IFetchJournal {
   limit?: number;
 }
 
+export interface ICreateMetrics {
+  userId: string;
+  year?: number;
+}
+
 export interface IFetchMonthlyJournal {
   userId: string;
   month: number;
 }
 
-export interface ICalculateMonthlyAverageMoodScore {
+export interface ICalculateMoodScore {
   userId: string;
-  month: string;
+  month: number;
+}
+
+export interface IUpdateMonthlyMood {
+  userId: string;
+  month?: number;
+}
+
+export interface IFetchJournalMetrics {
+  userId: string;
+  year?: number;
+  duration: TDuration;
 }
