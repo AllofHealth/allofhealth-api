@@ -1,17 +1,19 @@
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import {
-  monthNameToNumber,
-  monthNumberToName,
-} from '@/shared/utils/date.utils';
+import * as schema from '@/schemas/schema';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import { Database } from '@/shared/drizzle/drizzle.types';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import { monthNumberToName } from '@/shared/utils/date.utils';
 import {
   HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { and, eq } from 'drizzle-orm';
 import {
-  HealthJournalSuccessMessages as HSM,
   HealthJournalErrorMessages as HEM,
+  HealthJournalSuccessMessages as HSM,
   MOOD_INDEX,
 } from '../data/health-journal.data';
 import {
@@ -22,11 +24,6 @@ import {
   TMood,
 } from '../interface/health-journal.interface';
 import { HealthJournalService } from '../service/health-journal.service';
-import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
-import * as schema from '@/schemas/schema';
-import { and, eq } from 'drizzle-orm';
 
 @Injectable()
 export class JournalMetrics {
@@ -202,7 +199,7 @@ export class JournalMetrics {
     }
   }
 
-  async createHealthJournalMetrics(ctx: ICreateMetrics) {
+  private async createHealthJournalMetrics(ctx: ICreateMetrics) {
     const { userId, year = new Date().getFullYear() } = ctx;
     try {
       let createdCount = 0;
