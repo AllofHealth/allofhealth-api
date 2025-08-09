@@ -17,4 +17,5 @@ export enum SharedEvents {
   TASK_COMPLETED = 'task.completed',
   SEND_OTP = 'send.otp',
   VALIDATE_OTP = 'validate.otp',
+  UPDATE_MOOD_METRICS = 'update.mood.metrics',
 }

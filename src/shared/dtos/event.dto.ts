@@ -134,3 +134,10 @@ export class ESendOtp {
 export class EValidateOtp {
   constructor(readonly userId: string) {}
 }
+
+export class EUpdateMoodMetrics {
+  constructor(
+    readonly userId: string,
+    readonly month?: number,
+  ) {}
+}

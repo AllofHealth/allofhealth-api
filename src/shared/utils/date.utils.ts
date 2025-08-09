@@ -114,3 +114,112 @@ export function formatDuration(ms: number): string {
 
   return parts.join(', ');
 }
+
+/**
+ * Converts month name to its corresponding number (1-12)
+ * @param monthName - The name of the month (case-insensitive)
+ * @returns The month number (1 for January, 2 for February, etc.)
+ * @throws Error if invalid month name is provided
+ */
+export function monthNameToNumber(monthName: string): number {
+  const monthMap: Record<string, number> = {
+    january: 1,
+    february: 2,
+    march: 3,
+    april: 4,
+    may: 5,
+    june: 6,
+    july: 7,
+    august: 8,
+    september: 9,
+    october: 10,
+    november: 11,
+    december: 12,
+  };
+
+  // Handle abbreviated month names
+  const abbreviatedMonthMap: Record<string, number> = {
+    jan: 1,
+    feb: 2,
+    mar: 3,
+    apr: 4,
+    may: 5,
+    jun: 6,
+    jul: 7,
+    aug: 8,
+    sep: 9,
+    sept: 9,
+    oct: 10,
+    nov: 11,
+    dec: 12,
+  };
+
+  const normalizedMonth = monthName.trim().toLowerCase();
+
+  // Check full month names first
+  if (monthMap[normalizedMonth]) {
+    return monthMap[normalizedMonth];
+  }
+
+  // Check abbreviated month names
+  if (abbreviatedMonthMap[normalizedMonth]) {
+    return abbreviatedMonthMap[normalizedMonth];
+  }
+
+  // If no match found, throw an error
+  throw new Error(
+    `Invalid month name: "${monthName}". Please provide a valid month name.`,
+  );
+}
+
+/**
+ * Converts month number to its corresponding month name
+ * @param monthNumber - The month number (1-12)
+ * @param format - Format of the month name ('full' | 'abbreviated'), defaults to 'full'
+ * @returns The month name (e.g., "January" for 1, "February" for 2, etc.)
+ * @throws Error if invalid month number is provided
+ */
+export function monthNumberToName(
+  monthNumber: number,
+  format: 'full' | 'abbreviated' = 'full',
+): string {
+  if (!Number.isInteger(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    throw new Error(
+      `Invalid month number: ${monthNumber}. Please provide a number between 1 and 12.`,
+    );
+  }
+
+  const fullMonthNames: Record<number, string> = {
+    1: 'January',
+    2: 'February',
+    3: 'March',
+    4: 'April',
+    5: 'May',
+    6: 'June',
+    7: 'July',
+    8: 'August',
+    9: 'September',
+    10: 'October',
+    11: 'November',
+    12: 'December',
+  };
+
+  const abbreviatedMonthNames: Record<number, string> = {
+    1: 'Jan',
+    2: 'Feb',
+    3: 'Mar',
+    4: 'Apr',
+    5: 'May',
+    6: 'Jun',
+    7: 'Jul',
+    8: 'Aug',
+    9: 'Sep',
+    10: 'Oct',
+    11: 'Nov',
+    12: 'Dec',
+  };
+
+  return format === 'abbreviated'
+    ? abbreviatedMonthNames[monthNumber]
+    : fullMonthNames[monthNumber];
+}
