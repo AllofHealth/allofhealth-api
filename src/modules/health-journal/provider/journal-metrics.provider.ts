@@ -24,10 +24,13 @@ import {
   TMood,
 } from '../interface/health-journal.interface';
 import { HealthJournalService } from '../service/health-journal.service';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { EUpdateMoodMetrics } from '@/shared/dtos/event.dto';
+import { OnEvent } from '@nestjs/event-emitter';
 
 @Injectable()
-export class JournalMetrics {
-  private readonly logger = new MyLoggerService(JournalMetrics.name);
+export class JournalMetricsProvider {
+  private readonly logger = new MyLoggerService(JournalMetricsProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly journalService: HealthJournalService,
@@ -260,7 +263,9 @@ export class JournalMetrics {
     }
   }
 
-  async updateMonthlyMood(ctx: IUpdateMonthlyMood) {
+  @OnEvent(SharedEvents.UPDATE_MOOD_METRICS)
+  async updateMonthlyMood(ctx: EUpdateMoodMetrics) {
+    this.logger.debug(`Updating monthly mood metrics for user ${ctx.userId}`);
     const { userId, month = new Date().getMonth() } = ctx;
     const currentYear = new Date().getFullYear();
 
