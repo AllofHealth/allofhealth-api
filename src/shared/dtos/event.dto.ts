@@ -120,6 +120,7 @@ export class EAddMedicalRecordToContract {
     readonly practitionerId: string,
     readonly cid: string,
     readonly approvalId: string,
+    readonly recordChainId: number,
   ) {}
 }
 
@@ -139,5 +140,12 @@ export class EUpdateMoodMetrics {
   constructor(
     readonly userId: string,
     readonly month?: number,
+  ) {}
+}
+
+export class EDeleteIpfsRecord {
+  constructor(
+    readonly userId: string,
+    readonly cid: string,
   ) {}
 }
