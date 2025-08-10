@@ -1,9 +1,14 @@
 import { OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { EAddMedicalRecordToContract } from '../dtos/event.dto';
+import {
+  EAddMedicalRecordToContract,
+  EDeleteIpfsRecord,
+} from '../dtos/event.dto';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import { RecordsProvider } from '@/modules/records/provider/records.provider';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SharedEvents } from '../events/shared.events';
 
 @Processor('create-record-queue')
 export class CreateRecordProcessor {
@@ -12,6 +17,7 @@ export class CreateRecordProcessor {
   constructor(
     private readonly contractService: ContractService,
     private readonly recordsProvider: RecordsProvider,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Process('record-to-contract')
@@ -61,8 +67,10 @@ export class CreateRecordProcessor {
         `Rollback success ${rollbackResult.success} for record chain id: ${rollbackResult.deletedRecordChainId}, rolled back chain id: ${rollbackResult.deletedRecordChainId}, r`,
       );
 
+      /**
+       * @todo: Failure handling and priming for manual rollback
+       */
       // Additional failure handling
-      // You might want to:
       // 1. Send notification to admin
       // 2. Store failure in a dead letter queue
       // 3. Send alert to monitoring service
@@ -84,6 +92,9 @@ export class CreateRecordProcessor {
       `Record failed to be added to contract and was tolled back, jobId: ${job.id}, error: ${error.message}, recordData: ${job.data}`,
     );
 
-    //todo: create event to delete record instance from ipfs
+    this.eventEmitter.emit(
+      SharedEvents.DELETE_IPFS_RECORD,
+      new EDeleteIpfsRecord(job.data.userId, job.data.cid),
+    );
   }
 }
