@@ -213,15 +213,15 @@ export class RecordsProvider {
         });
       }
 
-      this.eventEmitter.emit(
-        SharedEvents.ADD_MEDICAL_RECORD_TO_CONTRACT,
-        new EAddMedicalRecordToContract(
-          patientId,
-          practitionerId,
-          cid,
-          approvalId,
-        ),
+      const recordEvent = new EAddMedicalRecordToContract(
+        patientId,
+        practitionerId,
+        cid,
+        approvalId,
+        dbResult.recordId,
       );
+
+      await this.createRecordQueue.createRecordJob(recordEvent);
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -229,6 +229,81 @@ export class RecordsProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, REM.ERROR_CREATING_RECORD);
+    }
+  }
+
+  async rollbackRecordCreation(ctx: { userId: string; recordChainId: number }) {
+    const { userId, recordChainId } = ctx;
+
+    try {
+      const result = await this.db.transaction(async (tx) => {
+        const recordToDelete = await tx
+          .select()
+          .from(schema.records)
+          .where(
+            and(
+              eq(schema.records.userId, userId),
+              eq(schema.records.recordChainId, recordChainId),
+            ),
+          )
+          .limit(1);
+
+        if (recordToDelete.length === 0) {
+          throw new Error(
+            `Record with chainId ${recordChainId} not found for user ${userId}`,
+          );
+        }
+
+        await tx
+          .delete(schema.records)
+          .where(
+            and(
+              eq(schema.records.userId, userId),
+              eq(schema.records.recordChainId, recordChainId),
+            ),
+          );
+
+        const counter = await tx
+          .select()
+          .from(schema.userRecordCounters)
+          .where(eq(schema.userRecordCounters.userId, userId))
+          .limit(1);
+
+        if (counter.length === 0) {
+          throw new Error(`Counter not found for user ${userId}`);
+        }
+
+        const currentChainId = counter[0].lastRecordChainId;
+
+        if (currentChainId === recordChainId) {
+          await tx
+            .update(schema.userRecordCounters)
+            .set({
+              lastRecordChainId: recordChainId - 1,
+              updatedAt: new Date().toISOString(),
+            })
+            .where(eq(schema.userRecordCounters.userId, userId));
+
+          this.logger.log(
+            `Rolled back chain ID from ${recordChainId} to ${recordChainId - 1} for user ${userId}`,
+          );
+        } else {
+          this.logger.warn(
+            `Record ${recordChainId} deleted but chain ID not rolled back. Current chain ID is ${currentChainId}`,
+          );
+        }
+
+        return {
+          success: true,
+          deletedRecordChainId: recordChainId,
+          rolledBackChainId: currentChainId === recordChainId,
+        };
+      });
+
+      return result;
+    } catch (error) {
+      this.logger.error(`Error rolling back record creation: ${error.message}`);
+      throw error;
     }
   }
 
