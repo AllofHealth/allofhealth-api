@@ -23,3 +23,8 @@ export interface IpfsRecord {
   attachments?: string[];
   uploadedAt: string;
 }
+
+export interface IDeleteRecordFromIpfs {
+  userId: string;
+  cid: string;
+}
