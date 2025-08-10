@@ -11,11 +11,11 @@ import { RecordsEncryptionService } from './service/record-encryption.service';
 import { RecordsService } from './service/records.service';
 import { TokenModule } from '../token/token.module';
 import { UserModule } from '../user/user.module';
-import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
+import { RecordsQueueModule } from '@/shared/queues/records/records-queue.module';
 
 @Module({
   imports: [
-    CreateRecordQueue,
+    RecordsQueueModule,
     DoctorModule,
     IpfsModule,
     forwardRef(() => ApprovalModule),
@@ -31,5 +31,6 @@ import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
     ErrorHandler,
   ],
   controllers: [RecordsController],
+  exports: [RecordsService, RecordsProvider],
 })
 export class RecordsModule {}
