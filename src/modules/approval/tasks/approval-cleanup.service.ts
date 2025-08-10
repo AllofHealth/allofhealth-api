@@ -12,6 +12,9 @@ export class ApprovalCleanupService {
 
   constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {}
 
+  /**
+   * @todo: do not delete approvals, reset the doctor permissions. and revoke blockchain access
+   */
   @Cron(CronExpression.EVERY_HOUR)
   async cleanupExpiredApprovals() {
     this.logger.log('Starting cleanup of expired approvals...');
