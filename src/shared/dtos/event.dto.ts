@@ -120,6 +120,7 @@ export class EAddMedicalRecordToContract {
     readonly practitionerId: string,
     readonly cid: string,
     readonly approvalId: string,
+    readonly recordChainId: number,
   ) {}
 }
 
