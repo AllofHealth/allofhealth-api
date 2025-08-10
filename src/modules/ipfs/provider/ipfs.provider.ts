@@ -1,11 +1,17 @@
 import { IpfsConfig } from '@/shared/config/ipfs/ipfs.config';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { HttpStatus, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import {
   CustomIpfsClient,
   IpfsClientService,
 } from '../ipfs-client/ipfs-client.service';
 import {
+  IDeleteRecordFromIpfs,
   IHandleFileUploads,
   IMedicalRecord,
   IpfsRecord,
@@ -169,6 +175,24 @@ export class IpfsProvider implements OnModuleInit {
       return recordData as IpfsRecord;
     } catch (e) {
       return this.handler.handleError(e, IEM.ERROR_FETCHING_RECORD);
+    }
+  }
+
+  async deleteRecord(ctx: IDeleteRecordFromIpfs) {
+    try {
+      const ipfs = this.getIpfsClient();
+      const isDeleted = await ipfs.deleteFileByCid(ctx.userId, ctx.cid);
+
+      if (!isDeleted) {
+        throw new HttpException(
+          'Failed to delete record from ipfs',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
+
+      return isDeleted;
+    } catch (e) {
+      return this.handler.handleError(e, IEM.ERROR_DELETING_RECORD);
     }
   }
 }
