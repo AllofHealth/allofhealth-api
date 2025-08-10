@@ -30,7 +30,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }} .
-      
+
       - name: Push Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }}
 
@@ -71,4 +71,3 @@ jobs:
             -p 8080:8080 \
             --name allofhealthapi \
             ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
-
