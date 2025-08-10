@@ -40,6 +40,7 @@ import {
 } from '@/shared/utils/date.utils';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
+import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
 
 @Injectable()
 export class RecordsProvider {
@@ -53,6 +54,7 @@ export class RecordsProvider {
     private readonly eventEmitter: EventEmitter2,
     private readonly approvalService: ApprovalService,
     private readonly contractService: ContractService,
+    private readonly createRecordQueue: CreateRecordQueue,
   ) {}
 
   private async returnPractitionerName(practitionerId: string) {
