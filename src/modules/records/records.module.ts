@@ -11,9 +11,11 @@ import { RecordsEncryptionService } from './service/record-encryption.service';
 import { RecordsService } from './service/records.service';
 import { TokenModule } from '../token/token.module';
 import { UserModule } from '../user/user.module';
+import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
 
 @Module({
   imports: [
+    CreateRecordQueue,
     DoctorModule,
     IpfsModule,
     forwardRef(() => ApprovalModule),
