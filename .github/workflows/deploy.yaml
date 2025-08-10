@@ -72,5 +72,3 @@ jobs:
             --name allofhealthapi \
             ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
 
-            
-

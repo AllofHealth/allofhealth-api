@@ -18,4 +18,5 @@ export enum SharedEvents {
   SEND_OTP = 'send.otp',
   VALIDATE_OTP = 'validate.otp',
   UPDATE_MOOD_METRICS = 'update.mood.metrics',
+  DELETE_IPFS_RECORD = 'delete.ipfs.record',
 }

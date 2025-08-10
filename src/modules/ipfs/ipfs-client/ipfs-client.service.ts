@@ -88,13 +88,74 @@ export class CustomIpfsClient {
   }
 
   private async deleteFile(path: string): Promise<void> {
-    await fetch(
+    const response = await fetch(
       `${this.baseUrl}/api/v0/files/rm?arg=${encodeURIComponent(path)}&force=true`,
       {
         method: 'POST',
         headers: this.headers,
       },
     );
+
+    if (!response.ok) {
+      throw new Error(
+        `IPFS file deletion failed: ${response.status} ${response.statusText}`,
+      );
+    }
+  }
+
+  async findFileByCid(userId: string, cid: string): Promise<string | null> {
+    try {
+      // List all files in the user's directory
+      const response = await fetch(
+        `${this.baseUrl}/api/v0/files/ls?arg=/${userId}&long=true`,
+        {
+          method: 'POST',
+          headers: this.headers,
+        },
+      );
+
+      if (!response.ok) {
+        console.error(`Failed to list files for user ${userId}`);
+        return null;
+      }
+
+      const data = await response.json();
+
+      // Check if any file has the matching CID
+      if (data.Entries) {
+        for (const entry of data.Entries) {
+          if (entry.Hash === cid) {
+            return `/${userId}/${entry.Name}`;
+          }
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error finding file by CID:', error);
+      return null;
+    }
+  }
+
+  async deleteFileByCid(userId: string, cid: string): Promise<boolean> {
+    try {
+      const filePath = await this.findFileByCid(userId, cid);
+
+      if (!filePath) {
+        console.warn(`File with CID ${cid} not found in user ${userId} folder`);
+        return false;
+      }
+
+      await this.deleteFile(filePath);
+
+      await this.unpin(cid);
+
+      console.log(`Successfully deleted file ${filePath} with CID ${cid}`);
+      return true;
+    } catch (error) {
+      console.error(`Error deleting file by CID: ${error.message}`);
+      throw error;
+    }
   }
 
   async add(data: Buffer | string, userId?: string): Promise<IpfsAddResult> {
@@ -316,6 +377,23 @@ export class CustomIpfsClient {
       throw new Error(
         `IPFS pin failed: ${response.status} ${response.statusText}`,
       );
+    }
+  }
+
+  async unpin(cid: string): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v0/pin/rm?arg=${cid}`, {
+        method: 'POST',
+        headers: this.headers,
+      });
+
+      if (!response.ok) {
+        console.warn(
+          `IPFS unpin warning: ${response.status} ${response.statusText}`,
+        );
+      }
+    } catch (error) {
+      console.warn(`Error unpinning CID ${cid}:`, error.message);
     }
   }
 }

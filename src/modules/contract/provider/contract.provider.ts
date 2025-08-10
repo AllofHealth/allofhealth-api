@@ -530,7 +530,7 @@ export class ContractProvider {
           userId,
         });
 
-        if (!('data' in result && result.data)) {
+        if (result.status !== HttpStatus.OK) {
           return this.handlerService.handleReturn({
             status: HttpStatus.BAD_REQUEST,
             message: result.message,
