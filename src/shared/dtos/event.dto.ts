@@ -142,3 +142,10 @@ export class EUpdateMoodMetrics {
     readonly month?: number,
   ) {}
 }
+
+export class EDeleteIpfsRecord {
+  constructor(
+    readonly userId: string,
+    readonly cid: string,
+  ) {}
+}
