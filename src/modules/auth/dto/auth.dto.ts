@@ -69,6 +69,19 @@ export class SignUpDto {
   specialization?: string;
 
   @ApiPropertyOptional({
+    description: 'A brief summary of the practitioner',
+    example:
+      'Cardiologist with 24 years of experience available for physical and virtual consultation',
+  })
+  bio?: string;
+
+  @ApiPropertyOptional({
+    description: 'Services offered by the practitioner',
+    example: ['Physical consultation', 'Virtual consultation'],
+  })
+  servicesOffered?: string[];
+
+  @ApiPropertyOptional({
     description: 'The medical license number of the doctor',
     example: '123456789',
     required: false,
