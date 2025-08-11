@@ -49,6 +49,8 @@ export class DoctorProvider {
         gender: doctor[0].users.gender,
         profilePicture: doctor[0].users.profilePicture as string,
         role: doctor[0].users.role,
+        bio: doctor[0].doctors.bio || '',
+        servicesOffered: doctor[0].doctors.servicesOffered as string[],
         certifications: doctor[0].doctors.certifications as string[],
         hospitalAssociation: doctor[0].doctors.hospitalAssociation,
         specialization: doctor[0].doctors.specialization,
@@ -96,6 +98,8 @@ export class DoctorProvider {
 
       await this.db.insert(schema.doctors).values({
         userId: ctx.userId,
+        bio: ctx.bio,
+        servicesOffered: ctx.servicesOffered,
         hospitalAssociation: ctx.hospitalAssociation,
         licenseExpirationDate: licenseExpirationDateString,
         locationOfHospital: ctx.locationOfHospital,
@@ -143,6 +147,8 @@ export class DoctorProvider {
         gender: doctor.users.gender,
         profilePicture: doctor.users.profilePicture as string,
         role: doctor.users.role,
+        bio: doctor.doctors.bio || '',
+        servicesOffered: doctor.doctors.servicesOffered as string[],
         certifications: doctor.doctors.certifications as string[],
         hospitalAssociation: doctor.doctors.hospitalAssociation,
         specialization: doctor.doctors.specialization,
