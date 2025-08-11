@@ -117,6 +117,20 @@ export class AuthController {
           description: "Doctor's specialization (Required for DOCTOR role)",
           example: 'Cardiologist',
         },
+        bio: {
+          type: 'string',
+          description: 'A brief summary of the practitioner',
+          example:
+            'Cardiologist with 24 years of experience available for physical and virtual consultation',
+        },
+        servicesOffered: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          description: 'Services offered by the practitioner',
+          example: ['Physical Consultation', 'Virtual Consultation'],
+        },
         medicalLicenseNumber: {
           type: 'string',
           description:
