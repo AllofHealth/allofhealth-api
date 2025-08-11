@@ -40,8 +40,8 @@ if [ ! -d "$HOME/.ipfs" ]; then
     $IPFS_CMD config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST", "GET"]'
     $IPFS_CMD config --json API.HTTPHeaders.Access-Control-Allow-Headers '["Authorization", "Content-Type"]'
 
-    $IPFS_CMD config Addresses.API /ip4/127.0.0.1/tcp/5001
-    $IPFS_CMD config Addresses.Gateway /ip4/127.0.0.1/tcp/8080
+    $IPFS_CMD config Addresses.API /ip4/0.0.0.0/tcp/5001
+    $IPFS_CMD config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
 else
     echo "✅ IPFS already initialized"
 fi
