@@ -71,4 +71,3 @@ jobs:
             -p 8080:8080 \
             --name allofhealthapi \
             ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
-            docker rmi $(docker images -q)
