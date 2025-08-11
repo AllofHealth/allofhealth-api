@@ -22,7 +22,9 @@ export class RecordsService {
   }
 
   async fetchRecordByChainId(ctx: IFetchRecordById) {
-    this.logger.log(`Fetching records with chainId from service, ${ctx}`);
+    this.logger.log(
+      `Fetching records with chainId from service, ${JSON.stringify(ctx)}`,
+    );
     return await this.recordsProvider.fetchRecordByChainId(ctx);
   }
 }
