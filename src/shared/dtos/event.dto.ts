@@ -1,5 +1,6 @@
 import type { TAuthProvider } from '@/modules/user/interface/user.interface';
 import type { TRole } from '../interface/shared.interface';
+import { IRewardUsers } from '@/modules/reward/interface/reward.interface';
 
 export class CreateDoctor {
   constructor(
@@ -37,7 +38,10 @@ export class CreateSmartAccount {
 }
 
 export class MintHealthToken {
-  constructor(readonly userId: string) {}
+  constructor(
+    readonly userId: string,
+    readonly amount: number,
+  ) {}
 }
 
 export class EUpdateTaskCount {
@@ -46,7 +50,7 @@ export class EUpdateTaskCount {
 
 export class BatchMintHealthToken {
   constructor(
-    readonly userIds: string[],
+    readonly users: IRewardUsers[],
     readonly batchSize?: number,
     readonly delayBetweenBatches?: number,
     readonly continueOnError?: boolean,
