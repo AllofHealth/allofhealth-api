@@ -81,7 +81,7 @@ else
 fi
 
 # Set environment variables for the Node.js application
-export IPFS_HOST=127.0.0.1
+export IPFS_HOST=143.110.170.157
 export IPFS_PORT=5001
 export IPFS_PROTOCOL=http
 export IPFS_API_KEY=
