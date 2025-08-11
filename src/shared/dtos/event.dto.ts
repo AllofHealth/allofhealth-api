@@ -149,3 +149,7 @@ export class EDeleteIpfsRecord {
     readonly cid: string,
   ) {}
 }
+
+export class EResetApprovalPermissions {
+  constructor(readonly approvalId: string) {}
+}
