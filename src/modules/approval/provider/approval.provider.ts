@@ -27,12 +27,14 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { and, eq, or, sql } from 'drizzle-orm';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
+  APPROVAL_STATUS,
   APPROVAL_SUCCESS_MESSAGE as ASM,
 } from '../data/approval.data';
 import {
   IAcceptApproval,
   IFetchPatientApprovals,
   IRejectApproval,
+  IResetApprovalPermissions,
   IValidateApprovalDuration,
   IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
@@ -365,6 +367,7 @@ export class ApprovalProvider {
       await this.db.update(schema.approvals).set({
         isRequestAccepted: true,
         updatedAt: new Date().toISOString(),
+        status: APPROVAL_STATUS.ACCEPTED,
       });
 
       const approvalContractResult =
@@ -380,6 +383,7 @@ export class ApprovalProvider {
         await this.db.update(schema.approvals).set({
           isRequestAccepted: false,
           updatedAt: previousDate,
+          status: APPROVAL_STATUS.CREATED,
         });
         return this.handler.handleReturn({
           status: approvalContractResult.status,
@@ -538,6 +542,7 @@ export class ApprovalProvider {
           updatedAt: schema.approvals.updatedAt,
           accessLevel: schema.approvals.accessLevel,
           isRequestAccepted: schema.approvals.isRequestAccepted,
+          status: schema.approvals.status,
           patientFullName: schema.user.fullName,
           email: schema.user.emailAddress,
           userHealthInfoId: schema.approvals.userHealthInfoId || null,
@@ -739,6 +744,47 @@ export class ApprovalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_FETCHING_PATIENT_APPROVALS);
+    }
+  }
+
+  async resetApprovalPermissions(ctx: IResetApprovalPermissions) {
+    const { approvalId } = ctx;
+    try {
+      const approvalResult = await this.findApprovalById(approvalId);
+      if (approvalResult.status !== HttpStatus.OK) {
+        return this.handler.handleReturn({
+          status: approvalResult.status,
+          message: approvalResult.message,
+        });
+      }
+
+      if (
+        !('data' in approvalResult && approvalResult) ||
+        approvalResult.data === null
+      ) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Invalid approval data',
+        });
+      }
+
+      const approval = approvalResult.data;
+      const newStatus = !approval.isRequestAccepted
+        ? APPROVAL_STATUS.TIMED_OUT
+        : APPROVAL_STATUS.COMPLETED;
+
+      await this.db
+        .update(schema.approvals)
+        .set({
+          isRequestAccepted: false,
+          status: newStatus,
+        })
+        .where(eq(schema.approvals.id, approvalId));
+    } catch (e) {
+      return this.handler.handleError(
+        e,
+        AEM.ERROR_RESETTING_APPROVAL_PERMISSIONS,
+      );
     }
   }
 }
