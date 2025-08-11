@@ -10,9 +10,13 @@ export interface ICreateDoctor {
   locationOfHospital: string;
   languagesSpoken: string[];
   licenseExpirationDate: Date;
+  bio?: string;
+  servicesOffered?: string[];
 }
 
 export interface IDoctorSnippet extends IUserSnippet {
+  bio: string;
+  servicesOffered: string[];
   specialization: string;
   medicalLicenseNumber: string;
   yearsOfExperience: number;
