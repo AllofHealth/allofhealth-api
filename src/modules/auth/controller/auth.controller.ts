@@ -117,6 +117,12 @@ export class AuthController {
           description: "Doctor's specialization (Required for DOCTOR role)",
           example: 'Cardiologist',
         },
+        bio: {
+          type: 'string',
+          description: "Doctor's bio",
+          example:
+            'Cardiologist with 24 years of experience available for physical and virtual consultation',
+        },
         medicalLicenseNumber: {
           type: 'string',
           description:
