@@ -5,3 +5,8 @@ export interface IFetchTotalRewardPoints {
 export interface IFetchClaimedRewards extends IFetchTotalRewardPoints {
   userId: string;
 }
+
+export interface IRewardUsers {
+  userId: string;
+  amount: number;
+}
