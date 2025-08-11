@@ -22,6 +22,7 @@ export enum APPROVAL_ERROR_MESSAGE {
   ERROR_FETCHING_APPROVAL = 'Error fetching approval',
   ERROR_FETCHING_PATIENT_APPROVALS = 'Error fetching patient approvals',
   ERROR_FETCHING_APPROVED_APPROVALS = 'Error fetching approved approvals',
+  ERROR_RESETTING_APPROVAL_PERMISSIONS = 'Error resetting approval permissions',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
@@ -35,4 +36,14 @@ export enum APPROVAL_SUCCESS_MESSAGE {
   PATIENT_APPROVALS_FETCHED = 'Patient approvals fetched successfully',
   APPROVED_APPROVALS_FETCHED = 'Approved approvals fetched successfully',
   NO_APPROVALS_FOUND = 'No approvals found',
+  RESET_PERMISSIONS_SUCCESS = 'Approval permissions reset successfully',
+}
+
+export enum APPROVAL_STATUS {
+  CREATED = 'CREATED',
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
+  TIMED_OUT = 'TIMED_OUT',
 }
