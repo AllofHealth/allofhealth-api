@@ -12,6 +12,8 @@ export class CreateDoctor {
     readonly languagesSpoken: string[],
     readonly licenseExpirationDate: Date,
     readonly certifications?: string[],
+    readonly servicesOffered?: string[],
+    readonly bio?: string,
   ) {}
 }
 
