@@ -63,7 +63,7 @@ export class ContractService {
 
   @OnEvent(SharedEvents.MINT_HEALTH_TOKEN, { async: true })
   async mintHealthTokens(ctx: MintHealthToken) {
-    return await this.contractProvider.handleMint(ctx.userId);
+    return await this.contractProvider.handleMint(ctx);
   }
 
   async fetchTokenBalance(userId: string) {
