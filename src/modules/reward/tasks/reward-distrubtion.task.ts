@@ -9,8 +9,9 @@ import {
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as schema from '@/schemas/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, gt } from 'drizzle-orm';
 import { DAILY_TARGET } from '@/shared/data/constants';
+import { IRewardUsers } from '../interface/reward.interface';
 
 @Injectable()
 export class RewardDistributionService {
@@ -20,10 +21,47 @@ export class RewardDistributionService {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
   ) {}
 
+  async fetchUsers() {
+    try {
+      const qualifiedUsers = await this.db
+        .select({
+          userId: schema.dailyReward.userId,
+          taskCount: schema.dailyReward.dailyTaskCount,
+        })
+        .from(schema.dailyReward)
+        .where(
+          and(
+            gt(schema.dailyReward.dailyTaskCount, 0),
+            eq(schema.dailyReward.isTokenMinted, false),
+          ),
+        );
+
+      if (!qualifiedUsers || qualifiedUsers.length === 0) {
+        this.logger.log(`No qualified users found`);
+        return;
+      }
+
+      const qualifiedForRewards: IRewardUsers[] = [];
+      qualifiedUsers.forEach((user) => {
+        qualifiedForRewards.push({
+          userId: user.userId,
+          amount: user.taskCount,
+        });
+      });
+
+      return qualifiedForRewards;
+    } catch (e) {
+      throw new InternalServerErrorException('Failed to fetch qualified users');
+    }
+  }
+
   async fetchQualifiedUsers() {
     try {
       const qualifiedUsers = await this.db
-        .select({ userId: schema.dailyReward.userId })
+        .select({
+          userId: schema.dailyReward.userId,
+          taskCount: schema.dailyReward.dailyTaskCount,
+        })
         .from(schema.dailyReward)
         .where(
           and(
@@ -37,12 +75,15 @@ export class RewardDistributionService {
         return;
       }
 
-      const qualifiedUserIds: string[] = [];
+      const qualifiedForRewards: IRewardUsers[] = [];
       qualifiedUsers.forEach((user) => {
-        qualifiedUserIds.push(user.userId);
+        qualifiedForRewards.push({
+          userId: user.userId,
+          amount: user.taskCount,
+        });
       });
 
-      return qualifiedUserIds;
+      return qualifiedForRewards;
     } catch (e) {
       throw new InternalServerErrorException('Failed to fetch qualified users');
     }
@@ -59,7 +100,7 @@ export class RewardDistributionService {
       }
 
       await this.mintTokenQueue.mintHealthTokenJob({
-        userIds: qualifiedUsers,
+        users: qualifiedUsers,
       });
     } catch (e) {
       this.logger.error('Error while rewarding users', e);
@@ -69,6 +110,17 @@ export class RewardDistributionService {
   @Cron('0 0 * * *') // Runs at midnight every day
   async resetDailyRewards() {
     try {
+      const usersToReward = await this.fetchUsers();
+
+      if (usersToReward && usersToReward.length > 0) {
+        this.logger.debug(
+          `Users with some task completed found. Final reward before reset`,
+        );
+        await this.mintTokenQueue.mintHealthTokenJob({
+          users: usersToReward,
+        });
+      }
+
       this.logger.log('Starting daily reward reset at midnight');
 
       await this.db.update(schema.dailyReward).set({

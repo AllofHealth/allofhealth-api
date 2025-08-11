@@ -107,8 +107,6 @@ export class RewardProvider {
         .from(schema.dailyReward)
         .where(eq(schema.dailyReward.userId, userId));
 
-      this.logger.debug(`task count ${dailyTaskCountResult[0]}`);
-
       if (!dailyTaskCountResult || dailyTaskCountResult.length === 0) {
         this.logger.debug(`No daily task table`);
         return {
@@ -119,16 +117,17 @@ export class RewardProvider {
       }
 
       const taskCount = dailyTaskCountResult[0].taskCount || 0;
+      this.logger.debug(`Task count ${taskCount}`);
 
       if (taskCount > 0) {
         tokensEarnedToday = this.matchTaskToReward(taskCount);
-        if (taskCount == 5) {
+        if (taskCount == RC.MAX_TASK_COUNT) {
           const tomorrow = new Date();
           tomorrow.setDate(tomorrow.getDate() + 1);
           nextClaimedDate = formatDateToReadable(tomorrow);
         }
         const unclaimedRewards = Number(
-          this.matchTaskToReward(RC.MAX_REWARD - taskCount),
+          this.matchTaskToReward(RC.MAX_TASK_COUNT - taskCount),
         );
         pendingReward = String(unclaimedRewards);
       }
