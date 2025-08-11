@@ -398,11 +398,15 @@ export class RecordsProvider {
         );
       }
       const recordUris = recordUriResult.data;
+      this.logger.log(`Record uri is fetched from chain ${recordUris}`);
       if (recordUris && recordUris.length > 0) {
         const decryptedRecords = await Promise.all(
           recordUris.map(async (uri) => {
             const encryptedRecord =
               await this.ipfsService.fetchRecordFromIpfs(uri);
+            this.logger.log(
+              `Ipfs server returns with record ${JSON.stringify(encryptedRecord)}`,
+            );
 
             const isIpfsRecord = (record: any): record is IpfsRecord => {
               return (
@@ -435,6 +439,10 @@ export class RecordsProvider {
                   decryptedRecord.data?.medicationsPrscribed,
                 attachments: encryptedRecord.attachments,
               };
+
+              this.logger.log(
+                `Decrypted record data: ${JSON.stringify(recordData)}`,
+              );
 
               return {
                 ...recordData,
