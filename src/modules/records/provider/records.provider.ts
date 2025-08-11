@@ -528,7 +528,9 @@ export class RecordsProvider {
           ),
         );
       const recordType = patientRecordType[0].recordType;
-      this.logger.log(`Patient record from db ${patientRecordType}`);
+      this.logger.log(
+        `Patient record from db ${JSON.stringify(patientRecordType)}`,
+      );
 
       const decryptedRecord = await this.fetchUriAndDecrypt({
         recordIds: [recordChainId],
@@ -536,7 +538,9 @@ export class RecordsProvider {
         viewerAddress,
       });
 
-      this.logger.log(`Decrypted record from db ${decryptedRecord}`);
+      this.logger.log(
+        `Decrypted record from db ${JSON.stringify(decryptedRecord)}`,
+      );
 
       if (!decryptedRecord) {
         throw new HttpException(
