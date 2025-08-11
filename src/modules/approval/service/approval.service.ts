@@ -11,7 +11,10 @@ import { ApprovalProvider } from '../provider/approval.provider';
 import { ApprovalCleanupService } from '../tasks/approval-cleanup.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { SharedEvents } from '@/shared/events/shared.events';
-import { EDeleteApproval } from '@/shared/dtos/event.dto';
+import {
+  EDeleteApproval,
+  EResetApprovalPermissions,
+} from '@/shared/dtos/event.dto';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
@@ -75,5 +78,10 @@ export class ApprovalService {
 
   async fetchApprovedApprovals(userId: string) {
     return await this.approvalProvider.fetchApprovedApprovals(userId);
+  }
+
+  @OnEvent(SharedEvents.RESET_APPROVAL_PERMISSIONS)
+  async resetApprovalPermissions(ctx: EResetApprovalPermissions) {
+    return await this.approvalProvider.resetApprovalPermissions(ctx);
   }
 }
