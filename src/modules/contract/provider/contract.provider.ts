@@ -38,6 +38,7 @@ import {
   IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
+import { IRewardUsers } from '@/modules/reward/interface/reward.interface';
 
 @Injectable()
 export class ContractProvider {
@@ -663,12 +664,14 @@ export class ContractProvider {
     }
   }
 
-  async handleMint(userId: string) {
+  async handleMint(ctx: IRewardUsers) {
+    const { userId, amount } = ctx;
     try {
       const userAddress = await this.getPatientSmartAddress(userId);
       const contract = this.provideAdminTokenInstance();
 
-      const tx = await contract.mint(userAddress, RewardAmount.MIN);
+      const parsedAmount = ethers.parseEther(amount.toString());
+      const tx = await contract.mint(userAddress, parsedAmount);
       await tx.wait();
 
       await this.rewardServicce.updateMintedState(userId, true);
