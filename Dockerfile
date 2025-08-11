@@ -72,5 +72,7 @@ COPY scripts/start-with-ipfs.sh ./start-with-ipfs.sh
 RUN chmod +x start-with-ipfs.sh
 
 EXPOSE 3000
+EXPOSE 8080
+EXPOSE 5001
 
 ENTRYPOINT ["./start-with-ipfs.sh"]
