@@ -23,6 +23,8 @@ export interface ICreateUser {
   phoneNumber: string;
   password: string;
   governmentIdfilePath: string;
+  bio?: string;
+  servicesOffered?: string[];
   specialization?: string;
   medicalLicenseNumber?: string;
   scannedLicensefilePath?: string;
@@ -45,6 +47,8 @@ export interface IUpdateUser {
   gender?: string;
   phoneNumber?: string;
   password?: string;
+  bio?: string;
+  servicesOffered?: string[];
   specialization?: string;
   medicalLicenseNumber?: string;
   hospitalAssociation?: string;
