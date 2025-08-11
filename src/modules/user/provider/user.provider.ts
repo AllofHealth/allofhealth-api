@@ -75,6 +75,8 @@ export class UserProvider {
           ctx.languagesSpoken,
           ctx.licenseExpirationDate,
           ctx.certifications,
+          ctx.servicesOffered,
+          ctx.bio,
         ),
       );
     } catch (error) {
@@ -481,6 +483,8 @@ export class UserProvider {
             medicalLicenseNumber: ctx.medicalLicenseNumber!,
             specialization: ctx.specialization!,
             yearsOfExperience: ctx.yearsOfExperience!,
+            servicesOffered: ctx.servicesOffered,
+            bio: ctx.bio,
           });
 
           await this.eventEmitter.emitAsync(
@@ -529,6 +533,8 @@ export class UserProvider {
       dateOfBirth,
       profilePictureFilePath,
       emailAddress,
+      bio,
+      servicesOffered,
       gender,
       hospitalAssociation,
       locationOfHospital,
@@ -551,7 +557,9 @@ export class UserProvider {
         (hospitalAssociation ||
           locationOfHospital ||
           medicalLicenseNumber ||
-          specialization) &&
+          specialization ||
+          bio ||
+          servicesOffered) &&
         userResult.data.role !== 'DOCTOR'
       ) {
         return this.handler.handleReturn({
@@ -584,6 +592,8 @@ export class UserProvider {
         doctorDataToUpdate.medicalLicenseNumber = medicalLicenseNumber;
       if (specialization) doctorDataToUpdate.specialization = specialization;
       if (availability) doctorDataToUpdate.availability = availability;
+      if (bio) doctorDataToUpdate.bio = bio;
+      if (servicesOffered) doctorDataToUpdate.servicesOffered = servicesOffered;
 
       if (emailAddress && emailAddress !== userResult.data.email) {
         const emailExists = await this.validateEmailAddress(emailAddress);
