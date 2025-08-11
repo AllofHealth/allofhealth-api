@@ -160,6 +160,7 @@ export class IpfsProvider implements OnModuleInit {
   }
 
   async fetchRecord(cid: string) {
+    console.log(`Fetching record with CID: ${cid}`);
     try {
       const ipfs = this.getIpfsClient();
 
@@ -167,6 +168,9 @@ export class IpfsProvider implements OnModuleInit {
       const jsonString = buffer.toString('utf-8');
 
       const recordData = JSON.parse(jsonString);
+      if (!recordData) {
+        throw new Error('Invalid record format: missing required fields');
+      }
 
       if (!recordData.userId || !recordData.title || !recordData.uploadedAt) {
         throw new Error('Invalid record format: missing required fields');
