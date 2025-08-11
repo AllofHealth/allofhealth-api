@@ -454,6 +454,7 @@ export class RecordsProvider {
   }
 
   async fetchRecordByChainId(ctx: IFetchRecordById) {
+    this.logger.log(`Provider is hit.`);
     const { patientId, practitionerId, recordChainId } = ctx;
     let viewerAddress: string | undefined = undefined;
     try {
@@ -527,12 +528,15 @@ export class RecordsProvider {
           ),
         );
       const recordType = patientRecordType[0].recordType;
+      this.logger.log(`Patient record from db ${patientRecordType}`);
 
       const decryptedRecord = await this.fetchUriAndDecrypt({
         recordIds: [recordChainId],
         userId: patientId,
         viewerAddress,
       });
+
+      this.logger.log(`Decrypted record from db ${decryptedRecord}`);
 
       if (!decryptedRecord) {
         throw new HttpException(
