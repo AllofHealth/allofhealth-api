@@ -1,8 +1,10 @@
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { RewardService } from '@/modules/reward/service/reward.service';
 import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 import {
   EApproveRecordAccess,
   EApproveWriteRecord,
-  EDeleteApproval,
+  EResetApprovalPermissions,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -12,7 +14,6 @@ import { PaymasterMode } from '@biconomy/account';
 import {
   BadRequestException,
   HttpStatus,
-  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -37,8 +38,6 @@ import {
   IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
-import { RewardService } from '@/modules/reward/service/reward.service';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class ContractProvider {
@@ -647,8 +646,8 @@ export class ContractProvider {
       const { transactionHash } = await opResponse.waitForTxHash();
 
       await this.eventEmitter.emitAsync(
-        SharedEvents.DELETE_APPROVAL,
-        new EDeleteApproval(approvalId),
+        SharedEvents.RESET_APPROVAL_PERMISSIONS,
+        new EResetApprovalPermissions(approvalId),
       );
 
       return this.handlerService.handleReturn({

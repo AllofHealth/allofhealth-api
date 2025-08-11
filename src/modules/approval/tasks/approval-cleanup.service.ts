@@ -4,7 +4,8 @@ import { Inject } from '@nestjs/common';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import * as schema from '@/schemas/schema';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, ne } from 'drizzle-orm';
+import { APPROVAL_STATUS } from '../data/approval.data';
 
 @Injectable()
 export class ApprovalCleanupService {
@@ -13,7 +14,8 @@ export class ApprovalCleanupService {
   constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {}
 
   /**
-   * @todo: do not delete approvals, reset the doctor permissions. and revoke blockchain access
+   * Revokes access for expired approvals by setting their status to TIMED_OUT
+   * Only processes approvals that haven't been accepted yet
    */
   @Cron(CronExpression.EVERY_HOUR)
   async cleanupExpiredApprovals() {
@@ -23,25 +25,34 @@ export class ApprovalCleanupService {
       const currentTime = Date.now();
       this.logger.debug(`Current time: ${new Date(currentTime).toISOString()}`);
 
-      // Find all approvals that are not accepted and have exceeded their duration
-      const expiredApprovals = await this.db
+      const activeApprovals = await this.db
         .select({
           id: schema.approvals.id,
           createdAt: schema.approvals.createdAt,
           duration: schema.approvals.duration,
           isRequestAccepted: schema.approvals.isRequestAccepted,
+          status: schema.approvals.status,
         })
-        .from(schema.approvals);
+        .from(schema.approvals)
+        .where(
+          and(
+            eq(schema.approvals.isRequestAccepted, false),
+            and(
+              ne(schema.approvals.status, APPROVAL_STATUS.TIMED_OUT),
+              ne(schema.approvals.status, APPROVAL_STATUS.COMPLETED),
+            ),
+          ),
+        );
 
-      this.logger.debug(`Found ${expiredApprovals.length}  approvals to check`);
+      this.logger.debug(
+        `Found ${activeApprovals.length} active approvals to check`,
+      );
 
-      const approvalIdsToDelete: string[] = [];
+      const approvalIdsToRevoke: string[] = [];
 
-      for (const approval of expiredApprovals) {
+      for (const approval of activeApprovals) {
         try {
-          // Parse date from database (stored as string)
           const createdAtTime = new Date(approval.createdAt).getTime();
-
           const duration = approval.duration || 0;
           const expirationTime = createdAtTime + duration;
 
@@ -51,9 +62,9 @@ export class ApprovalCleanupService {
           );
 
           if (currentTime > expirationTime) {
-            approvalIdsToDelete.push(approval.id);
+            approvalIdsToRevoke.push(approval.id);
             this.logger.debug(
-              `Approval ${approval.id} marked for deletion (expired)`,
+              `Approval ${approval.id} marked for revocation (expired)`,
             );
           }
         } catch (dateError) {
@@ -63,20 +74,25 @@ export class ApprovalCleanupService {
         }
       }
 
-      if (approvalIdsToDelete.length > 0) {
+      if (approvalIdsToRevoke.length > 0) {
         this.logger.log(
-          `Deleting ${approvalIdsToDelete.length} expired approvals`,
+          `Revoking access for ${approvalIdsToRevoke.length} expired approvals`,
         );
 
         await this.db
-          .delete(schema.approvals)
-          .where(inArray(schema.approvals.id, approvalIdsToDelete));
+          .update(schema.approvals)
+          .set({
+            status: APPROVAL_STATUS.TIMED_OUT,
+            isRequestAccepted: false,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(inArray(schema.approvals.id, approvalIdsToRevoke));
 
         this.logger.log(
-          `Successfully deleted ${approvalIdsToDelete.length} expired approvals`,
+          `Successfully revoked access for ${approvalIdsToRevoke.length} expired approvals`,
         );
         this.logger.debug(
-          `Deleted approval IDs: ${approvalIdsToDelete.join(', ')}`,
+          `Revoked approval IDs: ${approvalIdsToRevoke.join(', ')}`,
         );
       } else {
         this.logger.log('No expired approvals found to cleanup');
@@ -99,23 +115,35 @@ export class ApprovalCleanupService {
       const currentTime = Date.now();
       this.logger.debug(`Current time: ${new Date(currentTime).toISOString()}`);
 
-      const expiredApprovals = await this.db
+      const activeApprovals = await this.db
         .select({
           id: schema.approvals.id,
           createdAt: schema.approvals.createdAt,
           duration: schema.approvals.duration,
           isRequestAccepted: schema.approvals.isRequestAccepted,
+          status: schema.approvals.status,
         })
-        .from(schema.approvals);
+        .from(schema.approvals)
+        .where(
+          and(
+            eq(schema.approvals.isRequestAccepted, false),
+            // Only process approvals that aren't already timed out or completed
+            and(
+              ne(schema.approvals.status, APPROVAL_STATUS.TIMED_OUT),
+              ne(schema.approvals.status, APPROVAL_STATUS.COMPLETED),
+            ),
+          ),
+        );
 
-      this.logger.debug(`Found ${expiredApprovals.length}  approvals to check`);
+      this.logger.debug(
+        `Found ${activeApprovals.length} active approvals to check`,
+      );
 
-      const approvalIdsToDelete: string[] = [];
+      const approvalIdsToRevoke: string[] = [];
 
-      for (const approval of expiredApprovals) {
+      for (const approval of activeApprovals) {
         try {
           const createdAtTime = new Date(approval.createdAt).getTime();
-
           const duration = approval.duration || 0;
           const expirationTime = createdAtTime + duration;
 
@@ -125,9 +153,9 @@ export class ApprovalCleanupService {
           );
 
           if (currentTime > expirationTime) {
-            approvalIdsToDelete.push(approval.id);
+            approvalIdsToRevoke.push(approval.id);
             this.logger.debug(
-              `Approval ${approval.id} marked for deletion (expired)`,
+              `Approval ${approval.id} marked for revocation (expired)`,
             );
           }
         } catch (dateError) {
@@ -136,32 +164,36 @@ export class ApprovalCleanupService {
           );
         }
       }
-
-      if (approvalIdsToDelete.length > 0) {
+      if (approvalIdsToRevoke.length > 0) {
         this.logger.log(
-          `Deleting ${approvalIdsToDelete.length} expired approvals`,
+          `Revoking access for ${approvalIdsToRevoke.length} expired approvals`,
         );
 
         await this.db
-          .delete(schema.approvals)
-          .where(inArray(schema.approvals.id, approvalIdsToDelete));
+          .update(schema.approvals)
+          .set({
+            status: APPROVAL_STATUS.TIMED_OUT,
+            isRequestAccepted: false,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(inArray(schema.approvals.id, approvalIdsToRevoke));
 
         this.logger.log(
-          `Successfully deleted ${approvalIdsToDelete.length} expired approvals`,
+          `Successfully revoked access for ${approvalIdsToRevoke.length} expired approvals`,
         );
         this.logger.debug(
-          `Deleted approval IDs: ${approvalIdsToDelete.join(', ')}`,
+          `Revoked approval IDs: ${approvalIdsToRevoke.join(', ')}`,
         );
 
         return {
-          deletedCount: approvalIdsToDelete.length,
-          expiredApprovalIds: approvalIdsToDelete,
+          revokedCount: approvalIdsToRevoke.length,
+          revokedApprovalIds: approvalIdsToRevoke,
         };
       } else {
         this.logger.log('No expired approvals found to cleanup');
         return {
-          deletedCount: 0,
-          expiredApprovalIds: [],
+          revokedCount: 0,
+          revokedApprovalIds: [],
         };
       }
     } catch (error) {
@@ -174,6 +206,92 @@ export class ApprovalCleanupService {
       }
 
       throw error;
+    }
+  }
+
+  /**
+   * Cleanup approvals that have already been accepted and expired
+   * Sets their status to TIMED_OUT and revokes access
+   */
+  async cleanupExpiredAcceptedApprovals() {
+    this.logger.log('Starting cleanup of expired accepted approvals...');
+
+    try {
+      const currentTime = Date.now();
+      this.logger.debug(`Current time: ${new Date(currentTime).toISOString()}`);
+
+      const acceptedApprovals = await this.db
+        .select({
+          id: schema.approvals.id,
+          createdAt: schema.approvals.createdAt,
+          duration: schema.approvals.duration,
+          isRequestAccepted: schema.approvals.isRequestAccepted,
+          status: schema.approvals.status,
+        })
+        .from(schema.approvals)
+        .where(
+          and(
+            eq(schema.approvals.isRequestAccepted, true),
+            ne(schema.approvals.status, APPROVAL_STATUS.COMPLETED),
+          ),
+        );
+
+      this.logger.debug(
+        `Found ${acceptedApprovals.length} accepted approvals to check`,
+      );
+
+      const approvalIdsToComplete: string[] = [];
+
+      for (const approval of acceptedApprovals) {
+        try {
+          const createdAtTime = new Date(approval.createdAt).getTime();
+          const duration = approval.duration || 0;
+          const expirationTime = createdAtTime + duration;
+
+          if (currentTime > expirationTime) {
+            approvalIdsToComplete.push(approval.id);
+            this.logger.debug(
+              `Approval ${approval.id} marked for completion (accepted and expired)`,
+            );
+          }
+        } catch (dateError) {
+          this.logger.warn(
+            `Failed to parse date for approval ${approval.id}: ${dateError.message}. Skipping this approval.`,
+          );
+        }
+      }
+
+      if (approvalIdsToComplete.length > 0) {
+        this.logger.log(
+          `Completing ${approvalIdsToComplete.length} expired accepted approvals`,
+        );
+
+        await this.db
+          .update(schema.approvals)
+          .set({
+            status: APPROVAL_STATUS.TIMED_OUT,
+            isRequestAccepted: false,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(inArray(schema.approvals.id, approvalIdsToComplete));
+
+        this.logger.log(
+          `Successfully completed ${approvalIdsToComplete.length} expired accepted approvals`,
+        );
+        this.logger.debug(
+          `Completed approval IDs: ${approvalIdsToComplete.join(', ')}`,
+        );
+      } else {
+        this.logger.log('No expired accepted approvals found to complete');
+      }
+    } catch (error) {
+      this.logger.error('Error during accepted approval cleanup:', error);
+
+      if (error instanceof Error) {
+        this.logger.error(`Error name: ${error.name}`);
+        this.logger.error(`Error message: ${error.message}`);
+        this.logger.error(`Error stack: ${error.stack}`);
+      }
     }
   }
 }

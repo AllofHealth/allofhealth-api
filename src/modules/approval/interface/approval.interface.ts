@@ -1,3 +1,5 @@
+export type TApprovalStatus = 'created' | 'accepted' | 'rejected' | 'completed';
+
 export interface IAcceptApproval {
   doctorId: string;
   approvalId: string;
@@ -21,4 +23,8 @@ export interface IFetchPatientApprovals {
   userId: string;
   page?: number;
   limit?: number;
+}
+
+export interface IResetApprovalPermissions {
+  approvalId: string;
 }

@@ -19,4 +19,5 @@ export enum SharedEvents {
   VALIDATE_OTP = 'validate.otp',
   UPDATE_MOOD_METRICS = 'update.mood.metrics',
   DELETE_IPFS_RECORD = 'delete.ipfs.record',
+  RESET_APPROVAL_PERMISSIONS = 'reset.approval.permissions',
 }
