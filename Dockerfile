@@ -75,4 +75,6 @@ EXPOSE 3000
 EXPOSE 8080
 EXPOSE 5001
 
+VOLUME /root/.ipfs
+
 ENTRYPOINT ["./start-with-ipfs.sh"]

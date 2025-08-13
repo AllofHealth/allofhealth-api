@@ -31,8 +31,12 @@ fi
 echo "📦 IPFS version: $($IPFS_CMD version --number)"
 
 # Initialize IPFS if not already done
-if [ ! -d "$HOME/.ipfs" ]; then
-    echo "🔧 Initializing IPFS..."
+# if [ ! -d "$HOME/.ipfs" ]; then
+    
+# else
+#     echo "✅ IPFS already initialized"
+# fi
+echo "🔧 Initializing IPFS..."
     $IPFS_CMD init
 
     echo "⚙️  Configuring IPFS..."
@@ -42,10 +46,7 @@ if [ ! -d "$HOME/.ipfs" ]; then
 
     $IPFS_CMD config Addresses.API /ip4/0.0.0.0/tcp/5001
     $IPFS_CMD config Addresses.Gateway /ip4/0.0.0.0/tcp/8080
-else
-    echo "✅ IPFS already initialized"
-fi
-
+    
 # Start IPFS daemon
 echo "🌟 Starting IPFS daemon..."
 $IPFS_CMD daemon > /tmp/ipfs.log 2>&1 &
