@@ -1,5 +1,6 @@
 import type { TAuthProvider } from '@/modules/user/interface/user.interface';
 import type { TRole } from '../interface/shared.interface';
+import { TActionTypes } from '@/modules/daily-tasks/interface/daily-tasks.interface';
 
 export class CreateDoctor {
   constructor(
@@ -41,7 +42,11 @@ export class MintHealthToken {
 }
 
 export class EUpdateTaskCount {
-  constructor(readonly userId: string) {}
+  constructor(
+    readonly userId: string,
+    readonly action: TActionTypes,
+    readonly actionId?: string,
+  ) {}
 }
 
 export class BatchMintHealthToken {
