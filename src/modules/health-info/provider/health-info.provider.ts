@@ -23,6 +23,9 @@ import {
 import { AssetService } from '@/modules/asset/service/asset.service';
 import * as schema from '@/schemas/schema';
 import { eq } from 'drizzle-orm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SharedEvents } from '@/shared/events/shared.events';
+import { EUpdateTaskCount } from '@/shared/dtos/event.dto';
 
 @Injectable()
 export class HealthInfoProvider {
@@ -31,6 +34,7 @@ export class HealthInfoProvider {
     private readonly approvalService: ApprovalService,
     private readonly handler: ErrorHandler,
     private readonly assetService: AssetService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private async handleAttachmentUpload(ctx: IHandleAttachmentUpload) {
@@ -123,16 +127,27 @@ export class HealthInfoProvider {
         attachmentFileId = fileId;
       }
 
-      await this.db.insert(schema.healthInformation).values({
+      const healthInfo = await this.db
+        .insert(schema.healthInformation)
+        .values({
+          userId,
+          howAreYouFeeling,
+          whenDidItStart,
+          painLevel,
+          knownConditions,
+          medicationsTaken,
+          attachment: attachmentUrl,
+          attachmentFileId,
+        })
+        .returning();
+
+      const taskData = new EUpdateTaskCount(
         userId,
-        howAreYouFeeling,
-        whenDidItStart,
-        painLevel,
-        knownConditions,
-        medicationsTaken,
-        attachment: attachmentUrl,
-        attachmentFileId,
-      });
+        'COMPLETE_HEALTH_INFO',
+        healthInfo[0].id,
+      );
+
+      this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -147,10 +162,19 @@ export class HealthInfoProvider {
     try {
       const dataToUpdate = await this.prepareRecordToUpdate(ctx);
 
-      await this.db
+      const healthInfo = await this.db
         .update(schema.healthInformation)
         .set(dataToUpdate)
-        .where(eq(schema.healthInformation.userId, ctx.userId));
+        .where(eq(schema.healthInformation.userId, ctx.userId))
+        .returning();
+
+      const taskData = new EUpdateTaskCount(
+        ctx.userId,
+        'COMPLETE_HEALTH_INFO',
+        healthInfo[0].id,
+      );
+
+      this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
