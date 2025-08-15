@@ -649,6 +649,7 @@ export class UserProvider {
         .update(schema.user)
         .set({
           isOtpVerified: true,
+          status: 'ACTIVE',
         })
         .where(eq(schema.user.emailAddress, emailAddress));
       return this.handler.handleReturn({

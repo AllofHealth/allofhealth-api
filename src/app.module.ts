@@ -27,6 +27,7 @@ import { AssetModule } from './modules/asset/asset.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { HealthInfoModule } from './modules/health-info/health-info.module';
 import { RewardModule } from './modules/reward/reward.module';
+import { DailyTasksModule } from './modules/daily-tasks/daily-tasks.module';
 
 @Module({
   imports: [
@@ -79,9 +80,10 @@ import { RewardModule } from './modules/reward/reward.module';
     WalletModule,
     HealthInfoModule,
     RewardModule,
-    ApprovalModule
+    ApprovalModule,
+    DailyTasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
