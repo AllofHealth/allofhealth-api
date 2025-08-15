@@ -4,16 +4,16 @@ import { DailyTasksService } from './service/daily-tasks.service';
 import { DailyTasksProvider } from './provider/daily-tasks.provider';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { RewardModule } from '@/modules/reward/reward.module';
-import { UserModule } from '../user/user.module';
+import { UserModule } from '@/modules/user/user.module';
+import { AdminModule } from '@/modules/admin/admin.module';
 import { TokenModule } from '../token/token.module';
-import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [
-    RewardModule,
+    forwardRef(() => RewardModule),
     forwardRef(() => UserModule),
-    forwardRef(() => TokenModule),
     forwardRef(() => AdminModule),
+    forwardRef(() => TokenModule),
   ],
   controllers: [DailyTasksController],
   providers: [DailyTasksService, DailyTasksProvider, ErrorHandler],
