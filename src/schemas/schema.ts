@@ -246,6 +246,8 @@ export const taskTypes = pgTable('task_types', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   name: varchar('name', { length: 255 }).notNull().unique(),
   description: text('description').notNull(),
+  actionType: varchar('action_type', { length: 255 }).notNull().default('none'),
+  applicableRoles: jsonb('applicable_roles').notNull().default([]),
   tokenReward: integer('token_reward').notNull().default(1),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: date('created_at').defaultNow(),
