@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  decimal,
   index,
   integer,
   jsonb,
@@ -241,3 +242,66 @@ export const moodMetrics = pgTable(
     userYearMonthIndex: index().on(table.userId, table.year, table.month),
   }),
 );
+
+export const taskTypes = pgTable('task_types', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
+  description: text('description').notNull(),
+  actionType: varchar('action_type', { length: 255 }).notNull().default('none'),
+  applicableRoles: jsonb('applicable_roles').notNull().default([]),
+  tokenReward: decimal('token_reward', { precision: 10, scale: 4 })
+    .notNull()
+    .default('0.01'),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: date('created_at').defaultNow(),
+  updatedAt: date('updated_at').defaultNow(),
+});
+
+export const dailyTasks = pgTable(
+  'daily_tasks',
+  {
+    id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    taskTypeId: uuid('task_type_id')
+      .notNull()
+      .references(() => taskTypes.id, { onDelete: 'cascade' }),
+    taskDate: date('task_date').notNull(),
+    isCompleted: boolean('is_completed').notNull().default(false),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    tokenReward: decimal('token_reward', { precision: 10, scale: 4 })
+      .notNull()
+      .default('0.01'),
+    createdAt: date('created_at').defaultNow(),
+    updatedAt: date('updated_at').defaultNow(),
+  },
+  (table) => ({
+    userDateIndex: index().on(table.userId, table.taskDate),
+    userDateTaskTypeUnique: unique().on(
+      table.userId,
+      table.taskDate,
+      table.taskTypeId,
+    ),
+  }),
+);
+
+export const taskCompletions = pgTable('task_completions', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  dailyTaskId: uuid('daily_task_id')
+    .notNull()
+    .references(() => dailyTasks.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  actionType: varchar('action_type', { length: 100 }).notNull(),
+  relatedEntityId: uuid('related_entity_id'),
+  relatedEntityType: varchar('related_entity_type', { length: 50 }),
+  tokensAwarded: decimal('tokens_awarded', { precision: 10, scale: 4 })
+    .notNull()
+    .default('0.01'),
+  completedAt: timestamp('completed_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  createdAt: date('created_at').defaultNow(),
+});
