@@ -22,7 +22,7 @@ import { TokenModule } from '../token/token.module';
     ErrorHandler,
     RewardDistributionService,
   ],
-  exports: [RewardService],
+  exports: [RewardService, RewardProvider],
   controllers: [RewardController],
 })
 export class RewardModule {}
