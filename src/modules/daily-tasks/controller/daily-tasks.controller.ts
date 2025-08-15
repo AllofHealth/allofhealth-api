@@ -1,10 +1,12 @@
+import { AdminGuard } from '@/modules/admin/guard/admin.guard';
+import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { OwnerGuard } from '@/modules/user/guard/user.guard';
 import {
   Body,
   Controller,
   Delete,
   Get,
   HttpStatus,
-  Param,
   Post,
   Query,
   UseGuards,
@@ -12,7 +14,6 @@ import {
 import {
   ApiBearerAuth,
   ApiOperation,
-  ApiParam,
   ApiQuery,
   ApiResponse,
   ApiTags,
@@ -25,9 +26,6 @@ import {
   TaskStatsResponseDto,
 } from '../dto/daily-tasks.dto';
 import { DailyTasksService } from '../service/daily-tasks.service';
-import { AuthGuard } from '@nestjs/passport';
-import { OwnerGuard } from '@/modules/user/guard/user.guard';
-import { AdminGuard } from '@/modules/admin/guard/admin.guard';
 
 @ApiTags('Daily Tasks Operations')
 @Controller('daily-tasks')
@@ -36,6 +34,7 @@ export class DailyTasksController {
   constructor(private readonly dailyTasksService: DailyTasksService) {}
 
   @Post('generateDailyTasks')
+  @UseGuards(OwnerGuard)
   @ApiOperation({
     summary: 'Generate daily tasks for a user',
     description:
@@ -165,6 +164,7 @@ export class DailyTasksController {
   }
 
   @Post('initialize-task-types')
+  @UseGuards(AdminGuard)
   @ApiOperation({
     summary: 'Initialize default task types',
     description:
