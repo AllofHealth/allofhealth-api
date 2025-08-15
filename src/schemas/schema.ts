@@ -1,6 +1,7 @@
 import {
   boolean,
   date,
+  decimal,
   index,
   integer,
   jsonb,
@@ -248,7 +249,9 @@ export const taskTypes = pgTable('task_types', {
   description: text('description').notNull(),
   actionType: varchar('action_type', { length: 255 }).notNull().default('none'),
   applicableRoles: jsonb('applicable_roles').notNull().default([]),
-  tokenReward: integer('token_reward').notNull().default(1),
+  tokenReward: decimal('token_reward', { precision: 10, scale: 4 })
+    .notNull()
+    .default('0.01'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: date('created_at').defaultNow(),
   updatedAt: date('updated_at').defaultNow(),
@@ -267,7 +270,9 @@ export const dailyTasks = pgTable(
     taskDate: date('task_date').notNull(),
     isCompleted: boolean('is_completed').notNull().default(false),
     completedAt: timestamp('completed_at', { withTimezone: true }),
-    tokenReward: integer('token_reward').notNull().default(1),
+    tokenReward: decimal('token_reward', { precision: 10, scale: 4 })
+      .notNull()
+      .default('0.01'),
     createdAt: date('created_at').defaultNow(),
     updatedAt: date('updated_at').defaultNow(),
   },
@@ -292,7 +297,9 @@ export const taskCompletions = pgTable('task_completions', {
   actionType: varchar('action_type', { length: 100 }).notNull(),
   relatedEntityId: uuid('related_entity_id'),
   relatedEntityType: varchar('related_entity_type', { length: 50 }),
-  tokensAwarded: integer('tokens_awarded').notNull().default(1),
+  tokensAwarded: decimal('tokens_awarded', { precision: 10, scale: 4 })
+    .notNull()
+    .default('0.01'),
   completedAt: timestamp('completed_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
