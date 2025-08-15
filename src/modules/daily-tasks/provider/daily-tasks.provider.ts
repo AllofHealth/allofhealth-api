@@ -40,56 +40,18 @@ export class DailyTasksProvider {
         return this.getUserDailyTasks({ userId, date: today });
       }
 
-      const userData = await this.db
-        .select({ role: schema.user.role })
-        .from(schema.user)
-        .where(eq(schema.user.id, userId))
-        .limit(1);
-
-      if (!userData.length) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: 'User not found',
-        });
+      try {
+        await this.generateDailyTasksForDate(userId, today);
+        return this.getUserDailyTasks({ userId, date: today });
+      } catch (error) {
+        if (error.message === 'User not found') {
+          return this.handler.handleReturn({
+            status: HttpStatus.NOT_FOUND,
+            message: 'User not found',
+          });
+        }
+        throw error;
       }
-
-      const userRole = userData[0].role;
-
-      const availableTaskTypes = await this.db
-        .select()
-        .from(schema.taskTypes)
-        .where(eq(schema.taskTypes.isActive, true));
-
-      const applicableTaskTypes = availableTaskTypes.filter((taskType) => {
-        const roles = Array.isArray(taskType.applicableRoles)
-          ? taskType.applicableRoles
-          : [];
-        return roles.includes(userRole);
-      });
-
-      if (applicableTaskTypes.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: 'No applicable tasks for user role',
-          data: { tasks: [] },
-        });
-      }
-
-      const selectedTaskTypes = this.shuffleArray(applicableTaskTypes).slice(
-        0,
-        DailyTasksProvider.MAX_DAILY_TASKS,
-      );
-
-      const tasksToCreate = selectedTaskTypes.map((taskType) => ({
-        userId,
-        taskTypeId: taskType.id,
-        taskDate: today,
-        tokenReward: taskType.tokenReward,
-      }));
-
-      await this.db.insert(schema.dailyTasks).values(tasksToCreate);
-
-      return this.getUserDailyTasks({ userId, date: today });
     } catch (e) {
       return this.handler.handleError(e, 'Error generating daily tasks');
     }
@@ -124,6 +86,64 @@ export class DailyTasksProvider {
         )
         .orderBy(desc(schema.dailyTasks.createdAt));
 
+      // If no tasks exist for the requested date, generate them
+      if (tasks.length === 0) {
+        await this.generateDailyTasksForDate(userId, targetDate);
+
+        // Re-fetch the newly created tasks
+        const newTasks = await this.db
+          .select({
+            id: schema.dailyTasks.id,
+            userId: schema.dailyTasks.userId,
+            taskTypeId: schema.dailyTasks.taskTypeId,
+            taskDate: schema.dailyTasks.taskDate,
+            isCompleted: schema.dailyTasks.isCompleted,
+            completedAt: schema.dailyTasks.completedAt,
+            tokenReward: schema.dailyTasks.tokenReward,
+            taskType: schema.taskTypes,
+          })
+          .from(schema.dailyTasks)
+          .leftJoin(
+            schema.taskTypes,
+            eq(schema.dailyTasks.taskTypeId, schema.taskTypes.id),
+          )
+          .where(
+            and(
+              eq(schema.dailyTasks.userId, userId),
+              eq(schema.dailyTasks.taskDate, targetDate),
+            ),
+          )
+          .orderBy(desc(schema.dailyTasks.createdAt));
+
+        const formattedNewTasks = newTasks.map((task) => ({
+          id: task.id,
+          userId: task.userId,
+          taskTypeId: task.taskTypeId,
+          taskDate: task.taskDate,
+          isCompleted: task.isCompleted,
+          completedAt: task.completedAt || undefined,
+          tokenReward: parseFloat(task.tokenReward),
+          taskType: {
+            id: task.taskType?.id || '',
+            name: task.taskType?.name || '',
+            description: task.taskType?.description || '',
+            actionType: task.taskType?.actionType || '',
+            applicableRoles: Array.isArray(task.taskType?.applicableRoles)
+              ? task.taskType.applicableRoles
+              : [],
+            tokenReward: task.taskType?.tokenReward
+              ? parseFloat(task.taskType.tokenReward)
+              : 0,
+          },
+        }));
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: 'Daily tasks generated and retrieved successfully',
+          data: { tasks: formattedNewTasks },
+        });
+      }
+
       const formattedTasks = tasks.map((task) => ({
         id: task.id,
         userId: task.userId,
@@ -131,7 +151,7 @@ export class DailyTasksProvider {
         taskDate: task.taskDate,
         isCompleted: task.isCompleted,
         completedAt: task.completedAt || undefined,
-        tokenReward: task.tokenReward,
+        tokenReward: parseFloat(task.tokenReward),
         taskType: {
           id: task.taskType?.id || '',
           name: task.taskType?.name || '',
@@ -140,7 +160,9 @@ export class DailyTasksProvider {
           applicableRoles: Array.isArray(task.taskType?.applicableRoles)
             ? task.taskType.applicableRoles
             : [],
-          tokenReward: task.taskType?.tokenReward || 0,
+          tokenReward: task.taskType?.tokenReward
+            ? parseFloat(task.taskType.tokenReward)
+            : 0,
         },
       }));
 
@@ -151,6 +173,61 @@ export class DailyTasksProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, 'Error fetching daily tasks');
+    }
+  }
+
+  /**
+   * Generate daily tasks for a specific date
+   * This is a helper method used by getUserDailyTasks when no tasks exist for a date
+   */
+  private async generateDailyTasksForDate(userId: string, targetDate: string) {
+    try {
+      const userData = await this.db
+        .select({ role: schema.user.role })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId))
+        .limit(1);
+
+      if (!userData.length) {
+        throw new Error('User not found');
+      }
+
+      const userRole = userData[0].role;
+
+      const availableTaskTypes = await this.db
+        .select()
+        .from(schema.taskTypes)
+        .where(eq(schema.taskTypes.isActive, true));
+
+      const applicableTaskTypes = availableTaskTypes.filter((taskType) => {
+        const roles = Array.isArray(taskType.applicableRoles)
+          ? taskType.applicableRoles
+          : [];
+        return roles.includes(userRole);
+      });
+
+      if (applicableTaskTypes.length === 0) {
+        // No applicable tasks for user role - this is not an error
+        return;
+      }
+
+      const selectedTaskTypes = this.shuffleArray(applicableTaskTypes).slice(
+        0,
+        DailyTasksProvider.MAX_DAILY_TASKS,
+      );
+
+      const tasksToCreate = selectedTaskTypes.map((taskType) => ({
+        userId,
+        taskTypeId: taskType.id,
+        taskDate: targetDate,
+        tokenReward: taskType.tokenReward,
+      }));
+
+      if (tasksToCreate.length > 0) {
+        await this.db.insert(schema.dailyTasks).values(tasksToCreate);
+      }
+    } catch (e) {
+      throw new Error(`Error generating daily tasks for date: ${e.message}`);
     }
   }
 
@@ -243,7 +320,7 @@ export class DailyTasksProvider {
         message: 'Task completed successfully',
         data: {
           taskCompleted: true,
-          tokensAwarded: task.tokenReward,
+          tokensAwarded: parseFloat(task.tokenReward),
           taskId: task.dailyTaskId,
         },
       });
