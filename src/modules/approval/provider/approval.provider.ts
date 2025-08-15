@@ -391,7 +391,11 @@ export class ApprovalProvider {
         });
       }
 
-      const taskData = new EUpdateTaskCount(doctorId);
+      const taskData = new EUpdateTaskCount(
+        doctorId,
+        'ACCEPT_APPROVAL',
+        approvalId,
+      );
 
       this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
       return this.handler.handleReturn({

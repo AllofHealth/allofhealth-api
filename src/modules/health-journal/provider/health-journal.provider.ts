@@ -92,7 +92,11 @@ export class HealthJournalProvider {
         });
       }
 
-      const taskData = new EUpdateTaskCount(userId);
+      const taskData = new EUpdateTaskCount(
+        userId,
+        'ADD_HEALTH_JOURNAL',
+        journal[0].id,
+      );
       this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
       this.eventEmitter.emit(
         SharedEvents.UPDATE_MOOD_METRICS,

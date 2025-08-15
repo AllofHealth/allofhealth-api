@@ -4,6 +4,7 @@ import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import {
   EAddMedicalRecordToContract,
   EDeleteIpfsRecord,
+  EUpdateTaskCount,
 } from '../dtos/event.dto';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import { RecordsProvider } from '@/modules/records/provider/records.provider';
@@ -34,6 +35,12 @@ export class CreateRecordProcessor {
       });
 
       this.logger.log(`Successfully processed job ${job.id}`);
+      const taskData = new EUpdateTaskCount(
+        job.data.userId,
+        'CREATE_MEDICAL_RECORD',
+        String(job.data.recordChainId),
+      );
+      this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
       return result;
     } catch (error) {
       this.logger.error(`Error processing job ${job.id}: ${error.message}`);
