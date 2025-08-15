@@ -7,6 +7,7 @@ import { RewardModule } from '@/modules/reward/reward.module';
 import { UserModule } from '@/modules/user/user.module';
 import { AdminModule } from '@/modules/admin/admin.module';
 import { TokenModule } from '../token/token.module';
+import { DailyTasksTask } from './tasks/daily-tasks.task';
 
 @Module({
   imports: [
@@ -16,7 +17,12 @@ import { TokenModule } from '../token/token.module';
     forwardRef(() => TokenModule),
   ],
   controllers: [DailyTasksController],
-  providers: [DailyTasksService, DailyTasksProvider, ErrorHandler],
+  providers: [
+    DailyTasksService,
+    DailyTasksProvider,
+    DailyTasksTask,
+    ErrorHandler,
+  ],
   exports: [DailyTasksService, DailyTasksProvider],
 })
 export class DailyTasksModule {}
