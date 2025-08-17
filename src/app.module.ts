@@ -22,12 +22,15 @@ import { AccountAbstractionModule } from './shared/modules/account-abstraction/a
 import { ExternalAccountModule } from './shared/modules/external-account/external-account.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { RecordsModule } from './modules/records/records.module';
+import { RecordsQueueModule } from './shared/queues/records/records-queue.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { AssetModule } from './modules/asset/asset.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { HealthInfoModule } from './modules/health-info/health-info.module';
 import { RewardModule } from './modules/reward/reward.module';
 import { DailyTasksModule } from './modules/daily-tasks/daily-tasks.module';
+import { MintQueueModule } from './shared/queues/mint/mint-queue.module';
+import { AccountQueueModule } from './shared/queues/account/account-queue.module';
 
 @Module({
   imports: [
@@ -69,12 +72,15 @@ import { DailyTasksModule } from './modules/daily-tasks/daily-tasks.module';
     DrizzleModule,
     AccountAbstractionModule,
     ExternalAccountModule,
+    AccountQueueModule,
     AuthModule,
     ContractModule,
     HealthJournalModule,
     IpfsModule,
     AdminModule,
+    MintQueueModule,
     RecordsModule,
+    RecordsQueueModule,
     OtpModule,
     AssetModule,
     WalletModule,
