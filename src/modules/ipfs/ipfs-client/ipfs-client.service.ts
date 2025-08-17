@@ -316,39 +316,76 @@ export class CustomIpfsClient {
       fileName = `record-${userId}.${randomText}`;
     }
 
-    let targetPath = `/${userId}/${fileName}`;
+    const maxRetries = 5;
+    let attempt = 0;
 
-    if (await this.fileExists(targetPath)) {
-      const randomText = crypto.randomUUID();
-      const ext = fileName.includes('.')
-        ? fileName.substring(fileName.lastIndexOf('.') + 1)
-        : '';
-      const base = fileName.includes('.')
-        ? fileName.substring(0, fileName.lastIndexOf('.'))
-        : fileName;
-      const timestamp = Date.now();
-      const newFileName = ext
-        ? `${base}-${timestamp}.${ext}.${randomText}`
-        : `${base}-${timestamp}.${randomText}`;
-      targetPath = `/${userId}/${newFileName}`;
+    while (attempt < maxRetries) {
+      let targetPath = `/${userId}/${fileName}`;
+
+      // Add timestamp and random suffix for subsequent attempts
+      if (attempt > 0) {
+        const randomText = crypto.randomUUID();
+        const ext = fileName.includes('.')
+          ? fileName.substring(fileName.lastIndexOf('.') + 1)
+          : '';
+        const base = fileName.includes('.')
+          ? fileName.substring(0, fileName.lastIndexOf('.'))
+          : fileName;
+        const timestamp = Date.now();
+        const newFileName = ext
+          ? `${base}-${timestamp}-${attempt}.${ext}.${randomText}`
+          : `${base}-${timestamp}-${attempt}.${randomText}`;
+        targetPath = `/${userId}/${newFileName}`;
+      }
+
+      try {
+        const response = await fetch(
+          `${this.baseUrl}/api/v0/files/cp?arg=/ipfs/${hash}&arg=${encodeURIComponent(targetPath)}`,
+          {
+            method: 'POST',
+            headers: this.headers,
+          },
+        );
+
+        if (response.ok) {
+          return targetPath;
+        }
+
+        const errorText = await response.text();
+
+        // Check if the error is due to duplicate file name
+        if (
+          response.status === 500 &&
+          errorText.includes('directory already has entry by that name')
+        ) {
+          attempt++;
+          if (attempt < maxRetries) {
+            // Wait with exponential backoff before retry
+            await new Promise((resolve) =>
+              setTimeout(resolve, 100 * Math.pow(2, attempt)),
+            );
+            continue;
+          }
+        }
+
+        // If it's not a duplicate name error or we've exceeded retries, throw the error
+        throw new Error(
+          `IPFS move to user folder failed: ${response.status} ${response.statusText} - ${errorText}`,
+        );
+      } catch (error) {
+        if (attempt === maxRetries - 1) {
+          throw error;
+        }
+        attempt++;
+        await new Promise((resolve) =>
+          setTimeout(resolve, 100 * Math.pow(2, attempt)),
+        );
+      }
     }
 
-    const response = await fetch(
-      `${this.baseUrl}/api/v0/files/cp?arg=/ipfs/${hash}&arg=${encodeURIComponent(targetPath)}`,
-      {
-        method: 'POST',
-        headers: this.headers,
-      },
+    throw new Error(
+      `Failed to move file to user folder after ${maxRetries} attempts`,
     );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `IPFS move to user folder failed: ${response.status} ${response.statusText} - ${errorText}`,
-      );
-    }
-
-    return targetPath;
   }
 
   async cat(cid: string): Promise<Buffer> {
