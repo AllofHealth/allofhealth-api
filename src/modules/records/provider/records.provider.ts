@@ -199,6 +199,10 @@ export class RecordsProvider {
       });
 
       if (!('data' in ipfsResult) || !ipfsResult) {
+        await this.rollbackRecordCreation({
+          recordChainId: dbResult.recordId,
+          userId: patientId,
+        });
         return this.handler.handleReturn({
           status: ipfsResult.status,
           message: ipfsResult.message,
@@ -526,6 +530,7 @@ export class RecordsProvider {
             eq(schema.records.recordChainId, recordChainId),
           ),
         );
+
       const recordType = patientRecordType[0].recordType;
 
       const decryptedRecord = await this.fetchUriAndDecrypt({
