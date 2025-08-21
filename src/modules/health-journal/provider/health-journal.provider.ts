@@ -20,7 +20,11 @@ import {
 } from '../interface/health-journal.interface';
 import { and, eq, sql } from 'drizzle-orm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EUpdateMoodMetrics, EUpdateTaskCount } from '@/shared/dtos/event.dto';
+import {
+  EOnUserLogin,
+  EUpdateMoodMetrics,
+  EUpdateTaskCount,
+} from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { JournalMetricsProvider } from './journal-metrics.provider';
 
@@ -101,6 +105,10 @@ export class HealthJournalProvider {
       this.eventEmitter.emit(
         SharedEvents.UPDATE_MOOD_METRICS,
         new EUpdateMoodMetrics(userId),
+      );
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(userId, new Date(), new Date()),
       );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
