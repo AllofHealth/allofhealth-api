@@ -9,6 +9,7 @@ import { Database } from '@/shared/drizzle/drizzle.types';
 import {
   EAddMedicalRecordToContract,
   EDeleteApproval,
+  EOnUserLogin,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -226,6 +227,10 @@ export class RecordsProvider {
       );
 
       await this.createRecordQueue.createRecordJob(recordEvent);
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(practitionerId, new Date(), new Date()),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -559,6 +564,12 @@ export class RecordsProvider {
         recordType: recordType,
         practitionerName: patientRecordType[0].practitionerName,
       };
+
+      const userToUpdate = practitionerId ? practitionerId : patientId;
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(userToUpdate, new Date(), new Date()),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
