@@ -20,6 +20,7 @@ import {
   DeleteUser,
   EHandleRegisterDoctor,
   EHandleRegisterPatient,
+  EOnUserLogin,
   ERegisterEntity,
   ESendOtp,
 } from '@/shared/dtos/event.dto';
@@ -316,7 +317,10 @@ export class UserProvider {
           ),
         },
       };
-
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(id, new Date(), new Date()),
+      );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: USM.USER_FETCHED_SUCCESSFULLY,
@@ -584,6 +588,7 @@ export class UserProvider {
       if (lastLogin) dataToUpdate.lastLogin = lastLogin;
       if (lastActivity) dataToUpdate.lastActivity = lastActivity;
       if (authProvider) dataToUpdate.authProvider = authProvider;
+      dataToUpdate.updatedAt = new Date();
 
       if (hospitalAssociation)
         doctorDataToUpdate.hospitalAssociation = hospitalAssociation;
