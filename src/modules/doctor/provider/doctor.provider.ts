@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
@@ -120,8 +120,10 @@ export class DoctorProvider {
   }
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
-    const { page = 1, limit = 12 } = ctx;
+    const { page = 1, limit = 12, sort = 'desc' } = ctx;
     const skip = (page - 1) * limit;
+    const sortFn = sort === 'desc' ? desc : asc;
+    const sortColumn = schema.user.createdAt;
     try {
       const totalDoctorsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
@@ -132,13 +134,16 @@ export class DoctorProvider {
       const totalCount = Number(totalDoctorsResult[0]?.count ?? 0);
       const totalPages = Math.ceil(totalCount / limit);
 
-      const doctors = await this.db
-        .select()
-        .from(schema.doctors)
-        .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-        .where(eq(schema.user.role, 'DOCTOR'))
-        .offset(skip)
-        .limit(limit);
+      const doctors = (
+        await this.db
+          .select()
+          .from(schema.doctors)
+          .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+          .where(eq(schema.user.role, 'DOCTOR'))
+          .orderBy(sortFn(sortColumn))
+          .offset(skip)
+          .limit(limit)
+      ).sort();
 
       const parsedDoctors: IDoctorSnippet[] = doctors.map((doctor) => ({
         userId: doctor.users.id,
