@@ -283,9 +283,13 @@ export class UserController {
     @Body() ctx: UpdateUserDto,
   ) {
     this.logger.log(`Updating user ${ctx.userId} from ${ip} `);
+    let path: string | undefined;
+    if (profilePicture) {
+      path = profilePicture.path;
+    }
     return this.userService.updateUser({
       ...ctx,
-      profilePictureFilePath: profilePicture.path,
+      profilePictureFilePath: path,
     });
   }
 }
