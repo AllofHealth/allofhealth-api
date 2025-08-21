@@ -1,5 +1,7 @@
 import type { IUserSnippet } from '@/modules/user/interface/user.interface';
 
+export type TSort = 'asc' | 'desc';
+
 export interface ICreateDoctor {
   userId: string;
   specialization: string;
@@ -31,4 +33,5 @@ export interface IDoctorSnippet extends IUserSnippet {
 export interface IFetchDoctors {
   page?: number;
   limit?: number;
+  sort?: TSort;
 }
