@@ -23,5 +23,5 @@ export enum ADMIN_SUCCESS_MESSAGES {
 }
 
 export enum ACTIVITY_THRESHOLD {
-  ACTIVE = 7, //  In Days
+  ACTIVE = 1000 * 60 * 60 * 24 * 7, //  7 Days
 }
