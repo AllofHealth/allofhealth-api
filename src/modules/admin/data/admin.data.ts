@@ -21,3 +21,7 @@ export enum ADMIN_SUCCESS_MESSAGES {
   PRACTITIONER_VERIFIED = 'Practitioner verified successfully',
   SUCCESS_DELETING_ADMIN = 'Admin deleted successfully',
 }
+
+export enum ACTIVITY_THRESHOLD {
+  ACTIVE = 7, //  In Days
+}
