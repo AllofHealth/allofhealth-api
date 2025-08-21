@@ -74,6 +74,8 @@ export class DoctorController {
   @ApiOperation({ summary: 'Fetch all doctors' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiQuery({ name: 'query', required: false })
   @ApiOkResponse({
     description: 'Fetch all doctors',
     type: Array,
@@ -120,12 +122,14 @@ export class DoctorController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('sort') sort?: TSort,
+    @Query('query') query?: string,
   ) {
     this.logger.log(`Fetch doctor request from ${ip}`);
     return await this.doctorSevice.fetchAllDoctors({
       page,
       limit,
       sort,
+      query,
     });
   }
 }
