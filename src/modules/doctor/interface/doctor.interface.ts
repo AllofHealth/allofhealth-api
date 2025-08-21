@@ -34,4 +34,5 @@ export interface IFetchDoctors {
   page?: number;
   limit?: number;
   sort?: TSort;
+  query?: string;
 }
