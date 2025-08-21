@@ -14,10 +14,12 @@ import {
   ICreateAdmin,
   ICreateSystemAdmin,
   IDeleteAdmin,
+  IDetermineActivityStatus,
   IManagePermissions,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
 import {
+  ACTIVITY_THRESHOLD,
   ADMIN_ERROR_MESSAGES as AEM,
   ADMIN_SUCCESS_MESSAGES as ASM,
 } from '../data/admin.data';
@@ -110,6 +112,20 @@ export class AdminProvider {
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_VERIFYING_PRACTITIONER);
     }
+  }
+
+  private determineActivityStatus(ctx: IDetermineActivityStatus) {
+    const { lastActive, timestamp = new Date() } = ctx;
+    let isActive: boolean = false;
+
+    if (!lastActive) {
+      isActive = false;
+    } else {
+      const timeSinceLastActive = timestamp.getTime() - lastActive.getTime();
+      isActive = timeSinceLastActive < ACTIVITY_THRESHOLD.ACTIVE;
+    }
+
+    return isActive;
   }
 
   async findAdminById(adminId: string) {
