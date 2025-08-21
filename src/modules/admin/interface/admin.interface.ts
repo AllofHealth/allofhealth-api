@@ -32,3 +32,8 @@ export interface IDeleteAdmin {
   superAdminId: string;
   adminId: string;
 }
+
+export interface IDetermineActivityStatus {
+  lastActive: Date;
+  timestamp?: Date;
+}
