@@ -102,47 +102,41 @@ export class OwnerGuard implements CanActivate {
       let userId: string | undefined;
 
       userId = request.query?.userId;
-
       if (userId) {
         this.logger.debug(`Found userId in query: ${userId}`);
         return userId;
       }
 
-      if (request.body) {
-        userId = request.body.userId;
-
-        if (!userId && Array.isArray(request.body.userId)) {
-          userId = request.body.userId[0];
-        }
-
-        if (
-          !userId &&
-          typeof request.body.userId === 'object' &&
-          request.body.userId !== null
-        ) {
-          userId = request.body.userId.value || request.body.userId.toString();
-        }
-      }
-
-      if (!userId && request.params?.userId) {
+      if (request.params?.userId) {
         userId = request.params.userId;
         this.logger.debug(`Found userId in params: ${userId}`);
+        return userId;
       }
 
-      if (!userId && this.isMultipartRequest(request)) {
-        this.logger.debug('Attempting to parse multipart form data manually');
-        userId = await this.parseMultipartUserId(request);
+      if (request.body?.userId) {
+        userId = request.body.userId;
+
+        if (Array.isArray(userId)) {
+          userId = userId[0];
+        }
+
+        if (typeof userId === 'object' && userId !== null) {
+          userId = (userId as any).value || (userId as any).toString();
+        }
+
+        this.logger.debug(`Found userId in body: ${userId}`);
+        return userId;
       }
 
-      this.logger.debug(`Final extracted userId: ${userId}`);
-
-      if (!userId) {
-        this.logger.warn(
-          'No userId found in request query, body, params, or token',
+      if (this.isMultipartRequest(request)) {
+        this.logger.debug(
+          'Multipart request without userId - using token-based validation',
         );
+        return 'TOKEN_BASED_VALIDATION';
       }
 
-      return userId;
+      this.logger.warn('No userId found in request query, body, or params');
+      return undefined;
     } catch (error) {
       this.logger.error(`Error extracting userId: ${error.message}`);
       return undefined;
@@ -152,37 +146,5 @@ export class OwnerGuard implements CanActivate {
   private isMultipartRequest(request: any): boolean {
     const contentType = request.headers['content-type'];
     return contentType && contentType.includes('multipart/form-data');
-  }
-
-  private async parseMultipartUserId(
-    request: any,
-  ): Promise<string | undefined> {
-    try {
-      if (request.rawBody) {
-        this.logger.debug('Using rawBody for parsing');
-        const bodyData = request.rawBody.toString();
-        const userIdMatch = bodyData.match(
-          /name="userId"[\s\S]*?\r?\n\r?\n([^\r\n]+)/,
-        );
-        const userId = userIdMatch ? userIdMatch[1].trim() : undefined;
-        this.logger.debug(`Extracted userId from rawBody: ${userId}`);
-        return userId;
-      }
-
-      if (request.body && request.body.userId) {
-        this.logger.debug('Found userId in parsed body');
-        return request.body.userId;
-      }
-
-      // Fallback: For multipart requests, assume userId matches token userId
-      // This is safe because both AuthGuard and OwnerGuard validate the same token
-      this.logger.debug(
-        'Using token-based userId validation for multipart requests',
-      );
-      return 'TOKEN_BASED_VALIDATION';
-    } catch (error) {
-      this.logger.error(`Error parsing multipart userId: ${error.message}`);
-      return undefined;
-    }
   }
 }
