@@ -895,6 +895,21 @@ contract AllofHealthV3 {
      * View Functions
      */
 
+    function fetchLastRecordId(uint256 _patientId) external view onlySystemAdmin returns (uint256) {
+        uint256 lastChainId = patients[_patientId].patientMedicalRecordCount;
+
+        return lastChainId;
+    }
+
+    function fetchLastRecordChainIdForFamilyMember(
+        uint256 _principalPatientId,
+        uint256 _familyMemberId
+    ) external view onlySystemAdmin returns (uint256) {
+        uint256 lastRecordChainId = patientFamilyMembers[_principalPatientId][_familyMemberId].familyMemberMedicalRecordCount;
+
+        return lastRecordChainId;
+    }
+
     function viewMedicalRecord(
         uint256 _recordId,
         uint256 _patientId,
