@@ -21,6 +21,7 @@ import {
   DOCTOR_SUCCESS_MESSAGES as DSM,
 } from '../data/doctor.data';
 import { DoctorService } from '../service/doctor.service';
+import { TSort } from '../interface/doctor.interface';
 
 @ApiTags('Doctor Operations')
 @Controller('doctor')
@@ -118,11 +119,13 @@ export class DoctorController {
     @Ip() ip: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
+    @Query('sort') sort?: TSort,
   ) {
     this.logger.log(`Fetch doctor request from ${ip}`);
     return await this.doctorSevice.fetchAllDoctors({
       page,
       limit,
+      sort,
     });
   }
 }
