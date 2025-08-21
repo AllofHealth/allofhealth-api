@@ -149,7 +149,7 @@ export class DoctorProvider {
           .select()
           .from(schema.doctors)
           .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-          .where(eq(schema.user.role, 'DOCTOR'))
+          .where(whereConditions)
           .orderBy(sortFn(sortColumn))
           .offset(skip)
           .limit(limit)
