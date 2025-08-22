@@ -39,6 +39,7 @@ import {
   IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
 import { calculateAge, formatDuration } from '@/shared/utils/date.utils';
+import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class ApprovalProvider {
@@ -47,6 +48,7 @@ export class ApprovalProvider {
     private readonly handler: ErrorHandler,
     private readonly aaService: AccountAbstractionService,
     private readonly contractService: ContractService,
+    private readonly userService: UserService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -119,6 +121,7 @@ export class ApprovalProvider {
       shareHealthInfo = false,
     } = ctx;
     try {
+      await this.userService.checkUserSuspension(userId);
       const [isPatient, isPractitioner] = await Promise.all([
         this.patientCompliance(userId),
         this.practitionerCompliance(practitionerId),
@@ -318,6 +321,7 @@ export class ApprovalProvider {
   async acceptApproval(ctx: IAcceptApproval) {
     const { doctorId, approvalId } = ctx;
     try {
+      await this.userService.checkUserSuspension(doctorId);
       const isCompliant = await this.practitionerCompliance(doctorId);
       if (!isCompliant) {
         return this.handler.handleReturn({
@@ -733,6 +737,7 @@ export class ApprovalProvider {
     const { userId, page = 1, limit = 12 } = ctx;
     const skip = (page - 1) * limit;
     try {
+      await this.userService.checkUserSuspension(userId);
       const totalPatientApprovalsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
         .from(schema.approvals)
