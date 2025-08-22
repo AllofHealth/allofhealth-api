@@ -14,6 +14,7 @@ export class UserService {
   }
 
   async updateUser(ctx: IUpdateUser) {
+    await this.checkUserSuspension(ctx.userId);
     return await this.userProvider.updateUser(ctx);
   }
 
@@ -31,6 +32,7 @@ export class UserService {
   }
 
   async fetchDashboardData(userId: string) {
+    await this.checkUserSuspension(userId);
     return await this.userProvider.fetchDashboardData(userId);
   }
 
