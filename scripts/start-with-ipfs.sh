@@ -68,3 +68,4 @@
 cd /usr/src/app
 pm2 start dist/src/main.js --name allofhealth-api
 exec pm2-runtime start allofhealth-api
+
