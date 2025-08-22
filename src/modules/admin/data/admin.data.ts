@@ -10,6 +10,7 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_LOGGING_IN_AS_ADMIN = 'Error logging in as admin',
   INVALID_ADMIN_PASSWORD = 'Invalid admin password',
   ERROR_VERIFYING_PRACTITIONER = 'Error verifying practitioner',
+  ERROR_FETCHING_ACTIVE_USERS = 'Error fetching active users',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
