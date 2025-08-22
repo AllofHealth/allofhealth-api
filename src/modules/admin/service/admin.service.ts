@@ -5,6 +5,7 @@ import {
   ICreateSystemAdmin,
   IDeleteAdmin,
   IManagePermissions,
+  ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
 import { AdminProvider } from '../provider/admin.provider';
@@ -34,5 +35,13 @@ export class AdminService {
   }
   async deleteAdmin(ctx: IDeleteAdmin) {
     return await this.adminProvider.deleteAdmin(ctx);
+  }
+
+  async suspendUser(ctx: ISuspendUser) {
+    return await this.adminProvider.suspendUser(ctx);
+  }
+
+  async fetchPatientManagementDashboardData() {
+    return await this.adminProvider.fetchPatientManagementDashboard();
   }
 }
