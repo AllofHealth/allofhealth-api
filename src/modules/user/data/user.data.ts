@@ -13,6 +13,8 @@ export enum USER_ERROR_MESSAGES {
   DASHBOARD_DATA_NOT_IMPLEMENTED = 'Dashboard data not implemented for this role',
   ERROR_SENDING_EMAIL = 'Error sending otp',
   ERROR_VALIDATING_OTP = 'Error validating otp',
+  ERROR_PROCESSING_SUSPENSION_CHECK = 'Error processing suspension check',
+  USER_SUSPENDED = 'User is suspended',
 }
 
 export enum USER_SUCCESS_MESSAGE {
@@ -23,4 +25,11 @@ export enum USER_SUCCESS_MESSAGE {
   SUCCESS_FETCHING_DASHBOARD_DATA = 'Dashboard data fetched successfully',
   SUCCESS_SENDING_OTP = 'OTP sent successfully',
   OTP_VALIDATED = 'OTP validated successfully',
+}
+
+export enum USER_STATUS {
+  SUSPENDED = 'SUSPENDED',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  PENDING = 'PENDING',
 }
