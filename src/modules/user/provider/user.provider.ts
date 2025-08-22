@@ -31,6 +31,7 @@ import { AuthUtils } from '@/shared/utils/auth.utils';
 import { formatDateToReadable, calculateAge } from '@/shared/utils/date.utils';
 import {
   USER_ERROR_MESSAGES as UEM,
+  USER_STATUS,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
 import { UserError } from '../error/user.error';
@@ -45,9 +46,11 @@ import { TRole } from '@/shared/interface/shared.interface';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import { OtpService } from '@/modules/otp/service/otp.service';
 import { ResendService } from '@/shared/modules/resend/service/resend.service';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class UserProvider {
+  private readonly logger = new MyLoggerService(UserProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
@@ -81,7 +84,6 @@ export class UserProvider {
         ),
       );
     } catch (error) {
-      //handle rollback
       this.eventEmitter.emit(
         SharedEvents.DELETE_USER,
         new DeleteUser(ctx.userId),
@@ -226,6 +228,31 @@ export class UserProvider {
         `${UEM.ERROR_HANDLING_DOCTOR_REGISTRATION}, ${e}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async handleSuspensionCheck(userId: string) {
+    try {
+      const status = await this.db
+        .select({
+          status: schema.user.status,
+        })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId));
+
+      if (!status || status.length === 0) {
+        throw new UserError(UEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      const userStatus = status[0].status;
+      if (userStatus === USER_STATUS.SUSPENDED) {
+        throw new HttpException(
+          new UserError(UEM.USER_SUSPENDED, HttpStatus.FORBIDDEN),
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    } catch (e) {
+      this.logger.error(`${UEM.ERROR_PROCESSING_SUSPENSION_CHECK}: ${e}`);
     }
   }
 
