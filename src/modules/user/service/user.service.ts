@@ -42,4 +42,8 @@ export class UserService {
   async validateOtp(ctx: EValidateOtp) {
     return await this.userProvider.validateOtp(ctx.userId);
   }
+
+  async checkUserSuspension(userId: string) {
+    return await this.userProvider.handleSuspensionCheck(userId);
+  }
 }
