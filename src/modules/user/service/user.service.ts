@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EOnUserLogin, ESendOtp, EValidateOtp } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
-import { ICreateUser, IUpdateUser } from '../interface/user.interface';
+import {
+  ICreateUser,
+  IFetchPatients,
+  IUpdateUser,
+} from '../interface/user.interface';
 import { UserProvider } from '../provider/user.provider';
 
 @Injectable()
@@ -47,5 +51,8 @@ export class UserService {
 
   async checkUserSuspension(userId: string) {
     return await this.userProvider.handleSuspensionCheck(userId);
+  }
+  async fetchAllPatients(ctx: IFetchPatients) {
+    return await this.userProvider.fetchAllPatients(ctx);
   }
 }
