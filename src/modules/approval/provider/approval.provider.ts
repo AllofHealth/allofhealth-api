@@ -15,6 +15,7 @@ import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -48,6 +49,7 @@ export class ApprovalProvider {
     private readonly handler: ErrorHandler,
     private readonly aaService: AccountAbstractionService,
     private readonly contractService: ContractService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
