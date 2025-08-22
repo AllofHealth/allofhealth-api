@@ -14,7 +14,7 @@ import { ContractModule } from '../contract/contract.module';
     forwardRef(() => AccountAbstractionModule),
     forwardRef(() => TokenModule),
     forwardRef(() => UserModule),
-    forwardRef(() => ContractModule)
+    forwardRef(() => ContractModule),
   ],
   providers: [
     ApprovalService,
@@ -25,4 +25,4 @@ import { ContractModule } from '../contract/contract.module';
   controllers: [ApprovalController],
   exports: [ApprovalCleanupService, ApprovalService, ApprovalProvider],
 })
-export class ApprovalModule { }
+export class ApprovalModule {}
