@@ -37,3 +37,8 @@ export interface IDetermineActivityStatus {
   lastActive: Date;
   timestamp?: Date;
 }
+
+export interface ISuspendUser {
+  userId: string;
+  reason?: string;
+}
