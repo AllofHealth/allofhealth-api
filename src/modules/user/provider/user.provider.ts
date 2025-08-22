@@ -49,7 +49,6 @@ import { ContractService } from '@/modules/contract/service/contract.service';
 import { OtpService } from '@/modules/otp/service/otp.service';
 import { ResendService } from '@/shared/modules/resend/service/resend.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { IFetchPatientRecords } from '@/modules/records/interface/records.interface';
 
 @Injectable()
 export class UserProvider {
