@@ -29,9 +29,13 @@ import * as schema from '@/schemas/schema';
 import { AuthService } from '@/modules/auth/service/auth.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
 import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { AdminError } from '../error/admin.error';
+import { USER_STATUS } from '@/modules/user/data/user.data';
 
 @Injectable()
 export class AdminProvider {
+  private readonly logger = new MyLoggerService(AdminProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
@@ -127,6 +131,41 @@ export class AdminProvider {
 
     return isActive;
   }
+
+  private async fetchActiveUsers() {
+    let activeUsers: any[] = [];
+    try {
+      const users = await this.db
+        .select()
+        .from(schema.user)
+        .where(eq(schema.user.status, USER_STATUS.ACTIVE));
+
+      if (!users || users.length === 0) {
+        return [];
+      }
+
+      users.map((user) => {
+        const isActive = this.determineActivityStatus({
+          lastActive: user.lastActivity!,
+        });
+
+        if (isActive) {
+          activeUsers.push(user);
+        }
+      });
+
+      return activeUsers;
+    } catch (e) {
+      this.logger.error(`${AEM.ERROR_FETCHING_ACTIVE_USERS}: ${e}`);
+      throw new AdminError(
+        AEM.ERROR_FETCHING_ACTIVE_USERS,
+        { cause: e },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async fetchAllPatients() {}
 
   async findAdminById(adminId: string) {
     try {
