@@ -1,5 +1,5 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
@@ -120,25 +120,40 @@ export class DoctorProvider {
   }
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
-    const { page = 1, limit = 12 } = ctx;
+    const { page = 1, limit = 12, sort = 'desc', query } = ctx;
     const skip = (page - 1) * limit;
+    const sortFn = sort === 'desc' ? desc : asc;
+    const sortColumn = schema.user.createdAt;
     try {
+      let whereConditions: any = eq(schema.user.role, 'DOCTOR');
+
+      if (query && query.trim()) {
+        const searchQuery = `%${query.trim()}%`;
+        whereConditions = and(
+          whereConditions,
+          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery})`,
+        );
+      }
+
       const totalDoctorsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
         .from(schema.doctors)
         .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-        .where(eq(schema.user.role, 'DOCTOR'));
+        .where(whereConditions);
 
       const totalCount = Number(totalDoctorsResult[0]?.count ?? 0);
       const totalPages = Math.ceil(totalCount / limit);
 
-      const doctors = await this.db
-        .select()
-        .from(schema.doctors)
-        .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-        .where(eq(schema.user.role, 'DOCTOR'))
-        .offset(skip)
-        .limit(limit);
+      const doctors = (
+        await this.db
+          .select()
+          .from(schema.doctors)
+          .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+          .where(whereConditions)
+          .orderBy(sortFn(sortColumn))
+          .offset(skip)
+          .limit(limit)
+      ).sort();
 
       const parsedDoctors: IDoctorSnippet[] = doctors.map((doctor) => ({
         userId: doctor.users.id,
@@ -146,6 +161,7 @@ export class DoctorProvider {
         email: doctor.users.emailAddress,
         gender: doctor.users.gender,
         profilePicture: doctor.users.profilePicture as string,
+        phoneNumber: doctor.users.phoneNumber as string,
         role: doctor.users.role,
         bio: doctor.doctors.bio || '',
         servicesOffered: doctor.doctors.servicesOffered as string[],

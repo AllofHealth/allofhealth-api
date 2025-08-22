@@ -307,6 +307,7 @@ export class UserProvider {
         dob: calculateAge(user[0].dateOfBirth),
         updatedAt: formatDateToReadable(user[0].updatedAt),
         isOtpVerified: user[0].isOtpVerified,
+        phoneNumber: user[0].phoneNumber,
         walletData: {
           walletAddress: walletInfo.data.walletAddress,
           balance: walletInfo.data.balance,
