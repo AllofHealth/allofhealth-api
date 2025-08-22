@@ -26,7 +26,7 @@ import {
   SUSPENSION_REASON,
 } from '../data/admin.data';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { AuthService } from '@/modules/auth/service/auth.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
@@ -200,7 +200,25 @@ export class AdminProvider {
     }
   }
 
-  private async fetchAllPatients() {}
+  private async fetchSuspendedUsersCount() {
+    try {
+      const suspendedUsers = await this.db
+        .select({
+          count: sql`count(*)`.as('count'),
+        })
+        .from(schema.user)
+        .where(eq(schema.user.status, USER_STATUS.SUSPENDED));
+
+      return Number(suspendedUsers[0]?.count || 0);
+    } catch (e) {
+      this.logger.error(e);
+      throw new AdminError(
+        AEM.ERROR_FETCHING_SUSPENDED_USERS,
+        { cause: e },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
   async findAdminById(adminId: string) {
     try {
@@ -456,6 +474,57 @@ export class AdminProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_SUSPENDING_USER);
+    }
+  }
+
+  async fetchPatientManagementDashboard() {
+    try {
+      const [
+        activeUserResult,
+        doctorResult,
+        patientResult,
+        suspendedUsersCount,
+      ] = await Promise.all([
+        this.fetchActiveUsers(),
+        this.doctorService.fetchAllDoctors({}),
+        this.userService.fetchAllPatients({}),
+        this.fetchSuspendedUsersCount(),
+      ]);
+
+      if (
+        !('meta' in doctorResult && doctorResult.meta) ||
+        !('meta' in patientResult && patientResult.meta)
+      ) {
+        throw new HttpException(
+          new AdminError(
+            'Error fetching entities stats',
+            { cause: doctorResult.message },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          ),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const doctorCount = doctorResult.meta.totalCount;
+      const patientCount = patientResult.meta.totalCount;
+      const activeUsersCount = activeUserResult.length;
+      const suspendedCount = suspendedUsersCount;
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.PATIENT_MANAGEMENT_DASHBOARD_FETCHED,
+        data: {
+          totalActiveUsers: activeUsersCount,
+          totalPatients: patientCount,
+          totalDoctors: doctorCount,
+          totalSuspendedUsers: suspendedCount,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(
+        e,
+        AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+      );
     }
   }
 }
