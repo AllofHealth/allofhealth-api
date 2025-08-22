@@ -181,6 +181,7 @@ export class AuthProvider {
       }
 
       const userProfile = result.data;
+      await this.userService.checkUserSuspension(userProfile.userId);
 
       const isPasswordValid = await this.authUtils.compare({
         hashedPassword: userProfile.password,
