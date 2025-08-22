@@ -42,6 +42,7 @@ import {
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
 import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
+import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class RecordsProvider {
@@ -51,6 +52,7 @@ export class RecordsProvider {
     private readonly handler: ErrorHandler,
     private readonly doctorService: DoctorService,
     private readonly recordEncryptionService: RecordsEncryptionService,
+    private readonly userService: UserService,
     private readonly ipfsService: IpfsService,
     private readonly eventEmitter: EventEmitter2,
     private readonly approvalService: ApprovalService,
@@ -83,6 +85,7 @@ export class RecordsProvider {
       attachment3,
     } = ctx;
     try {
+      await this.userService.checkUserSuspension(practitionerId);
       const practitionerSmartAddress =
         await this.contractService.getPractitionerSmartAddress(practitionerId);
 
@@ -467,6 +470,7 @@ export class RecordsProvider {
     let viewerAddress: string | undefined = undefined;
     try {
       if (practitionerId) {
+        await this.userService.checkUserSuspension(practitionerId);
         const practitionerAddress =
           await this.contractService.getPractitionerSmartAddress(
             practitionerId,
@@ -523,6 +527,7 @@ export class RecordsProvider {
         }
       }
 
+      await this.userService.checkUserSuspension(patientId);
       const patientRecordType = await this.db
         .select({
           recordType: schema.records.recordType,
