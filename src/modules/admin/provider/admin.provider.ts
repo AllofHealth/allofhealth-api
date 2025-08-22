@@ -16,12 +16,14 @@ import {
   IDeleteAdmin,
   IDetermineActivityStatus,
   IManagePermissions,
+  ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
 import {
   ACTIVITY_THRESHOLD,
   ADMIN_ERROR_MESSAGES as AEM,
   ADMIN_SUCCESS_MESSAGES as ASM,
+  SUSPENSION_REASON,
 } from '../data/admin.data';
 import { AuthUtils } from '@/shared/utils/auth.utils';
 import { eq } from 'drizzle-orm';
@@ -31,7 +33,11 @@ import { DoctorService } from '@/modules/doctor/service/doctor.service';
 import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { AdminError } from '../error/admin.error';
-import { USER_STATUS } from '@/modules/user/data/user.data';
+import {
+  USER_ERROR_MESSAGES,
+  USER_STATUS,
+} from '@/modules/user/data/user.data';
+import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class AdminProvider {
@@ -42,6 +48,7 @@ export class AdminProvider {
     private readonly authUtils: AuthUtils,
     private readonly authService: AuthService,
     private readonly doctorService: DoctorService,
+    private readonly userService: UserService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -79,6 +86,34 @@ export class AdminProvider {
     } catch (e) {
       throw new HttpException(
         AEM.ERROR_VALIDATING_SUPER_ADMIN,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async isUserSuspended(userId: string) {
+    let isSuspended: boolean = false;
+    try {
+      const user = await this.db
+        .select({ status: schema.user.status })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId));
+
+      if (!user || user.length === 0) {
+        throw new AdminError(
+          USER_ERROR_MESSAGES.USER_NOT_FOUND,
+          { cause: 'User not found' },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      isSuspended = user[0].status === USER_STATUS.SUSPENDED;
+      return isSuspended;
+    } catch (e) {
+      this.logger.error(e);
+      throw new AdminError(
+        AEM.ERROR_VALIDATING_SUSPENSION_STATUS,
+        { cause: e },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -390,6 +425,37 @@ export class AdminProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_DELETING_ADMIN);
+    }
+  }
+
+  async suspendUser(ctx: ISuspendUser) {
+    const { userId, reason = SUSPENSION_REASON.DEFAULT } = ctx;
+    try {
+      const userSuspended = await this.isUserSuspended(userId);
+      if (userSuspended) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.USER_ALREADY_SUSPENDED,
+        });
+      }
+
+      await this.db.transaction(async (tx) => {
+        await tx.update(schema.user).set({
+          status: USER_STATUS.SUSPENDED,
+        });
+
+        await tx.insert(schema.suspensionLogs).values({
+          userId,
+          reason,
+        });
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.USER_SUSPENDED_SUCCESSFULLY,
+        });
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_SUSPENDING_USER);
     }
   }
 }
