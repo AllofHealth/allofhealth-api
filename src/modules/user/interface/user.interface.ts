@@ -64,6 +64,7 @@ export interface IUserSnippet {
   fullName: string;
   email: string;
   profilePicture: string;
+  phoneNumber?: string;
   role: string;
   gender: string;
 }

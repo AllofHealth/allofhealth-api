@@ -65,6 +65,7 @@ export class UserController {
             email: 'john.doe@example.com',
             gender: 'Male',
             profilePicture: 'profile-picture-url',
+            phoneNumber: '1234567890',
             role: 'PATIENT',
             dob: '22 years',
             updatedAt: '24th February, 2025',
@@ -87,6 +88,7 @@ export class UserController {
             email: 'jane.smith@example.com',
             gender: 'Female',
             profilePicture: 'profile-picture-url',
+            phoneNumber: '1234567890',
             role: 'DOCTOR',
             dob: '35 years',
             updatedAt: '24th February, 2025',
@@ -281,9 +283,13 @@ export class UserController {
     @Body() ctx: UpdateUserDto,
   ) {
     this.logger.log(`Updating user ${ctx.userId} from ${ip} `);
+    let path: string | undefined;
+    if (profilePicture) {
+      path = profilePicture.path;
+    }
     return this.userService.updateUser({
       ...ctx,
-      profilePictureFilePath: profilePicture.path,
+      profilePictureFilePath: path,
     });
   }
 }
