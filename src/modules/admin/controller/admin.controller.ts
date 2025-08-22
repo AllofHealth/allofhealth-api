@@ -5,6 +5,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpStatus,
   Ip,
   Post,
@@ -27,6 +28,7 @@ import {
   CreateSystemAdminDto,
   DeleteAdminDto,
   ManagePermissionsDto,
+  SuspendUserDto,
   VerifyPractitionerDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
@@ -299,5 +301,77 @@ export class AdminController {
       ...ctx,
       superAdminId: ctx.userId,
     });
+  }
+
+  @Post('suspendUser')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Suspend a user (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.USER_SUSPENDED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_SUSPENDED_SUCCESSFULLY,
+    },
+  })
+  @ApiOkResponse({
+    description: ASM.USER_ALREADY_SUSPENDED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_ALREADY_SUSPENDED,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_SUSPENDING_USER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_SUSPENDING_USER,
+    },
+  })
+  async suspendUser(@Ip() ip: string, @Body() ctx: SuspendUserDto) {
+    this.logger.log(`Suspending user ${ctx.userId} from ${ip}`);
+    return await this.adminService.suspendUser(ctx);
+  }
+
+  @Get('dashboard/patient-management')
+  @UseGuards(AuthGuard, AdminGuard)
+  @ApiOperation({
+    summary: 'Fetch patient management dashboard data (requires admin)',
+  })
+  @ApiOkResponse({
+    description: ASM.PATIENT_MANAGEMENT_DASHBOARD_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.PATIENT_MANAGEMENT_DASHBOARD_FETCHED,
+      data: {
+        totalActiveUsers: 150,
+        totalPatients: 1200,
+        totalDoctors: 45,
+        totalSuspendedUsers: 8,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+    },
+  })
+  async fetchPatientManagementDashboard(@Ip() ip: string) {
+    this.logger.log(`Fetching patient management dashboard from ${ip}`);
+    return await this.adminService.fetchPatientManagementDashboardData();
   }
 }
