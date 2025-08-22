@@ -4,6 +4,7 @@ import type { UserError } from '../error/user.error';
 import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
 export type TAuthProvider = 'GOOGLE' | 'CREDENTIALS';
 export type TUserStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
+export type TUserRole = TRole;
 
 export interface ICreateDoctor {
   specialization: string;
@@ -69,6 +70,7 @@ export interface IUserSnippet {
   phoneNumber?: string;
   role: string;
   gender: string;
+  status?: string;
 }
 
 export type CreateUserType = Promise<Result<IUserSnippet, UserError>>;
