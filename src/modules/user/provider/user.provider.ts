@@ -7,7 +7,7 @@ import {
   NotImplementedException,
 } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { eq } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
@@ -31,12 +31,14 @@ import { AuthUtils } from '@/shared/utils/auth.utils';
 import { formatDateToReadable, calculateAge } from '@/shared/utils/date.utils';
 import {
   USER_ERROR_MESSAGES as UEM,
+  USER_ROLE,
   USER_STATUS,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
 import { UserError } from '../error/user.error';
 import {
   ICreateUser,
+  IFetchPatients,
   IUpdateUser,
   IUserSnippet,
 } from '../interface/user.interface';
@@ -47,6 +49,7 @@ import { ContractService } from '@/modules/contract/service/contract.service';
 import { OtpService } from '@/modules/otp/service/otp.service';
 import { ResendService } from '@/shared/modules/resend/service/resend.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { IFetchPatientRecords } from '@/modules/records/interface/records.interface';
 
 @Injectable()
 export class UserProvider {
@@ -391,6 +394,72 @@ export class UserProvider {
     }
   }
 
+  async fetchAllPatients(ctx: IFetchPatients) {
+    const { page = 1, limit = 12, sort = 'desc', query } = ctx;
+    const skip = (page - 1) * limit;
+    const sortFn = sort === 'desc' ? desc : asc;
+    const sortColumn = schema.user.createdAt;
+
+    try {
+      let whereConditions: any = eq(schema.user.role, USER_ROLE.PATIENT);
+
+      if (query && query.trim()) {
+        const searchQuery = `%${query.trim()}%`;
+        whereConditions = and(
+          whereConditions,
+          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery})`,
+        );
+      }
+
+      const totalPatientResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.user)
+        .where(whereConditions);
+
+      const totalCount = Number(totalPatientResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const patients = await this.db
+        .select()
+        .from(schema.user)
+        .where(whereConditions)
+        .orderBy(sortFn(sortColumn))
+        .offset(skip)
+        .limit(limit);
+
+      const parsedPatient: IUserSnippet[] = patients.map((patient) => ({
+        userId: patient.id,
+        fullName: patient.fullName,
+        email: patient.emailAddress,
+        gender: patient.gender,
+        profilePicture: patient.profilePicture || '',
+        phoneNumber: patient.phoneNumber,
+        role: patient.role,
+        status: patient.status,
+      }));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.PATIENTS_FETCHED_SUCCESSFULLY,
+        data: parsedPatient,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      this.logger.error(`${UEM.ERROR_FETCHING_PATIENTS}: ${e}`);
+      throw new HttpException(
+        UEM.ERROR_FETCHING_PATIENTS,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @OnEvent(SharedEvents.DELETE_USER)
   async deleteUser(ctx: DeleteUser) {
     try {
@@ -474,6 +543,7 @@ export class UserProvider {
         profilePicture: '',
         gender: '',
         role: '',
+        status: '',
       };
 
       switch (ctx.role) {
