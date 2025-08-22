@@ -305,3 +305,14 @@ export const taskCompletions = pgTable('task_completions', {
     .defaultNow(),
   createdAt: date('created_at').defaultNow(),
 });
+
+export const suspensionLogs = pgTable('suspension_logs', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  reason: varchar('reason', { length: 255 }).notNull(),
+  startDate: date('start_date').defaultNow(),
+  endDate: date('end_date'),
+  createdAt: date('created_at').defaultNow(),
+});
