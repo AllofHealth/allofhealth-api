@@ -9,6 +9,8 @@ import {
   IVerifyPractitioner,
 } from '../interface/admin.interface';
 import { AdminProvider } from '../provider/admin.provider';
+import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
+import { IFetchPatients } from '@/modules/user/interface/user.interface';
 
 @Injectable()
 export class AdminService {
@@ -43,5 +45,13 @@ export class AdminService {
 
   async fetchPatientManagementDashboardData() {
     return await this.adminProvider.fetchPatientManagementDashboard();
+  }
+
+  async fetchAllDoctors(ctx: IFetchDoctors) {
+    return await this.adminProvider.fetchAllDoctors(ctx);
+  }
+
+  async fetchAllPatients(ctx: IFetchPatients) {
+    return await this.adminProvider.fetchAllPatients(ctx);
   }
 }
