@@ -14,6 +14,7 @@ import {
   IFetchDoctors,
 } from '../interface/doctor.interface';
 import { USER_ROLE } from '@/modules/user/data/user.data';
+import { formatDateToReadable } from '@/shared/utils/date.utils';
 
 @Injectable()
 export class DoctorProvider {
@@ -164,6 +165,9 @@ export class DoctorProvider {
         phoneNumber: doctor.users.phoneNumber as string,
         role: doctor.users.role,
         status: doctor.users.status,
+        lastActive: doctor.users.lastActivity
+          ? formatDateToReadable(doctor.users.lastActivity)
+          : 'Never',
         bio: doctor.doctors.bio || '',
         servicesOffered: doctor.doctors.servicesOffered as string[],
         certifications: doctor.doctors.certifications as string[],
