@@ -27,6 +27,7 @@ import {
 } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { JournalMetricsProvider } from './journal-metrics.provider';
+import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class HealthJournalProvider {
@@ -34,6 +35,7 @@ export class HealthJournalProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
     private readonly eventEmitter: EventEmitter2,
+    private readonly userService: UserService,
     private readonly journalMetricsProvider: JournalMetricsProvider,
   ) {}
 
@@ -78,6 +80,7 @@ export class HealthJournalProvider {
   async addJournalEntry(ctx: IAddEntry) {
     const { userId, mood, activities, symptoms, tags } = ctx;
     try {
+      await this.userService.checkUserSuspension(userId);
       const journal = await this.db
         .insert(schema.health_journal)
         .values({
