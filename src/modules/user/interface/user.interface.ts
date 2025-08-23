@@ -71,6 +71,7 @@ export interface IUserSnippet {
   role: string;
   gender: string;
   status?: string;
+  lastActive?: string;
 }
 
 export type CreateUserType = Promise<Result<IUserSnippet, UserError>>;
