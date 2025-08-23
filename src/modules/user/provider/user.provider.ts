@@ -435,6 +435,9 @@ export class UserProvider {
         phoneNumber: patient.phoneNumber,
         role: patient.role,
         status: patient.status,
+        lastActive: patient.lastActivity
+          ? formatDateToReadable(patient.lastActivity)
+          : 'Never',
       }));
 
       return this.handler.handleReturn({
