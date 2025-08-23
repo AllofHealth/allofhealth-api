@@ -38,6 +38,12 @@ import {
   USER_STATUS,
 } from '@/modules/user/data/user.data';
 import { UserService } from '@/modules/user/service/user.service';
+import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
+import {
+  IFetchPatients,
+  IUserSnippet,
+} from '@/modules/user/interface/user.interface';
+import { formatDateToReadable } from '@/shared/utils/date.utils';
 
 @Injectable()
 export class AdminProvider {
@@ -399,6 +405,7 @@ export class AdminProvider {
       const tokens = await this.authService.generateTokens({
         email,
         userId: admin.data?.id!,
+        save: false,
       });
 
       return this.handler.handleReturn({
@@ -526,5 +533,49 @@ export class AdminProvider {
         AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
       );
     }
+  }
+
+  async fetchAllDoctors(ctx: IFetchDoctors) {
+    const allDoctors = await this.doctorService.fetchAllDoctors(ctx);
+
+    if (
+      !('data' in allDoctors && allDoctors.data) ||
+      typeof allDoctors.data === null
+    ) {
+      throw new HttpException(
+        new AdminError(
+          'Error fetching doctors',
+          { cause: allDoctors.message },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const doctorData = allDoctors.data;
+    const parsedDoctorData = doctorData.map((doctor) => {
+      return {
+        email: doctor.email,
+        fullName: doctor.fullName,
+        phoneNumber: doctor.phoneNumber,
+        gender: doctor.gender,
+        profilePicture: doctor.profilePicture || '',
+        role: doctor.role,
+        userId: doctor.userId,
+        status: doctor.status,
+        lastActive: doctor.lastActive!,
+      } as IUserSnippet;
+    });
+
+    return this.handler.handleReturn({
+      status: HttpStatus.OK,
+      message: allDoctors.message,
+      data: parsedDoctorData,
+      meta: allDoctors.meta,
+    });
+  }
+
+  async fetchAllPatients(ctx: IFetchPatients) {
+    return await this.userService.fetchAllPatients(ctx);
   }
 }
