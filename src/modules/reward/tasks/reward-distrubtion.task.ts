@@ -89,7 +89,7 @@ export class RewardDistributionService {
     }
   }
 
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  @Cron(CronExpression.EVERY_2_HOURS)
   async rewardUser() {
     try {
       const qualifiedUsers = await this.fetchQualifiedUsers();
