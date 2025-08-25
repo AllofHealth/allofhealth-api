@@ -52,11 +52,18 @@ export class AssetProvider {
     };
   }
 
-  private generateUrl(filePath: string) {
+  generateUrl(url: string) {
     const imageKit = this.initImageKit();
     const imageUrl = imageKit.url({
-      path: filePath,
-      urlEndpoint: this.imageKitConfig.IMAGE_KIT_URL_ENDPOINT,
+      src: url,
+      transformation: [
+        {
+          height: '500',
+          width: '500',
+          crop: 'pad',
+          aspectRatio: '16:9',
+        },
+      ],
     });
 
     return imageUrl;
