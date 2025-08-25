@@ -1,7 +1,10 @@
 import type { Result } from 'neverthrow';
 import type { TRole } from '@/shared/interface/shared.interface';
 import type { UserError } from '../error/user.error';
+import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
 export type TAuthProvider = 'GOOGLE' | 'CREDENTIALS';
+export type TUserStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
+export type TUserRole = TRole;
 
 export interface ICreateDoctor {
   specialization: string;
@@ -67,6 +70,8 @@ export interface IUserSnippet {
   phoneNumber?: string;
   role: string;
   gender: string;
+  status?: string;
+  lastActive?: string;
 }
 
 export type CreateUserType = Promise<Result<IUserSnippet, UserError>>;
@@ -81,3 +86,5 @@ export interface IHandleDoctorRegistration {
   governmentIdFilePath: string;
   scannedLicenseFilePath: string;
 }
+
+export interface IFetchPatients extends IFetchDoctors {}

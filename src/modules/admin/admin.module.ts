@@ -7,10 +7,12 @@ import { AuthUtils } from '@/shared/utils/auth.utils';
 import { TokenModule } from '../token/token.module';
 import { AuthModule } from '../auth/auth.module';
 import { DoctorModule } from '../doctor/doctor.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
     AuthModule,
+    forwardRef(() => UserModule),
     forwardRef(() => TokenModule),
     forwardRef(() => DoctorModule),
   ],

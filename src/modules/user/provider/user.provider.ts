@@ -7,7 +7,7 @@ import {
   NotImplementedException,
 } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { eq } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
@@ -20,6 +20,7 @@ import {
   DeleteUser,
   EHandleRegisterDoctor,
   EHandleRegisterPatient,
+  EOnUserLogin,
   ERegisterEntity,
   ESendOtp,
 } from '@/shared/dtos/event.dto';
@@ -30,11 +31,14 @@ import { AuthUtils } from '@/shared/utils/auth.utils';
 import { formatDateToReadable, calculateAge } from '@/shared/utils/date.utils';
 import {
   USER_ERROR_MESSAGES as UEM,
+  USER_ROLE,
+  USER_STATUS,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
 import { UserError } from '../error/user.error';
 import {
   ICreateUser,
+  IFetchPatients,
   IUpdateUser,
   IUserSnippet,
 } from '../interface/user.interface';
@@ -44,9 +48,11 @@ import { TRole } from '@/shared/interface/shared.interface';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import { OtpService } from '@/modules/otp/service/otp.service';
 import { ResendService } from '@/shared/modules/resend/service/resend.service';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class UserProvider {
+  private readonly logger = new MyLoggerService(UserProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
@@ -80,7 +86,6 @@ export class UserProvider {
         ),
       );
     } catch (error) {
-      //handle rollback
       this.eventEmitter.emit(
         SharedEvents.DELETE_USER,
         new DeleteUser(ctx.userId),
@@ -228,6 +233,31 @@ export class UserProvider {
     }
   }
 
+  async handleSuspensionCheck(userId: string) {
+    try {
+      const status = await this.db
+        .select({
+          status: schema.user.status,
+        })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId));
+
+      if (!status || status.length === 0) {
+        throw new UserError(UEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      const userStatus = status[0].status;
+      if (userStatus === USER_STATUS.SUSPENDED) {
+        throw new HttpException(
+          new UserError(UEM.USER_SUSPENDED, HttpStatus.FORBIDDEN),
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    } catch (e) {
+      this.logger.error(`${UEM.ERROR_PROCESSING_SUSPENSION_CHECK}: ${e}`);
+    }
+  }
+
   async validateEmailAddress(emailAddress: string) {
     const user = await this.findUserByEmail(emailAddress);
     if (user.status === HttpStatus.OK) {
@@ -316,7 +346,10 @@ export class UserProvider {
           ),
         },
       };
-
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(id, new Date(), new Date()),
+      );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: USM.USER_FETCHED_SUCCESSFULLY,
@@ -357,6 +390,75 @@ export class UserProvider {
       }
     } catch (e) {
       return this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
+    }
+  }
+
+  async fetchAllPatients(ctx: IFetchPatients) {
+    const { page = 1, limit = 12, sort = 'desc', query } = ctx;
+    const skip = (page - 1) * limit;
+    const sortFn = sort === 'desc' ? desc : asc;
+    const sortColumn = schema.user.createdAt;
+
+    try {
+      let whereConditions: any = eq(schema.user.role, USER_ROLE.PATIENT);
+
+      if (query && query.trim()) {
+        const searchQuery = `%${query.trim()}%`;
+        whereConditions = and(
+          whereConditions,
+          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery})`,
+        );
+      }
+
+      const totalPatientResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.user)
+        .where(whereConditions);
+
+      const totalCount = Number(totalPatientResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const patients = await this.db
+        .select()
+        .from(schema.user)
+        .where(whereConditions)
+        .orderBy(sortFn(sortColumn))
+        .offset(skip)
+        .limit(limit);
+
+      const parsedPatient: IUserSnippet[] = patients.map((patient) => ({
+        userId: patient.id,
+        fullName: patient.fullName,
+        email: patient.emailAddress,
+        gender: patient.gender,
+        profilePicture: patient.profilePicture || '',
+        phoneNumber: patient.phoneNumber,
+        role: patient.role,
+        status: patient.status,
+        lastActive: patient.lastActivity
+          ? formatDateToReadable(patient.lastActivity)
+          : 'Never',
+      }));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.PATIENTS_FETCHED_SUCCESSFULLY,
+        data: parsedPatient,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      this.logger.error(`${UEM.ERROR_FETCHING_PATIENTS}: ${e}`);
+      throw new HttpException(
+        UEM.ERROR_FETCHING_PATIENTS,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -443,6 +545,7 @@ export class UserProvider {
         profilePicture: '',
         gender: '',
         role: '',
+        status: '',
       };
 
       switch (ctx.role) {
@@ -584,6 +687,7 @@ export class UserProvider {
       if (lastLogin) dataToUpdate.lastLogin = lastLogin;
       if (lastActivity) dataToUpdate.lastActivity = lastActivity;
       if (authProvider) dataToUpdate.authProvider = authProvider;
+      dataToUpdate.updatedAt = new Date();
 
       if (hospitalAssociation)
         doctorDataToUpdate.hospitalAssociation = hospitalAssociation;
@@ -650,7 +754,7 @@ export class UserProvider {
         .update(schema.user)
         .set({
           isOtpVerified: true,
-          status: 'ACTIVE',
+          status: USER_STATUS.ACTIVE,
         })
         .where(eq(schema.user.emailAddress, emailAddress));
       return this.handler.handleReturn({

@@ -10,6 +10,11 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_LOGGING_IN_AS_ADMIN = 'Error logging in as admin',
   INVALID_ADMIN_PASSWORD = 'Invalid admin password',
   ERROR_VERIFYING_PRACTITIONER = 'Error verifying practitioner',
+  ERROR_FETCHING_ACTIVE_USERS = 'Error fetching active users',
+  ERROR_VALIDATING_SUSPENSION_STATUS = 'Error validating suspension status',
+  ERROR_SUSPENDING_USER = 'Error suspending user',
+  ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD = 'Error fetching patient management dashboard',
+  ERROR_FETCHING_SUSPENDED_USERS = 'Error fetching suspended users',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
@@ -20,4 +25,17 @@ export enum ADMIN_SUCCESS_MESSAGES {
   SUCCESS_LOGGING_IN_AS_ADMIN = 'Admin logged in successfully',
   PRACTITIONER_VERIFIED = 'Practitioner verified successfully',
   SUCCESS_DELETING_ADMIN = 'Admin deleted successfully',
+  USER_ALREADY_SUSPENDED = 'User is already suspended',
+  USER_SUSPENDED_SUCCESSFULLY = 'User suspended successfully',
+  SUSPENSION_LIFITED_SUCCESSFULLY = 'Suspension lifted successfully',
+  PATIENT_MANAGEMENT_DASHBOARD_FETCHED = 'Patient management dashboard fetched successfully',
+}
+
+export enum ACTIVITY_THRESHOLD {
+  ACTIVE = 1000 * 60 * 60 * 24 * 7, //  7 Days
+}
+
+export enum SUSPENSION_REASON {
+  DEFAULT = 'User violated all of health terms and conditions',
+  ACTIVE_SUSPENSION = 'User has been suspended for violating all of health terms and conditions',
 }

@@ -9,12 +9,13 @@ import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { EUpdateTaskCount } from '@/shared/dtos/event.dto';
+import { EOnUserLogin, EUpdateTaskCount } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -39,6 +40,7 @@ import {
   IValidatePractitionerIsApproved,
 } from '../interface/approval.interface';
 import { calculateAge, formatDuration } from '@/shared/utils/date.utils';
+import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class ApprovalProvider {
@@ -47,6 +49,8 @@ export class ApprovalProvider {
     private readonly handler: ErrorHandler,
     private readonly aaService: AccountAbstractionService,
     private readonly contractService: ContractService,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -119,6 +123,7 @@ export class ApprovalProvider {
       shareHealthInfo = false,
     } = ctx;
     try {
+      await this.userService.checkUserSuspension(userId);
       const [isPatient, isPractitioner] = await Promise.all([
         this.patientCompliance(userId),
         this.practitionerCompliance(practitionerId),
@@ -187,7 +192,6 @@ export class ApprovalProvider {
 
       const practitionerAddress = await this.getSmartAddress(practitionerId);
 
-      // Use database transaction to ensure atomicity
       const result = await this.db.transaction(async (tx) => {
         let healthInfoId: string | undefined;
 
@@ -205,7 +209,6 @@ export class ApprovalProvider {
 
         const createdApprovals: any[] = [];
 
-        // If no recordIds specified, create a single approval without recordId
         if (!recordIds || recordIds.length === 0) {
           const approval = await tx
             .insert(schema.approvals)
@@ -250,7 +253,10 @@ export class ApprovalProvider {
 
         return createdApprovals;
       });
-
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(userId, new Date(), new Date()),
+      );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_CREATED,
@@ -300,6 +306,10 @@ export class ApprovalProvider {
         });
       }
 
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(doctorId, new Date(), new Date()),
+      );
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_FETCHED,
@@ -313,6 +323,7 @@ export class ApprovalProvider {
   async acceptApproval(ctx: IAcceptApproval) {
     const { doctorId, approvalId } = ctx;
     try {
+      await this.userService.checkUserSuspension(doctorId);
       const isCompliant = await this.practitionerCompliance(doctorId);
       if (!isCompliant) {
         return this.handler.handleReturn({
@@ -397,6 +408,11 @@ export class ApprovalProvider {
         approvalId,
       );
 
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(doctorId, new Date(), new Date()),
+      );
+
       this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -436,6 +452,11 @@ export class ApprovalProvider {
       await this.db
         .delete(schema.approvals)
         .where(eq(schema.approvals.id, approvalId));
+
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(doctorId, new Date(), new Date()),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -718,6 +739,7 @@ export class ApprovalProvider {
     const { userId, page = 1, limit = 12 } = ctx;
     const skip = (page - 1) * limit;
     try {
+      await this.userService.checkUserSuspension(userId);
       const totalPatientApprovalsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
         .from(schema.approvals)

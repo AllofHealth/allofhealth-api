@@ -14,28 +14,47 @@ import {
   ICreateAdmin,
   ICreateSystemAdmin,
   IDeleteAdmin,
+  IDetermineActivityStatus,
   IManagePermissions,
+  ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
 import {
+  ACTIVITY_THRESHOLD,
   ADMIN_ERROR_MESSAGES as AEM,
   ADMIN_SUCCESS_MESSAGES as ASM,
+  SUSPENSION_REASON,
 } from '../data/admin.data';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { AuthService } from '@/modules/auth/service/auth.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
 import { DOCTOR_ERROR_MESSGAES } from '@/modules/doctor/data/doctor.data';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { AdminError } from '../error/admin.error';
+import {
+  USER_ERROR_MESSAGES,
+  USER_STATUS,
+} from '@/modules/user/data/user.data';
+import { UserService } from '@/modules/user/service/user.service';
+import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
+import {
+  IFetchPatients,
+  IUserSnippet,
+} from '@/modules/user/interface/user.interface';
+import { formatDateToReadable } from '@/shared/utils/date.utils';
 
 @Injectable()
 export class AdminProvider {
+  private readonly logger = new MyLoggerService(AdminProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
     private readonly authUtils: AuthUtils,
     private readonly authService: AuthService,
     private readonly doctorService: DoctorService,
+    private readonly userService: UserService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -78,6 +97,34 @@ export class AdminProvider {
     }
   }
 
+  private async isUserSuspended(userId: string) {
+    let isSuspended: boolean = false;
+    try {
+      const user = await this.db
+        .select({ status: schema.user.status })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId));
+
+      if (!user || user.length === 0) {
+        throw new AdminError(
+          USER_ERROR_MESSAGES.USER_NOT_FOUND,
+          { cause: 'User not found' },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      isSuspended = user[0].status === USER_STATUS.SUSPENDED;
+      return isSuspended;
+    } catch (e) {
+      this.logger.error(e);
+      throw new AdminError(
+        AEM.ERROR_VALIDATING_SUSPENSION_STATUS,
+        { cause: e },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   private async verifyDoctor(doctorId: string) {
     try {
       const doctor = await this.doctorService.fetchDoctor(doctorId);
@@ -109,6 +156,73 @@ export class AdminProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_VERIFYING_PRACTITIONER);
+    }
+  }
+
+  private determineActivityStatus(ctx: IDetermineActivityStatus) {
+    const { lastActive, timestamp = new Date() } = ctx;
+    let isActive: boolean = false;
+
+    if (!lastActive) {
+      isActive = false;
+    } else {
+      const timeSinceLastActive = timestamp.getTime() - lastActive.getTime();
+      isActive = timeSinceLastActive < ACTIVITY_THRESHOLD.ACTIVE;
+    }
+
+    return isActive;
+  }
+
+  private async fetchActiveUsers() {
+    let activeUsers: any[] = [];
+    try {
+      const users = await this.db
+        .select()
+        .from(schema.user)
+        .where(eq(schema.user.status, USER_STATUS.ACTIVE));
+
+      if (!users || users.length === 0) {
+        return [];
+      }
+
+      users.map((user) => {
+        const isActive = this.determineActivityStatus({
+          lastActive: user.lastActivity!,
+        });
+
+        if (isActive) {
+          activeUsers.push(user);
+        }
+      });
+
+      return activeUsers;
+    } catch (e) {
+      this.logger.error(`${AEM.ERROR_FETCHING_ACTIVE_USERS}: ${e}`);
+      throw new AdminError(
+        AEM.ERROR_FETCHING_ACTIVE_USERS,
+        { cause: e },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async fetchSuspendedUsersCount() {
+    try {
+      const suspendedUsers = await this.db
+        .select({
+          count: sql`count(*)`.as('count'),
+        })
+        .from(schema.user)
+        .where(eq(schema.user.status, USER_STATUS.SUSPENDED));
+
+      return Number(suspendedUsers[0]?.count || 0);
+    } catch (e) {
+      this.logger.error(e);
+      throw new AdminError(
+        AEM.ERROR_FETCHING_SUSPENDED_USERS,
+        { cause: e },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -291,6 +405,7 @@ export class AdminProvider {
       const tokens = await this.authService.generateTokens({
         email,
         userId: admin.data?.id!,
+        save: false,
       });
 
       return this.handler.handleReturn({
@@ -336,5 +451,131 @@ export class AdminProvider {
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_DELETING_ADMIN);
     }
+  }
+
+  async suspendUser(ctx: ISuspendUser) {
+    const { userId, reason = SUSPENSION_REASON.DEFAULT } = ctx;
+    try {
+      const userSuspended = await this.isUserSuspended(userId);
+      if (userSuspended) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.USER_ALREADY_SUSPENDED,
+        });
+      }
+
+      await this.db.transaction(async (tx) => {
+        await tx.update(schema.user).set({
+          status: USER_STATUS.SUSPENDED,
+        });
+
+        await tx.insert(schema.suspensionLogs).values({
+          userId,
+          reason,
+        });
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.USER_SUSPENDED_SUCCESSFULLY,
+        });
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_SUSPENDING_USER);
+    }
+  }
+
+  async fetchPatientManagementDashboard() {
+    try {
+      const [
+        activeUserResult,
+        doctorResult,
+        patientResult,
+        suspendedUsersCount,
+      ] = await Promise.all([
+        this.fetchActiveUsers(),
+        this.doctorService.fetchAllDoctors({}),
+        this.userService.fetchAllPatients({}),
+        this.fetchSuspendedUsersCount(),
+      ]);
+
+      if (
+        !('meta' in doctorResult && doctorResult.meta) ||
+        !('meta' in patientResult && patientResult.meta)
+      ) {
+        throw new HttpException(
+          new AdminError(
+            'Error fetching entities stats',
+            { cause: doctorResult.message },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          ),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const doctorCount = doctorResult.meta.totalCount;
+      const patientCount = patientResult.meta.totalCount;
+      const activeUsersCount = activeUserResult.length;
+      const suspendedCount = suspendedUsersCount;
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.PATIENT_MANAGEMENT_DASHBOARD_FETCHED,
+        data: {
+          totalActiveUsers: activeUsersCount,
+          totalPatients: patientCount,
+          totalDoctors: doctorCount,
+          totalSuspendedUsers: suspendedCount,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(
+        e,
+        AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+      );
+    }
+  }
+
+  async fetchAllDoctors(ctx: IFetchDoctors) {
+    const allDoctors = await this.doctorService.fetchAllDoctors(ctx);
+
+    if (
+      !('data' in allDoctors && allDoctors.data) ||
+      typeof allDoctors.data === null
+    ) {
+      throw new HttpException(
+        new AdminError(
+          'Error fetching doctors',
+          { cause: allDoctors.message },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const doctorData = allDoctors.data;
+    const parsedDoctorData = doctorData.map((doctor) => {
+      return {
+        email: doctor.email,
+        fullName: doctor.fullName,
+        phoneNumber: doctor.phoneNumber,
+        gender: doctor.gender,
+        profilePicture: doctor.profilePicture || '',
+        role: doctor.role,
+        userId: doctor.userId,
+        status: doctor.status,
+        lastActive: doctor.lastActive!,
+      } as IUserSnippet;
+    });
+
+    return this.handler.handleReturn({
+      status: HttpStatus.OK,
+      message: allDoctors.message,
+      data: parsedDoctorData,
+      meta: allDoctors.meta,
+    });
+  }
+
+  async fetchAllPatients(ctx: IFetchPatients) {
+    return await this.userService.fetchAllPatients(ctx);
   }
 }
