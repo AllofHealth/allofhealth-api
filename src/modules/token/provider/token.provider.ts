@@ -112,20 +112,38 @@ export class TokenProvider {
   async revokeToken(args: IRevokeToken) {
     const { userId, replacementToken } = args;
     try {
-      const [result] = await this.db
-        .update(schema.refresh_tokens)
-        .set({
-          revokedAt: new Date(),
-          replacedByToken: replacementToken || null,
-        })
-        .where(eq(schema.refresh_tokens.userId, userId))
-        .returning();
+      if (replacementToken) {
+        const [result] = await this.db
+          .update(schema.refresh_tokens)
+          .set({
+            token: replacementToken,
+            revokedAt: null,
+            replacedByToken: null,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+          })
+          .where(eq(schema.refresh_tokens.userId, userId))
+          .returning();
 
-      return this.handler.handleReturn({
-        status: HttpStatus.OK,
-        message: TokenSuccessMessages.TOKEN_REVOKED,
-        data: result,
-      });
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: TokenSuccessMessages.TOKEN_REVOKED,
+          data: result,
+        });
+      } else {
+        const [result] = await this.db
+          .update(schema.refresh_tokens)
+          .set({
+            revokedAt: new Date(),
+          })
+          .where(eq(schema.refresh_tokens.userId, userId))
+          .returning();
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: TokenSuccessMessages.TOKEN_REVOKED,
+          data: result,
+        });
+      }
     } catch (e) {
       return this.handler.handleError(
         e,
