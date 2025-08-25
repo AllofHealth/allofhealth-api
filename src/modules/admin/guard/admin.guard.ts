@@ -34,6 +34,10 @@ export class AdminGuard implements CanActivate {
       const payload = await this.jwtService.verify(token);
       const tokenUserId = payload.userId;
 
+      if (!tokenUserId) {
+        throw new UnauthorizedException();
+      }
+
       const admin = await this.db.query.admin.findFirst({
         where: eq(schema.admin.id, tokenUserId),
       });

@@ -31,6 +31,7 @@ export class AuthProvider {
   ) {}
 
   async generateTokens(payload: IGenerateTokens) {
+    const { save = true } = payload;
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '30m',
     });
@@ -41,17 +42,19 @@ export class AuthProvider {
     );
 
     const expiresIn = 7 * 24 * 60 * 60;
-    const result = await this.tokenService.saveRefreshToken({
-      userId: payload.userId,
-      token: refreshToken,
-      expiresIn,
-    });
+    if (save) {
+      const result = await this.tokenService.saveRefreshToken({
+        userId: payload.userId,
+        token: refreshToken,
+        expiresIn,
+      });
 
-    if (result.status !== HttpStatus.OK) {
-      return {
-        status: result.status,
-        message: result.message,
-      };
+      if (result.status !== HttpStatus.OK) {
+        return {
+          status: result.status,
+          message: result.message,
+        };
+      }
     }
 
     return { accessToken, refreshToken };
@@ -181,6 +184,7 @@ export class AuthProvider {
       }
 
       const userProfile = result.data;
+      await this.userService.checkUserSuspension(userProfile.userId);
 
       const isPasswordValid = await this.authUtils.compare({
         hashedPassword: userProfile.password,

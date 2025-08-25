@@ -1,13 +1,15 @@
-import { AuthGuard } from '@/modules/auth/guards/auth.guard';
+import { TSort } from '@/modules/doctor/interface/doctor.interface';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpStatus,
   Ip,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,6 +17,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import {
@@ -27,6 +30,7 @@ import {
   CreateSystemAdminDto,
   DeleteAdminDto,
   ManagePermissionsDto,
+  SuspendUserDto,
   VerifyPractitionerDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
@@ -78,7 +82,7 @@ export class AdminController {
   }
 
   @Post('createSystemAdmin')
-  @UseGuards(AuthGuard, AdminGuard)
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Create a new system admin (requires super admin)' })
   @ApiOkResponse({
     description: ASM.SUCCESS_CREATING_ADMIN,
@@ -123,7 +127,7 @@ export class AdminController {
   }
 
   @Post('managePermissions')
-  @UseGuards(AuthGuard, AdminGuard)
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Manage admin permissions (requires super admin)' })
   @ApiOkResponse({
     description: ASM.SUCCESS_UPDATING_ADMIN_PERMISSIONS,
@@ -214,7 +218,7 @@ export class AdminController {
   }
 
   @Post('verifyPractitioner')
-  @UseGuards(AuthGuard, AdminGuard)
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Verify a practitioner (requires admin)' })
   @ApiOkResponse({
     description: ASM.PRACTITIONER_VERIFIED,
@@ -257,7 +261,7 @@ export class AdminController {
   }
 
   @Delete('deleteAdmin')
-  @UseGuards(AuthGuard, AdminGuard)
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Delete an admin (requires super admin)' })
   @ApiOkResponse({
     description: ASM.SUCCESS_DELETING_ADMIN,
@@ -298,6 +302,194 @@ export class AdminController {
     return await this.adminService.deleteAdmin({
       ...ctx,
       superAdminId: ctx.userId,
+    });
+  }
+
+  @Post('suspendUser')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Suspend a user (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.USER_SUSPENDED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_SUSPENDED_SUCCESSFULLY,
+    },
+  })
+  @ApiOkResponse({
+    description: ASM.USER_ALREADY_SUSPENDED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_ALREADY_SUSPENDED,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_SUSPENDING_USER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_SUSPENDING_USER,
+    },
+  })
+  async suspendUser(@Ip() ip: string, @Body() ctx: SuspendUserDto) {
+    this.logger.log(`Suspending user ${ctx.userId} from ${ip}`);
+    return await this.adminService.suspendUser(ctx);
+  }
+
+  @Get('dashboard/patient-management')
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: 'Fetch patient management dashboard data (requires admin)',
+  })
+  @ApiOkResponse({
+    description: ASM.PATIENT_MANAGEMENT_DASHBOARD_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.PATIENT_MANAGEMENT_DASHBOARD_FETCHED,
+      data: {
+        totalActiveUsers: 150,
+        totalPatients: 1200,
+        totalDoctors: 45,
+        totalSuspendedUsers: 8,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+    },
+  })
+  async fetchPatientManagementDashboard(@Ip() ip: string) {
+    this.logger.log(`Fetching patient management dashboard from ${ip}`);
+    return await this.adminService.fetchPatientManagementDashboardData();
+  }
+
+  @Get('fetchAllDoctors')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch all doctors (requires admin)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiQuery({ name: 'query', required: false })
+  @ApiOkResponse({
+    description: 'Fetch all doctors',
+    type: Array,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Doctors fetched successfully',
+      data: [
+        {
+          email: 'doctor@example.com',
+          fullName: 'Dr. John Doe',
+          phoneNumber: '+1234567890',
+          gender: 'Male',
+          profilePicture: 'https://example.com/profile.jpg',
+          role: 'doctor',
+          userId: '507f1f77bcf86cd799439011',
+          status: 'active',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalCount: 24,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+    },
+  })
+  async fetchAllDoctors(
+    @Ip() ip: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('sort') sort?: TSort,
+    @Query('query') query?: string,
+  ) {
+    this.logger.log(`Admin fetching all doctors from ${ip}`);
+    return await this.adminService.fetchAllDoctors({
+      page,
+      limit,
+      sort,
+      query,
+    });
+  }
+
+  @Get('fetchAllPatients')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch all patients (requires admin)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiQuery({ name: 'query', required: false })
+  @ApiOkResponse({
+    description: 'Fetch all patients',
+    type: Array,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Patients fetched successfully',
+      data: [
+        {
+          email: 'patient@example.com',
+          fullName: 'John Patient',
+          phoneNumber: '+1234567890',
+          gender: 'Male',
+          profilePicture: 'https://example.com/profile.jpg',
+          role: 'patient',
+          userId: '507f1f77bcf86cd799439011',
+          status: 'active',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalCount: 150,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+    },
+  })
+  async fetchAllPatients(
+    @Ip() ip: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('sort') sort?: TSort,
+    @Query('query') query?: string,
+  ) {
+    this.logger.log(`Admin fetching all patients from ${ip}`);
+    return await this.adminService.fetchAllPatients({
+      page,
+      limit,
+      sort,
+      query,
     });
   }
 }

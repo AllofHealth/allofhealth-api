@@ -9,6 +9,7 @@ import { Database } from '@/shared/drizzle/drizzle.types';
 import {
   EAddMedicalRecordToContract,
   EDeleteApproval,
+  EOnUserLogin,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -41,6 +42,7 @@ import {
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
 import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
+import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class RecordsProvider {
@@ -50,6 +52,7 @@ export class RecordsProvider {
     private readonly handler: ErrorHandler,
     private readonly doctorService: DoctorService,
     private readonly recordEncryptionService: RecordsEncryptionService,
+    private readonly userService: UserService,
     private readonly ipfsService: IpfsService,
     private readonly eventEmitter: EventEmitter2,
     private readonly approvalService: ApprovalService,
@@ -82,6 +85,7 @@ export class RecordsProvider {
       attachment3,
     } = ctx;
     try {
+      await this.userService.checkUserSuspension(practitionerId);
       const practitionerSmartAddress =
         await this.contractService.getPractitionerSmartAddress(practitionerId);
 
@@ -226,6 +230,10 @@ export class RecordsProvider {
       );
 
       await this.createRecordQueue.createRecordJob(recordEvent);
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(practitionerId, new Date(), new Date()),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -471,6 +479,7 @@ export class RecordsProvider {
     let viewerAddress: string | undefined = undefined;
     try {
       if (practitionerId) {
+        await this.userService.checkUserSuspension(practitionerId);
         const practitionerAddress =
           await this.contractService.getPractitionerSmartAddress(
             practitionerId,
@@ -527,6 +536,7 @@ export class RecordsProvider {
         }
       }
 
+      await this.userService.checkUserSuspension(patientId);
       const patientRecordType = await this.db
         .select({
           recordType: schema.records.recordType,
@@ -575,6 +585,12 @@ export class RecordsProvider {
         recordType: recordType,
         practitionerName: patientRecordType[0].practitionerName,
       };
+
+      const userToUpdate = practitionerId ? practitionerId : patientId;
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_USER_LOGIN,
+        new EOnUserLogin(userToUpdate, new Date(), new Date()),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,

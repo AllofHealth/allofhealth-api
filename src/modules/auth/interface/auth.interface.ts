@@ -36,4 +36,5 @@ export interface ILogin {
 export interface IGenerateTokens {
   userId: string;
   email: string;
+  save?: boolean;
 }

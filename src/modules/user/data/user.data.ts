@@ -13,6 +13,9 @@ export enum USER_ERROR_MESSAGES {
   DASHBOARD_DATA_NOT_IMPLEMENTED = 'Dashboard data not implemented for this role',
   ERROR_SENDING_EMAIL = 'Error sending otp',
   ERROR_VALIDATING_OTP = 'Error validating otp',
+  ERROR_PROCESSING_SUSPENSION_CHECK = 'Error processing suspension check',
+  USER_SUSPENDED = 'User is suspended',
+  ERROR_FETCHING_PATIENTS = 'Error fetching patients',
 }
 
 export enum USER_SUCCESS_MESSAGE {
@@ -23,4 +26,20 @@ export enum USER_SUCCESS_MESSAGE {
   SUCCESS_FETCHING_DASHBOARD_DATA = 'Dashboard data fetched successfully',
   SUCCESS_SENDING_OTP = 'OTP sent successfully',
   OTP_VALIDATED = 'OTP validated successfully',
+  PATIENTS_FETCHED_SUCCESSFULLY = 'Patients fetched successfully',
+}
+
+export enum USER_STATUS {
+  SUSPENDED = 'SUSPENDED',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  PENDING = 'PENDING',
+}
+
+export enum USER_ROLE {
+  ADMIN = 'ADMIN',
+  DOCTOR = 'DOCTOR',
+  PATIENT = 'PATIENT',
+  PHARMACIST = 'PHARMACIST',
+  INSTITUTION = 'INSTITUTION',
 }

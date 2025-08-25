@@ -13,6 +13,8 @@ import {
   IDoctorSnippet,
   IFetchDoctors,
 } from '../interface/doctor.interface';
+import { USER_ROLE } from '@/modules/user/data/user.data';
+import { formatDateToReadable } from '@/shared/utils/date.utils';
 
 @Injectable()
 export class DoctorProvider {
@@ -49,6 +51,7 @@ export class DoctorProvider {
         gender: doctor[0].users.gender,
         profilePicture: doctor[0].users.profilePicture as string,
         role: doctor[0].users.role,
+        status: doctor[0].users.status,
         bio: doctor[0].doctors.bio || '',
         servicesOffered: doctor[0].doctors.servicesOffered as string[],
         certifications: doctor[0].doctors.certifications as string[],
@@ -125,7 +128,7 @@ export class DoctorProvider {
     const sortFn = sort === 'desc' ? desc : asc;
     const sortColumn = schema.user.createdAt;
     try {
-      let whereConditions: any = eq(schema.user.role, 'DOCTOR');
+      let whereConditions: any = eq(schema.user.role, USER_ROLE.DOCTOR);
 
       if (query && query.trim()) {
         const searchQuery = `%${query.trim()}%`;
@@ -144,16 +147,14 @@ export class DoctorProvider {
       const totalCount = Number(totalDoctorsResult[0]?.count ?? 0);
       const totalPages = Math.ceil(totalCount / limit);
 
-      const doctors = (
-        await this.db
-          .select()
-          .from(schema.doctors)
-          .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-          .where(whereConditions)
-          .orderBy(sortFn(sortColumn))
-          .offset(skip)
-          .limit(limit)
-      ).sort();
+      const doctors = await this.db
+        .select()
+        .from(schema.doctors)
+        .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+        .where(whereConditions)
+        .orderBy(sortFn(sortColumn))
+        .offset(skip)
+        .limit(limit);
 
       const parsedDoctors: IDoctorSnippet[] = doctors.map((doctor) => ({
         userId: doctor.users.id,
@@ -163,6 +164,10 @@ export class DoctorProvider {
         profilePicture: doctor.users.profilePicture as string,
         phoneNumber: doctor.users.phoneNumber as string,
         role: doctor.users.role,
+        status: doctor.users.status,
+        lastActive: doctor.users.lastActivity
+          ? formatDateToReadable(doctor.users.lastActivity)
+          : 'Never',
         bio: doctor.doctors.bio || '',
         servicesOffered: doctor.doctors.servicesOffered as string[],
         certifications: doctor.doctors.certifications as string[],
