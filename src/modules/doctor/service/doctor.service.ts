@@ -25,6 +25,7 @@ export class DoctorService {
     return await this.doctorProvider.fetchAllDoctors(ctx);
   }
 
+  @OnEvent(SharedEvents.UPDATE_REVIEW_COUNT, { async: true })
   async updateRecordsReviewed(ctx: IUpdateRecordsReviewed) {
     return await this.doctorProvider.updateRecordsReviewed(ctx);
   }
