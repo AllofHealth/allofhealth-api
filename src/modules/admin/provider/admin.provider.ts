@@ -15,6 +15,7 @@ import {
   ICreateSystemAdmin,
   IDeleteAdmin,
   IDetermineActivityStatus,
+  IInspectDoctorResponse,
   IInspectPatientResponse,
   IManagePermissions,
   ISuspendUser,
@@ -46,6 +47,7 @@ import {
 } from '@/modules/user/interface/user.interface';
 import { formatDateToReadable } from '@/shared/utils/date.utils';
 import { AssetService } from '@/modules/asset/service/asset.service';
+import { ApprovalService } from '@/modules/approval/service/approval.service';
 
 @Injectable()
 export class AdminProvider {
@@ -58,6 +60,7 @@ export class AdminProvider {
     private readonly doctorService: DoctorService,
     private readonly userService: UserService,
     private readonly assetService: AssetService,
+    private readonly approvalService: ApprovalService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -305,6 +308,89 @@ export class AdminProvider {
 
   private async inspectDoctorData(userId: string) {
     try {
+      const doctor = await this.db
+        .select({
+          userId: schema.user.id,
+          fullName: schema.user.fullName,
+          profilePicture: schema.user.profilePicture,
+          emailAddress: schema.user.emailAddress,
+          phoneNumber: schema.user.phoneNumber,
+          gender: schema.user.gender,
+          status: schema.user.status,
+          lastActive: schema.user.lastActivity,
+          dateJoined: schema.user.createdAt,
+          dob: schema.user.dateOfBirth,
+          role: schema.user.role,
+          governmentIdUrl: schema.identity.governmentId,
+          medicalLicenseUrl: schema.identity.scannedLicense,
+          yearsOfExperience: schema.doctors.yearsOfExperience,
+          hospitalAffiliation: schema.doctors.hospitalAssociation,
+          bio: schema.doctors.bio,
+          languagesSpoken: schema.doctors.languagesSpoken,
+          certifications: schema.doctors.certifications,
+          servicesOffered: schema.doctors.servicesOffered,
+          recordsReviewed: schema.doctors.recordsReviewed,
+          medicalLicenseNumber: schema.doctors.medicalLicenseNumber,
+        })
+        .from(schema.user)
+        .leftJoin(schema.doctors, eq(schema.doctors.userId, userId))
+        .leftJoin(schema.identity, eq(schema.identity.userId, userId))
+        .where(eq(schema.user.id, userId))
+        .limit(1);
+
+      if (!doctor || doctor.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND,
+          data: null,
+        });
+      }
+
+      const parsedDoctor = doctor.map(async (d) => {
+        return {
+          ...d,
+          dateJoined: formatDateToReadable(d.dateJoined),
+          lastActive: formatDateToReadable(
+            d.lastActive ? d.lastActive : 'never',
+          ),
+          dob: formatDateToReadable(d.dob),
+          bio: d.bio || '',
+          yearsOfExperience: d.yearsOfExperience || 0,
+          hospitalAffiliation: d.hospitalAffiliation || 'none',
+          servicesOffered: Array.isArray(d.servicesOffered)
+            ? d.servicesOffered
+            : [],
+          languagesSpoken: Array.isArray(d.languagesSpoken)
+            ? d.languagesSpoken
+            : [],
+          certifications: Array.isArray(d.certifications)
+            ? d.certifications
+            : [],
+          medicalLicenseNumber: d.medicalLicenseNumber || 'none',
+          recordsReviewed: d.recordsReviewed || 0,
+          identityAssets: {
+            governmentIdUrl: this.assetService.generateUrl(
+              d.governmentIdUrl as string,
+            ),
+            medicalLicenseUrl: this.assetService.generateUrl(
+              d.medicalLicenseUrl as string,
+            ),
+          },
+          doctorActivity: {
+            patientsAttended: 0,
+            recordsReviewed: d.recordsReviewed || 0,
+            pendingApprovals:
+              (await this.approvalService.fetchPendingApprovalCount(userId)) ||
+              0,
+          },
+        } as IInspectDoctorResponse;
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.DOCTOR_DATA_FETCHED,
+        data: parsedDoctor,
+      });
     } catch (e) {
       throw new HttpException(
         new AdminError(
