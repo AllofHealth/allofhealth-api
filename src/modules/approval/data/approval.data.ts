@@ -23,6 +23,7 @@ export enum APPROVAL_ERROR_MESSAGE {
   ERROR_FETCHING_PATIENT_APPROVALS = 'Error fetching patient approvals',
   ERROR_FETCHING_APPROVED_APPROVALS = 'Error fetching approved approvals',
   ERROR_RESETTING_APPROVAL_PERMISSIONS = 'Error resetting approval permissions',
+  ERROR_FETCHING_DOCTOR_PENDING_APPROVALS = 'Error fetching doctor pending approvals',
 }
 
 export enum APPROVAL_SUCCESS_MESSAGE {
