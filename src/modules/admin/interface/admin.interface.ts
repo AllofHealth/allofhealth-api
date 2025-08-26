@@ -89,7 +89,7 @@ export interface IInspectDoctorResponse {
   role: string;
   medicalLicenseNumber: string;
   yearsOfExperience: number;
-  hopsitalAffiliation: string;
+  hospitalAffiliation: string;
   bio: string;
   languagesSpoken: string[];
   certifications: string[];
