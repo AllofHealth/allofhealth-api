@@ -57,6 +57,7 @@ export const doctors = pgTable('doctors', {
     length: 255,
   }).notNull(),
   bio: varchar('bio', { length: 255 }),
+  recordsReviewed: integer('records_reviewed').default(0),
   medicalLicenseNumber: text('license_number').notNull(),
   licenseExpirationDate: date('license_expiration_date').notNull(),
   certifications: jsonb('certifications').default('[]'),
