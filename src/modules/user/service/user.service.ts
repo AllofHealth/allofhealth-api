@@ -55,4 +55,8 @@ export class UserService {
   async fetchAllPatients(ctx: IFetchPatients) {
     return await this.userProvider.fetchAllPatients(ctx);
   }
+
+  async determineUserRole(userId: string) {
+    return await this.userProvider.handleDetermineUserRole(userId);
+  }
 }
