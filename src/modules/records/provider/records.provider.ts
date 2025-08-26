@@ -10,6 +10,7 @@ import {
   EAddMedicalRecordToContract,
   EDeleteApproval,
   EOnUserLogin,
+  EUpdateReviewCount,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -295,7 +296,10 @@ export class RecordsProvider {
               updatedAt: new Date().toISOString(),
             })
             .where(eq(schema.userRecordCounters.userId, userId));
-
+          this.eventEmitter.emit(
+            SharedEvents.UPDATE_REVIEW_COUNT,
+            new EUpdateReviewCount(userId, 'dec'),
+          );
           this.logger.log(
             `Rolled back chain ID from ${recordChainId} to ${recordChainId - 1} for user ${userId}`,
           );
