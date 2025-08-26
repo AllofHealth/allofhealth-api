@@ -25,7 +25,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { and, eq, or, sql } from 'drizzle-orm';
+import { and, count, eq, or, sql } from 'drizzle-orm';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
   APPROVAL_STATUS,
@@ -41,6 +41,7 @@ import {
 } from '../interface/approval.interface';
 import { calculateAge, formatDuration } from '@/shared/utils/date.utils';
 import { UserService } from '@/modules/user/service/user.service';
+import { ApprovalError } from '../error/approval.error';
 
 @Injectable()
 export class ApprovalProvider {
@@ -267,6 +268,31 @@ export class ApprovalProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_CREATING_APPROVAL);
+    }
+  }
+
+  async fetchDoctorPendingApprovalsCount(doctorId: string) {
+    try {
+      const doctorAddress = await this.getSmartAddress(doctorId);
+      const pendingApprovals = await this.db
+        .select({
+          count: count(),
+        })
+        .from(schema.approvals)
+        .where(
+          and(
+            eq(schema.approvals.status, APPROVAL_STATUS.PENDING),
+            eq(schema.approvals.practitionerAddress, doctorAddress),
+          ),
+        );
+
+      return pendingApprovals[0].count;
+    } catch (e) {
+      throw new InternalServerErrorException(
+        new ApprovalError(AEM.ERROR_FETCHING_DOCTOR_PENDING_APPROVALS, {
+          cause: e,
+        }),
+      );
     }
   }
 
