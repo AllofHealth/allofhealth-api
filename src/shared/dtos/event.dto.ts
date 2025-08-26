@@ -2,6 +2,7 @@ import type { TAuthProvider } from '@/modules/user/interface/user.interface';
 import type { TRole } from '../interface/shared.interface';
 import { TActionTypes } from '@/modules/daily-tasks/interface/daily-tasks.interface';
 import { IRewardUsers } from '@/modules/reward/interface/reward.interface';
+import { TOperation } from '@/modules/doctor/interface/doctor.interface';
 
 export class CreateDoctor {
   constructor(
@@ -163,4 +164,11 @@ export class EDeleteIpfsRecord {
 
 export class EResetApprovalPermissions {
   constructor(readonly approvalId: string) {}
+}
+
+export class EUpdateReviewCount {
+  constructor(
+    readonly userId: string,
+    readonly op: TOperation,
+  ) {}
 }
