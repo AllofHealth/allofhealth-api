@@ -1,4 +1,4 @@
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
@@ -12,12 +12,16 @@ import {
   ICreateDoctor,
   IDoctorSnippet,
   IFetchDoctors,
+  IUpdateRecordsReviewed,
 } from '../interface/doctor.interface';
 import { USER_ROLE } from '@/modules/user/data/user.data';
 import { formatDateToReadable } from '@/shared/utils/date.utils';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { DoctorError } from '../errors/doctor.errors';
 
 @Injectable()
 export class DoctorProvider {
+  private readonly logger = new MyLoggerService(DoctorProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
@@ -196,6 +200,36 @@ export class DoctorProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, DEM.ERROR_FETCHING_ALL_DOCTORS);
+    }
+  }
+
+  async updateRecordsReviewed(ctx: IUpdateRecordsReviewed) {
+    const { userId, operation } = ctx;
+    try {
+      switch (operation) {
+        case 'inc':
+          await this.db
+            .update(schema.doctors)
+            .set({
+              recordsReviewed: sql`${schema.doctors.recordsReviewed} + 1`,
+            })
+            .where(eq(schema.doctors.userId, userId));
+          break;
+        case 'dec':
+          await this.db
+            .update(schema.doctors)
+            .set({
+              recordsReviewed: sql`${schema.doctors.recordsReviewed} - 1`,
+            })
+            .where(eq(schema.doctors.userId, userId));
+          break;
+      }
+    } catch (e) {
+      this.logger.error(`${DEM.ERROR_UPDATING_RECORDS_REVIEWED_COUNT}: ${e}`);
+      throw new HttpException(
+        new DoctorError(DEM.ERROR_UPDATING_RECORDS_REVIEWED_COUNT),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }
