@@ -4,6 +4,7 @@ import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import {
   EAddMedicalRecordToContract,
   EDeleteIpfsRecord,
+  EUpdateReviewCount,
   EUpdateTaskCount,
 } from '../dtos/event.dto';
 import { ContractService } from '@/modules/contract/service/contract.service';
@@ -41,6 +42,10 @@ export class CreateRecordProcessor {
         String(job.data.recordChainId),
       );
       this.eventEmitter.emit(SharedEvents.TASK_COMPLETED, taskData);
+      this.eventEmitter.emit(
+        SharedEvents.UPDATE_REVIEW_COUNT,
+        new EUpdateReviewCount(job.data.userId, 'inc'),
+      );
       return result;
     } catch (error) {
       this.logger.error(`Error processing job ${job.id}: ${error.message}`);
