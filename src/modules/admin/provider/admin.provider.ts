@@ -267,6 +267,8 @@ export class AdminProvider {
         });
       }
 
+      this.logger.debug(`Patient fetched ${JSON.stringify(patient)}`);
+
       const parsedPatient = patient.map((p) => {
         return {
           ...p,
@@ -283,9 +285,9 @@ export class AdminProvider {
               ? p.medicalRecordsCreated
               : 0,
           },
-          lastActive: formatDateToReadable(
-            p.lastActive ? p.lastActive : 'never',
-          ),
+          lastActive: p.lastActive
+            ? formatDateToReadable(p.lastActive)
+            : 'never',
         } as IInspectPatientResponse;
       });
 
@@ -333,8 +335,8 @@ export class AdminProvider {
           medicalLicenseNumber: schema.doctors.medicalLicenseNumber,
         })
         .from(schema.user)
-        .leftJoin(schema.doctors, eq(schema.doctors.userId, userId))
-        .leftJoin(schema.identity, eq(schema.identity.userId, userId))
+        .leftJoin(schema.doctors, eq(schema.doctors.userId, schema.user.id))
+        .leftJoin(schema.identity, eq(schema.identity.userId, schema.user.id))
         .where(eq(schema.user.id, userId))
         .limit(1);
 
@@ -346,13 +348,16 @@ export class AdminProvider {
         });
       }
 
-      const parsedDoctor = doctor.map(async (d) => {
+      const pendingApprovals =
+        (await this.approvalService.fetchPendingApprovalCount(userId)) || 0;
+
+      const parsedDoctor = doctor.map((d) => {
         return {
           ...d,
           dateJoined: formatDateToReadable(d.dateJoined),
-          lastActive: formatDateToReadable(
-            d.lastActive ? d.lastActive : 'never',
-          ),
+          lastActive: d.lastActive
+            ? formatDateToReadable(d.lastActive)
+            : 'never',
           dob: formatDateToReadable(d.dob),
           bio: d.bio || '',
           yearsOfExperience: d.yearsOfExperience || 0,
@@ -379,19 +384,22 @@ export class AdminProvider {
           doctorActivity: {
             patientsAttended: 0,
             recordsReviewed: d.recordsReviewed || 0,
-            pendingApprovals:
-              (await this.approvalService.fetchPendingApprovalCount(userId)) ||
-              0,
+            pendingApprovals,
           },
         } as IInspectDoctorResponse;
       });
 
+      this.logger.debug(`Parsed doctor data ${JSON.stringify(parsedDoctor)}`);
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.DOCTOR_DATA_FETCHED,
-        data: parsedDoctor,
+        data: parsedDoctor[0],
       });
     } catch (e) {
+      this.logger.error(
+        `Error fetching doctor data for user: ${userId} : ${e}`,
+      );
       throw new HttpException(
         new AdminError(
           AEM.ERROR_FETCHING_DOCTOR_DATA,
@@ -758,6 +766,7 @@ export class AdminProvider {
 
   async fetchUserData(userId: string) {
     const role = await this.userService.determineUserRole(userId);
+    this.logger.debug(`User role: ${role}`);
     switch (role) {
       case 'PATIENT':
         return await this.inspectPatientData(userId);
