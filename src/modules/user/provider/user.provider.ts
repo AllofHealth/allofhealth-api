@@ -765,4 +765,30 @@ export class UserProvider {
       return this.handler.handleError(e, UEM.ERROR_VALIDATING_OTP);
     }
   }
+
+  async handleDetermineUserRole(userId: string) {
+    try {
+      const user = await this.db
+        .select({
+          role: schema.user.role,
+        })
+        .from(schema.user)
+        .where(eq(schema.user.id, userId));
+
+      if (!user || user.length === 0) {
+        throw new UserError(UEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
+
+      return user[0].role as TRole;
+    } catch (e) {
+      this.logger.error(`${UEM.ERROR_DETERMINING_USER_ROLE}: ${e}`);
+      throw new HttpException(
+        new UserError(
+          UEM.ERROR_DETERMINING_USER_ROLE,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

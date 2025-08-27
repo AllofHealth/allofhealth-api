@@ -15,6 +15,10 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_SUSPENDING_USER = 'Error suspending user',
   ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD = 'Error fetching patient management dashboard',
   ERROR_FETCHING_SUSPENDED_USERS = 'Error fetching suspended users',
+  ERROR_FETCHING_PATIENT_DATA = 'Error fetching patient data',
+  ERROR_FETCHING_DOCTOR_DATA = 'Error fetching doctor data',
+  ERROR_FETCHING_USER_DATA = 'Error fetching user data',
+  PATIENT_NOT_FOUND = 'Patient not found',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
@@ -29,6 +33,9 @@ export enum ADMIN_SUCCESS_MESSAGES {
   USER_SUSPENDED_SUCCESSFULLY = 'User suspended successfully',
   SUSPENSION_LIFITED_SUCCESSFULLY = 'Suspension lifted successfully',
   PATIENT_MANAGEMENT_DASHBOARD_FETCHED = 'Patient management dashboard fetched successfully',
+  USER_DATA_FETCHED = 'User data fetched successfully',
+  PATIENT_DATA_FETCHED = 'Patient data fetched successfully',
+  DOCTOR_DATA_FETCHED = 'Doctor data fetched successfully',
 }
 
 export enum ACTIVITY_THRESHOLD {

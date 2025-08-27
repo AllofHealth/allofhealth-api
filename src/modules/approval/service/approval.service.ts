@@ -84,4 +84,10 @@ export class ApprovalService {
   async resetApprovalPermissions(ctx: EResetApprovalPermissions) {
     return await this.approvalProvider.resetApprovalPermissions(ctx);
   }
+
+  async fetchPendingApprovalCount(doctorId: string) {
+    return await this.approvalProvider.fetchDoctorPendingApprovalsCount(
+      doctorId,
+    );
+  }
 }

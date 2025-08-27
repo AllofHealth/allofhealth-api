@@ -54,4 +54,8 @@ export class AdminService {
   async fetchAllPatients(ctx: IFetchPatients) {
     return await this.adminProvider.fetchAllPatients(ctx);
   }
+
+  async fetchUserData(userId: string) {
+    return await this.adminProvider.fetchUserData(userId);
+  }
 }

@@ -20,4 +20,5 @@ export enum SharedEvents {
   UPDATE_MOOD_METRICS = 'update.mood.metrics',
   DELETE_IPFS_RECORD = 'delete.ipfs.record',
   RESET_APPROVAL_PERMISSIONS = 'reset.approval.permissions',
+  UPDATE_REVIEW_COUNT = 'update.review.count',
 }

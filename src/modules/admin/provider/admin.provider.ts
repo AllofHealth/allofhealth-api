@@ -15,6 +15,8 @@ import {
   ICreateSystemAdmin,
   IDeleteAdmin,
   IDetermineActivityStatus,
+  IInspectDoctorResponse,
+  IInspectPatientResponse,
   IManagePermissions,
   ISuspendUser,
   IVerifyPractitioner,
@@ -44,6 +46,8 @@ import {
   IUserSnippet,
 } from '@/modules/user/interface/user.interface';
 import { formatDateToReadable } from '@/shared/utils/date.utils';
+import { AssetService } from '@/modules/asset/service/asset.service';
+import { ApprovalService } from '@/modules/approval/service/approval.service';
 
 @Injectable()
 export class AdminProvider {
@@ -55,6 +59,8 @@ export class AdminProvider {
     private readonly authService: AuthService,
     private readonly doctorService: DoctorService,
     private readonly userService: UserService,
+    private readonly assetService: AssetService,
+    private readonly approvalService: ApprovalService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -221,6 +227,177 @@ export class AdminProvider {
       throw new AdminError(
         AEM.ERROR_FETCHING_SUSPENDED_USERS,
         { cause: e },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async inspectPatientData(userId: string) {
+    try {
+      const patient = await this.db
+        .select({
+          userId: schema.user.id,
+          fullName: schema.user.fullName,
+          profilePicture: schema.user.profilePicture,
+          emailAddress: schema.user.emailAddress,
+          phoneNumber: schema.user.phoneNumber,
+          gender: schema.user.gender,
+          status: schema.user.status,
+          lastActive: schema.user.lastActivity,
+          dateJoined: schema.user.createdAt,
+          dob: schema.user.dateOfBirth,
+          role: schema.user.role,
+          governmentIdUrl: schema.identity.governmentId,
+          medicalRecordsCreated: schema.userRecordCounters.lastRecordChainId,
+        })
+        .from(schema.user)
+        .leftJoin(schema.identity, eq(schema.identity.userId, userId))
+        .leftJoin(
+          schema.userRecordCounters,
+          eq(schema.userRecordCounters.userId, userId),
+        )
+        .where(eq(schema.user.id, userId))
+        .limit(1);
+
+      if (!patient || patient.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: AEM.PATIENT_NOT_FOUND,
+          data: null,
+        });
+      }
+
+      const parsedPatient = patient.map((p) => {
+        return {
+          ...p,
+          dateJoined: formatDateToReadable(p.dateJoined),
+          dob: formatDateToReadable(p.dob),
+          identityAssets: {
+            governmentIdUrl: this.assetService.generateUrl(
+              p.governmentIdUrl as string,
+            ),
+          },
+          patientActivity: {
+            appointmentsBooked: 0,
+            medicalRecordsCreated: p.medicalRecordsCreated
+              ? p.medicalRecordsCreated
+              : 0,
+          },
+          lastActive: formatDateToReadable(
+            p.lastActive ? p.lastActive : 'never',
+          ),
+        } as IInspectPatientResponse;
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.PATIENT_DATA_FETCHED,
+        data: parsedPatient[0],
+      });
+    } catch (e) {
+      throw new HttpException(
+        new AdminError(
+          AEM.ERROR_FETCHING_PATIENT_DATA,
+          { cause: e },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async inspectDoctorData(userId: string) {
+    try {
+      const doctor = await this.db
+        .select({
+          userId: schema.user.id,
+          fullName: schema.user.fullName,
+          profilePicture: schema.user.profilePicture,
+          emailAddress: schema.user.emailAddress,
+          phoneNumber: schema.user.phoneNumber,
+          gender: schema.user.gender,
+          status: schema.user.status,
+          lastActive: schema.user.lastActivity,
+          dateJoined: schema.user.createdAt,
+          dob: schema.user.dateOfBirth,
+          role: schema.user.role,
+          governmentIdUrl: schema.identity.governmentId,
+          medicalLicenseUrl: schema.identity.scannedLicense,
+          yearsOfExperience: schema.doctors.yearsOfExperience,
+          hospitalAffiliation: schema.doctors.hospitalAssociation,
+          bio: schema.doctors.bio,
+          languagesSpoken: schema.doctors.languagesSpoken,
+          certifications: schema.doctors.certifications,
+          servicesOffered: schema.doctors.servicesOffered,
+          recordsReviewed: schema.doctors.recordsReviewed,
+          medicalLicenseNumber: schema.doctors.medicalLicenseNumber,
+        })
+        .from(schema.user)
+        .leftJoin(schema.doctors, eq(schema.doctors.userId, userId))
+        .leftJoin(schema.identity, eq(schema.identity.userId, userId))
+        .where(eq(schema.user.id, userId))
+        .limit(1);
+
+      if (!doctor || doctor.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND,
+          data: null,
+        });
+      }
+
+      const parsedDoctor = doctor.map(async (d) => {
+        return {
+          ...d,
+          dateJoined: formatDateToReadable(d.dateJoined),
+          lastActive: formatDateToReadable(
+            d.lastActive ? d.lastActive : 'never',
+          ),
+          dob: formatDateToReadable(d.dob),
+          bio: d.bio || '',
+          yearsOfExperience: d.yearsOfExperience || 0,
+          hospitalAffiliation: d.hospitalAffiliation || 'none',
+          servicesOffered: Array.isArray(d.servicesOffered)
+            ? d.servicesOffered
+            : [],
+          languagesSpoken: Array.isArray(d.languagesSpoken)
+            ? d.languagesSpoken
+            : [],
+          certifications: Array.isArray(d.certifications)
+            ? d.certifications
+            : [],
+          medicalLicenseNumber: d.medicalLicenseNumber || 'none',
+          recordsReviewed: d.recordsReviewed || 0,
+          identityAssets: {
+            governmentIdUrl: this.assetService.generateUrl(
+              d.governmentIdUrl as string,
+            ),
+            medicalLicenseUrl: this.assetService.generateUrl(
+              d.medicalLicenseUrl as string,
+            ),
+          },
+          doctorActivity: {
+            patientsAttended: 0,
+            recordsReviewed: d.recordsReviewed || 0,
+            pendingApprovals:
+              (await this.approvalService.fetchPendingApprovalCount(userId)) ||
+              0,
+          },
+        } as IInspectDoctorResponse;
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.DOCTOR_DATA_FETCHED,
+        data: parsedDoctor,
+      });
+    } catch (e) {
+      throw new HttpException(
+        new AdminError(
+          AEM.ERROR_FETCHING_DOCTOR_DATA,
+          { cause: e },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -577,5 +754,17 @@ export class AdminProvider {
 
   async fetchAllPatients(ctx: IFetchPatients) {
     return await this.userService.fetchAllPatients(ctx);
+  }
+
+  async fetchUserData(userId: string) {
+    const role = await this.userService.determineUserRole(userId);
+    switch (role) {
+      case 'PATIENT':
+        return await this.inspectPatientData(userId);
+      case 'DOCTOR':
+        return await this.inspectDoctorData(userId);
+      default:
+        'Role not implemented yet';
+    }
   }
 }
