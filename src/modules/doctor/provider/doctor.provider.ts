@@ -54,6 +54,7 @@ export class DoctorProvider {
         email: doctor[0].users.emailAddress,
         gender: doctor[0].users.gender,
         profilePicture: doctor[0].users.profilePicture as string,
+        phoneNumber: doctor[0].users.phoneNumber as string,
         role: doctor[0].users.role,
         status: doctor[0].users.status,
         bio: doctor[0].doctors.bio || '',
