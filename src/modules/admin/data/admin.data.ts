@@ -19,6 +19,7 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_FETCHING_DOCTOR_DATA = 'Error fetching doctor data',
   ERROR_FETCHING_USER_DATA = 'Error fetching user data',
   PATIENT_NOT_FOUND = 'Patient not found',
+  ERROR_VERIFYING_ADMIN_STATUS = 'Error verifying admin status',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
