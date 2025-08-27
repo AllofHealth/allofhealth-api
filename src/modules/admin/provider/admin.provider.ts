@@ -755,4 +755,16 @@ export class AdminProvider {
   async fetchAllPatients(ctx: IFetchPatients) {
     return await this.userService.fetchAllPatients(ctx);
   }
+
+  async fetchUserData(userId: string) {
+    const role = await this.userService.determineUserRole(userId);
+    switch (role) {
+      case 'PATIENT':
+        return await this.inspectPatientData(userId);
+      case 'DOCTOR':
+        return await this.inspectDoctorData(userId);
+      default:
+        'Role not implemented yet';
+    }
+  }
 }
