@@ -492,4 +492,61 @@ export class AdminController {
       query,
     });
   }
+
+  @Get('fetchUserData')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch user data by user ID (requires admin)' })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'User ID to fetch data for',
+  })
+  @ApiOkResponse({
+    description: ASM.USER_DATA_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_DATA_FETCHED,
+      data: {
+        userId: '507f1f77bcf86cd799439011',
+        fullName: 'John Doe',
+        profilePicture: 'https://example.com/profile.jpg',
+        emailAddress: 'john@example.com',
+        phoneNumber: '+1234567890',
+        gender: 'Male',
+        status: 'active',
+        lastActive: '2024-01-15 10:30 AM',
+        dateJoined: '2024-01-01 12:00 PM',
+        dob: '1990-01-01',
+        role: 'PATIENT',
+        identityAssets: {
+          governmentIdUrl: 'https://example.com/gov-id.jpg',
+        },
+        patientActivity: {
+          appointmentsBooked: 5,
+          medicalRecordsCreated: 3,
+        },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Patient not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error fetching user data',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error fetching patient data',
+    },
+  })
+  async fetchUserData(@Ip() ip: string, @Query('userId') userId: string) {
+    this.logger.log(`Admin fetching user data for ${userId} from ${ip}`);
+    return await this.adminService.fetchUserData(userId);
+  }
 }

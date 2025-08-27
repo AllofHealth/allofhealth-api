@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CreateDoctor } from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
-import { IFetchDoctors } from '../interface/doctor.interface';
+import {
+  IFetchDoctors,
+  IUpdateRecordsReviewed,
+} from '../interface/doctor.interface';
 import { DoctorProvider } from '../provider/doctor.provider';
 
 @Injectable()
@@ -20,5 +23,10 @@ export class DoctorService {
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
     return await this.doctorProvider.fetchAllDoctors(ctx);
+  }
+
+  @OnEvent(SharedEvents.UPDATE_REVIEW_COUNT)
+  async updateRecordsReviewed(ctx: IUpdateRecordsReviewed) {
+    return await this.doctorProvider.updateRecordsReviewed(ctx);
   }
 }

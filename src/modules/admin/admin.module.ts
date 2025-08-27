@@ -8,6 +8,8 @@ import { TokenModule } from '../token/token.module';
 import { AuthModule } from '../auth/auth.module';
 import { DoctorModule } from '../doctor/doctor.module';
 import { UserModule } from '../user/user.module';
+import { AssetModule } from '../asset/asset.module';
+import { ApprovalModule } from '../approval/approval.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { UserModule } from '../user/user.module';
     forwardRef(() => UserModule),
     forwardRef(() => TokenModule),
     forwardRef(() => DoctorModule),
+    forwardRef(() => AssetModule),
+    forwardRef(() => ApprovalModule),
   ],
   providers: [AdminProvider, AdminService, ErrorHandler, AuthUtils],
   controllers: [AdminController],

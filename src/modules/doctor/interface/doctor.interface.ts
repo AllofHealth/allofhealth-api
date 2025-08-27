@@ -2,6 +2,8 @@ import type { IUserSnippet } from '@/modules/user/interface/user.interface';
 
 export type TSort = 'asc' | 'desc';
 
+export type TOperation = 'inc' | 'dec';
+
 export interface ICreateDoctor {
   userId: string;
   specialization: string;
@@ -35,4 +37,9 @@ export interface IFetchDoctors {
   limit?: number;
   sort?: TSort;
   query?: string;
+}
+
+export interface IUpdateRecordsReviewed {
+  userId: string;
+  operation: TOperation;
 }

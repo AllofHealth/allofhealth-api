@@ -16,4 +16,8 @@ export class AssetService {
   async uploadProfilePicture(ctx: IUploadProfilePicture) {
     return await this.assetProvider.uploadProfilePicture(ctx);
   }
+
+  generateUrl(url: string) {
+    return this.assetProvider.generateUrl(url);
+  }
 }
