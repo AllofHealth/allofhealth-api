@@ -3,6 +3,7 @@ import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -37,6 +38,7 @@ import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { AdminError } from '../error/admin.error';
 import {
   USER_ERROR_MESSAGES,
+  USER_ROLE,
   USER_STATUS,
 } from '@/modules/user/data/user.data';
 import { UserService } from '@/modules/user/service/user.service';
@@ -48,6 +50,7 @@ import {
 import { formatDateToReadable } from '@/shared/utils/date.utils';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
+import { ILoginResponse } from '@/modules/auth/interface/auth.interface';
 
 @Injectable()
 export class AdminProvider {
@@ -56,6 +59,7 @@ export class AdminProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
     private readonly authUtils: AuthUtils,
+    @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     private readonly doctorService: DoctorService,
     private readonly userService: UserService,
@@ -177,6 +181,27 @@ export class AdminProvider {
     }
 
     return isActive;
+  }
+
+  async determineIsAdmin(emailAddress: string) {
+    let isAdmin: boolean = false;
+    try {
+      const admin = await this.db.query.admin.findFirst({
+        where: eq(schema.admin.email, emailAddress),
+      });
+
+      if (admin && admin.id) {
+        isAdmin = true;
+      }
+
+      return isAdmin;
+    } catch (e) {
+      this.logger.error(`${AEM.ERROR_VERIFYING_ADMIN_STATUS} : ${e}`);
+      throw new HttpException(
+        `${AEM.ERROR_VERIFYING_ADMIN_STATUS} : ${e}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   private async fetchActiveUsers() {
@@ -593,15 +618,29 @@ export class AdminProvider {
         save: false,
       });
 
+      const adminId = admin.data?.id!;
+
+      await this.db
+        .update(schema.admin)
+        .set({
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(schema.admin.id, adminId));
+
+      const data = {
+        userId: admin.data?.id!,
+        email: admin.data?.email!,
+        profilePicture: admin.data?.profilePicture!,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        role: USER_ROLE.ADMIN,
+        permissionLevel: admin.data?.permissionLevel!,
+      } as ILoginResponse;
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.SUCCESS_LOGGING_IN_AS_ADMIN,
-        data: {
-          id: admin.data?.id!,
-          email: admin.data?.email!,
-          permissionLevel: admin.data?.permissionLevel!,
-          ...tokens,
-        },
+        data,
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_LOGGING_IN_AS_ADMIN);
