@@ -46,10 +46,12 @@ export class AdminGuard implements CanActivate {
         throw new UnauthorizedException('Admin not found');
       }
 
-      await this.db.update(schema.admin).set({
-        id: tokenUserId,
-        updatedAt: new Date().toISOString(),
-      });
+      await this.db
+        .update(schema.admin)
+        .set({
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(schema.admin.id, tokenUserId));
 
       return true;
     } catch (error) {
