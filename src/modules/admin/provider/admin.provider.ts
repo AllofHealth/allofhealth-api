@@ -45,6 +45,7 @@ import { UserService } from '@/modules/user/service/user.service';
 import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
 import {
   IFetchPatients,
+  IFetchUsers,
   IUserSnippet,
 } from '@/modules/user/interface/user.interface';
 import { formatDateToReadable } from '@/shared/utils/date.utils';
@@ -802,6 +803,10 @@ export class AdminProvider {
 
   async fetchAllPatients(ctx: IFetchPatients) {
     return await this.userService.fetchAllPatients(ctx);
+  }
+
+  async fetchAllUsers(ctx: IFetchUsers) {
+    return await this.userService.fetchAllUsers(ctx);
   }
 
   async fetchUserData(userId: string) {

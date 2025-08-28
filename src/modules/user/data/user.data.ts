@@ -17,6 +17,7 @@ export enum USER_ERROR_MESSAGES {
   USER_SUSPENDED = 'User is suspended',
   ERROR_FETCHING_PATIENTS = 'Error fetching patients',
   ERROR_DETERMINING_USER_ROLE = 'Error determining user role',
+  ERROR_FETCHING_ALL_USERS = 'Error fetching all users',
 }
 
 export enum USER_SUCCESS_MESSAGE {
@@ -29,6 +30,7 @@ export enum USER_SUCCESS_MESSAGE {
   OTP_VALIDATED = 'OTP validated successfully',
   PATIENTS_FETCHED_SUCCESSFULLY = 'Patients fetched successfully',
   USER_ROLE_FETCHED_SUCCESSFULLY = 'User role fetched successfully',
+  USERS_FETCHED_SUCCESSFULLY = 'User fetched successfully',
 }
 
 export enum USER_STATUS {

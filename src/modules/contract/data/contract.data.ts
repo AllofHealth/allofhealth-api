@@ -1857,3 +1857,14 @@ export const TOKEN_ABI = [
     ],
   },
 ];
+
+export const rpcUrls: string[] = [
+  process.env.LISK_TENDERLY_RPC_URL || '',
+  process.env.LISK_GELATO_RPC_URL || '',
+  process.env.LISK_DRPC_RPC_URL || '',
+];
+export const rpcUrlsTestnet: string[] = [
+  process.env.LISK_TENDERLY_SEPOLIA_RPC_URL || '',
+  process.env.LISK_GELATO_SEPOLIA_RPC_URL || '',
+  process.env.LISK_DRPC_SEPOLIA_RPC_URL || '',
+];
