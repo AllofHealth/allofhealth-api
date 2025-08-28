@@ -61,10 +61,42 @@ export class FetchDoctorApprovalsDto {
   @ApiProperty({
     description: 'Doctor User ID to fetch approvals for',
     example: '1234567890',
+    required: true,
+    type: String,
   })
   @IsNotEmpty()
   @IsString()
   userId: string;
+
+  @ApiPropertyOptional({
+    description: 'Page number for pagination',
+    example: 1,
+    default: 1,
+    type: Number,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @ApiPropertyOptional({
+    description: 'Number of items per page',
+    example: 12,
+    default: 12,
+    type: Number,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 12;
+
+  @ApiPropertyOptional({
+    description: 'Filter by approval status',
+    example: 'created',
+    enum: ['created', 'accepted', 'rejected', 'completed'],
+    type: String,
+  })
+  @IsOptional()
+  @IsString()
+  status?: 'created' | 'accepted' | 'rejected' | 'completed';
 }
 
 export class AcceptApprovalDto {
