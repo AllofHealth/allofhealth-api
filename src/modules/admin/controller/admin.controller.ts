@@ -35,6 +35,7 @@ import {
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
+import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 
 @ApiTags('Admin Operations')
 @Controller('admin')
@@ -486,6 +487,64 @@ export class AdminController {
   ) {
     this.logger.log(`Admin fetching all patients from ${ip}`);
     return await this.adminService.fetchAllPatients({
+      page,
+      limit,
+      sort,
+      query,
+    });
+  }
+
+  @Get('fetchAllUsers')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch all users (requires admin)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiQuery({ name: 'query', required: false })
+  @ApiOkResponse({
+    description: 'Fetch all users',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Users fetched successfully',
+      data: [
+        {
+          email: 'user@example.com',
+          fullName: 'John User',
+          phoneNumber: '+1234567890',
+          gender: 'Male',
+          profilePicture: 'https://example.com/profile.jpg',
+          role: 'PATIENT',
+          userId: '507f1f77bcf86cd799439011',
+          status: 'active',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalCount: 150,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: USER_ERROR_MESSAGES.ERROR_FETCHING_ALL_USERS,
+    },
+  })
+  async fetchAllUsers(
+    @Ip() ip: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('sort') sort?: TSort,
+    @Query('query') query?: string,
+  ) {
+    this.logger.log(`Admin fetching all patients from ${ip}`);
+    return await this.adminService.fetchAllUsers({
       page,
       limit,
       sort,
