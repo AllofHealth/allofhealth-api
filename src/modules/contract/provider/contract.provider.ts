@@ -1,4 +1,5 @@
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { IRewardUsers } from '@/modules/reward/interface/reward.interface';
 import { RewardService } from '@/modules/reward/service/reward.service';
 import { ContractConfig } from '@/shared/config/smart-contract/contract.config';
 import {
@@ -25,7 +26,6 @@ import {
   ContractErrorMessages as CEM,
   ContractSuccessMessages as CSM,
   Duration,
-  RewardAmount,
   TOKEN_ABI,
 } from '../data/contract.data';
 import {
@@ -38,7 +38,6 @@ import {
   IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
-import { IRewardUsers } from '@/modules/reward/interface/reward.interface';
 
 @Injectable()
 export class ContractProvider {
