@@ -1,4 +1,4 @@
-import { rpcUrls } from '@/modules/contract/data/contract.data';
+import { rpcUrls, rpcUrlsTestnet } from '@/modules/contract/data/contract.data';
 import { IGetNextContractInstance } from '@/modules/contract/interface/contract.interface';
 
 export class RpcRotationService {
@@ -6,7 +6,9 @@ export class RpcRotationService {
   private urlUsage: Map<string, boolean>;
 
   constructor() {
-    this.urlSet = new Set(rpcUrls);
+    this.urlSet = new Set(
+      process.env.NODE_ENV === 'production' ? rpcUrls : rpcUrlsTestnet,
+    );
     this.urlUsage = new Map();
     for (const url of this.urlSet) {
       this.urlUsage.set(url, false);
