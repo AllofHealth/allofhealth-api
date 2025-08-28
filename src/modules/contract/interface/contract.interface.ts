@@ -1,3 +1,5 @@
+import { Contract } from 'ethers';
+
 export type TAccess = 'full' | 'read' | 'write';
 
 export interface IHandleApproveAccessToAddNewRecord {
@@ -63,4 +65,8 @@ export interface IProcessBatchViewMedicalRecord {
   userId: string;
   recordIds: number[];
   viewerAddress?: string;
+}
+
+export interface IGetNextContractInstance {
+  adminContractInstance: (rpc: string) => Contract;
 }
