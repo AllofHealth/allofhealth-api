@@ -386,7 +386,7 @@ export class AdminController {
   @ApiQuery({ name: 'query', required: false })
   @ApiOkResponse({
     description: 'Fetch all doctors',
-    type: Array,
+    type: SuccessResponseDto,
     example: {
       status: HttpStatus.OK,
       message: 'Doctors fetched successfully',
@@ -444,7 +444,7 @@ export class AdminController {
   @ApiQuery({ name: 'query', required: false })
   @ApiOkResponse({
     description: 'Fetch all patients',
-    type: Array,
+    type: SuccessResponseDto,
     example: {
       status: HttpStatus.OK,
       message: 'Patients fetched successfully',
