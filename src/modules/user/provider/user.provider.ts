@@ -39,6 +39,7 @@ import { UserError } from '../error/user.error';
 import {
   ICreateUser,
   IFetchPatients,
+  IFetchUsers,
   IUpdateUser,
   IUserSnippet,
 } from '../interface/user.interface';
@@ -459,6 +460,72 @@ export class UserProvider {
       this.logger.error(`${UEM.ERROR_FETCHING_PATIENTS}: ${e}`);
       throw new HttpException(
         UEM.ERROR_FETCHING_PATIENTS,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async fetchAllUsers(ctx: IFetchUsers) {
+    const { page = 1, limit = 12, sort = 'desc', query } = ctx;
+    const skip = (page - 1) * limit;
+    const sortFn = sort === 'desc' ? desc : asc;
+    const sortColumn = schema.user.createdAt;
+
+    try {
+      let whereConditions: any | undefined;
+
+      if (query && query.trim()) {
+        const searchQuery = `%${query.trim()}%`;
+        whereConditions = sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery})`;
+      }
+
+      const totalUserResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.user)
+        .where(whereConditions);
+
+      const totalCount = Number(totalUserResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const users = await this.db
+        .select()
+        .from(schema.user)
+        .where(whereConditions)
+        .orderBy(sortFn(sortColumn))
+        .offset(skip)
+        .limit(limit);
+
+      const parsedUser: IUserSnippet[] = users.map((user) => ({
+        userId: user.id,
+        fullName: user.fullName,
+        email: user.emailAddress,
+        gender: user.gender,
+        profilePicture: user.profilePicture || '',
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+        status: user.status,
+        lastActive: user.lastActivity
+          ? formatDateToReadable(user.lastActivity)
+          : 'Never',
+      }));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.USERS_FETCHED_SUCCESSFULLY,
+        data: parsedUser,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      this.logger.error(`${UEM.ERROR_FETCHING_ALL_USERS}: ${e}`);
+      throw new HttpException(
+        UEM.ERROR_FETCHING_ALL_USERS,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
