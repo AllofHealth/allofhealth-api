@@ -216,8 +216,10 @@ export class ApprovalController {
     @Ip() ip: string,
     @Query() query: FetchDoctorApprovalsDto,
   ) {
-    this.logger.log(`Fetching approvals for doctor ${query.userId} from ${ip}`);
-    return await this.approvalService.fetchDoctorApprovals(query.userId);
+    this.logger.log(
+      `Fetching approvals for doctor ${query.userId} from ${ip} - Page: ${query.page || 1}, Limit: ${query.limit || 12}`,
+    );
+    return await this.approvalService.fetchDoctorApprovals(query);
   }
 
   @Get('fetchPatientApprovals')
