@@ -90,13 +90,13 @@ export class FetchDoctorApprovalsDto {
 
   @ApiPropertyOptional({
     description: 'Filter by approval status',
-    example: 'created',
-    enum: ['created', 'accepted', 'rejected', 'completed'],
+    example: 'CREATED',
+    enum: ['CREATED', 'ACCEPTED', 'REJECTED', 'COMPLETED', 'PENDING'],
     type: String,
   })
   @IsOptional()
   @IsString()
-  status?: 'created' | 'accepted' | 'rejected' | 'completed';
+  status?: 'CREATED' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'PENDING';
 }
 
 export class AcceptApprovalDto {
