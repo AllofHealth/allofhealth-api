@@ -1,4 +1,9 @@
-export type TApprovalStatus = 'created' | 'accepted' | 'rejected' | 'completed';
+export type TApprovalStatus =
+  | 'CREATED'
+  | 'ACCEPTED'
+  | 'REJECTED'
+  | 'COMPLETED'
+  | 'PENDING';
 
 export interface IAcceptApproval {
   doctorId: string;
