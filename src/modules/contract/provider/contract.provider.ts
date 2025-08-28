@@ -126,7 +126,7 @@ export class ContractProvider {
     };
   }
 
-  provideAdminContractInstance() {
+  provideAdminContractInstance(rpc?: stirng) {
     return new ethers.Contract(
       this.contractConfig.CONTRACT_ADDRESS,
       this.provideABI(),
