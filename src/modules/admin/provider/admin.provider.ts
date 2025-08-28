@@ -3,6 +3,7 @@ import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -37,6 +38,7 @@ import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { AdminError } from '../error/admin.error';
 import {
   USER_ERROR_MESSAGES,
+  USER_ROLE,
   USER_STATUS,
 } from '@/modules/user/data/user.data';
 import { UserService } from '@/modules/user/service/user.service';
@@ -48,6 +50,7 @@ import {
 import { formatDateToReadable } from '@/shared/utils/date.utils';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
+import { ILoginResponse } from '@/modules/auth/interface/auth.interface';
 
 @Injectable()
 export class AdminProvider {
@@ -56,6 +59,7 @@ export class AdminProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
     private readonly authUtils: AuthUtils,
+    @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     private readonly doctorService: DoctorService,
     private readonly userService: UserService,
@@ -179,6 +183,28 @@ export class AdminProvider {
     return isActive;
   }
 
+  async determineIsAdmin(emailAddress: string) {
+    let isAdmin: boolean = false;
+    try {
+      const admin = await this.db
+        .select()
+        .from(schema.admin)
+        .where(eq(schema.admin.email, emailAddress));
+
+      if (admin && admin.length > 0) {
+        isAdmin = true;
+      }
+
+      return isAdmin;
+    } catch (e) {
+      this.logger.error(`${AEM.ERROR_VERIFYING_ADMIN_STATUS} : ${e}`);
+      throw new HttpException(
+        `${AEM.ERROR_VERIFYING_ADMIN_STATUS} : ${e}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   private async fetchActiveUsers() {
     let activeUsers: any[] = [];
     try {
@@ -267,6 +293,8 @@ export class AdminProvider {
         });
       }
 
+      this.logger.debug(`Patient fetched ${JSON.stringify(patient)}`);
+
       const parsedPatient = patient.map((p) => {
         return {
           ...p,
@@ -283,9 +311,9 @@ export class AdminProvider {
               ? p.medicalRecordsCreated
               : 0,
           },
-          lastActive: formatDateToReadable(
-            p.lastActive ? p.lastActive : 'never',
-          ),
+          lastActive: p.lastActive
+            ? formatDateToReadable(p.lastActive)
+            : 'never',
         } as IInspectPatientResponse;
       });
 
@@ -333,8 +361,8 @@ export class AdminProvider {
           medicalLicenseNumber: schema.doctors.medicalLicenseNumber,
         })
         .from(schema.user)
-        .leftJoin(schema.doctors, eq(schema.doctors.userId, userId))
-        .leftJoin(schema.identity, eq(schema.identity.userId, userId))
+        .leftJoin(schema.doctors, eq(schema.doctors.userId, schema.user.id))
+        .leftJoin(schema.identity, eq(schema.identity.userId, schema.user.id))
         .where(eq(schema.user.id, userId))
         .limit(1);
 
@@ -346,13 +374,16 @@ export class AdminProvider {
         });
       }
 
-      const parsedDoctor = doctor.map(async (d) => {
+      const pendingApprovals =
+        (await this.approvalService.fetchPendingApprovalCount(userId)) || 0;
+
+      const parsedDoctor = doctor.map((d) => {
         return {
           ...d,
           dateJoined: formatDateToReadable(d.dateJoined),
-          lastActive: formatDateToReadable(
-            d.lastActive ? d.lastActive : 'never',
-          ),
+          lastActive: d.lastActive
+            ? formatDateToReadable(d.lastActive)
+            : 'never',
           dob: formatDateToReadable(d.dob),
           bio: d.bio || '',
           yearsOfExperience: d.yearsOfExperience || 0,
@@ -379,19 +410,22 @@ export class AdminProvider {
           doctorActivity: {
             patientsAttended: 0,
             recordsReviewed: d.recordsReviewed || 0,
-            pendingApprovals:
-              (await this.approvalService.fetchPendingApprovalCount(userId)) ||
-              0,
+            pendingApprovals,
           },
         } as IInspectDoctorResponse;
       });
 
+      this.logger.debug(`Parsed doctor data ${JSON.stringify(parsedDoctor)}`);
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.DOCTOR_DATA_FETCHED,
-        data: parsedDoctor,
+        data: parsedDoctor[0],
       });
     } catch (e) {
+      this.logger.error(
+        `Error fetching doctor data for user: ${userId} : ${e}`,
+      );
       throw new HttpException(
         new AdminError(
           AEM.ERROR_FETCHING_DOCTOR_DATA,
@@ -585,15 +619,29 @@ export class AdminProvider {
         save: false,
       });
 
+      const adminId = admin.data?.id!;
+
+      await this.db
+        .update(schema.admin)
+        .set({
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(schema.admin.id, adminId));
+
+      const data = {
+        userId: admin.data?.id!,
+        email: admin.data?.email!,
+        profilePicture: admin.data?.profilePicture!,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        role: USER_ROLE.ADMIN,
+        permissionLevel: admin.data?.permissionLevel!,
+      } as ILoginResponse;
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.SUCCESS_LOGGING_IN_AS_ADMIN,
-        data: {
-          id: admin.data?.id!,
-          email: admin.data?.email!,
-          permissionLevel: admin.data?.permissionLevel!,
-          ...tokens,
-        },
+        data,
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_LOGGING_IN_AS_ADMIN);
@@ -758,6 +806,7 @@ export class AdminProvider {
 
   async fetchUserData(userId: string) {
     const role = await this.userService.determineUserRole(userId);
+    this.logger.debug(`User role: ${role}`);
     switch (role) {
       case 'PATIENT':
         return await this.inspectPatientData(userId);

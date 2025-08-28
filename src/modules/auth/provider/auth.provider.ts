@@ -1,4 +1,10 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  forwardRef,
+  HttpStatus,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '@/modules/token/service/token.service';
@@ -17,7 +23,9 @@ import {
   IGenerateTokens,
   IJwtPayload,
   ILogin,
+  ILoginResponse,
 } from '../interface/auth.interface';
+import { AdminService } from '@/modules/admin/service/admin.service';
 
 @Injectable()
 export class AuthProvider {
@@ -25,6 +33,8 @@ export class AuthProvider {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
+    @Inject(forwardRef(() => AdminService))
+    private readonly adminService: AdminService,
     private readonly authUtils: AuthUtils,
     private readonly eventEmitter: EventEmitter2,
     private readonly handler: ErrorHandler,
@@ -172,6 +182,14 @@ export class AuthProvider {
   async handleLogin(ctx: ILogin) {
     const { email, password } = ctx;
     try {
+      const isAdmin = await this.adminService.determineIsAdmin(email);
+      if (isAdmin) {
+        return await this.adminService.adminLogin({
+          email,
+          password,
+        });
+      }
+
       const result = await this.findUserByEmail(email);
       if (
         result.status !== HttpStatus.OK ||
@@ -202,6 +220,8 @@ export class AuthProvider {
         email: userProfile.email,
       });
 
+      const { accessToken, refreshToken } = tokens;
+
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,
         new EOnUserLogin(
@@ -222,8 +242,9 @@ export class AuthProvider {
           role: userProfile.role,
           profilePicture: userProfile.profilePicture,
           isFirstTime: userProfile.isFirstimeUser,
-          ...tokens,
-        },
+          accessToken,
+          refreshToken,
+        } as ILoginResponse,
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.LOGIN_FAILED);
