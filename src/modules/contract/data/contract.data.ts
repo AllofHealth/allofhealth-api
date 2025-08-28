@@ -1857,3 +1857,8 @@ export const TOKEN_ABI = [
     ],
   },
 ];
+
+/**
+ * @todo Swap dummy rpc for live rpcs
+ */
+export const rpcUrls: string[] = ['rpc1', 'rpc2', 'rpc3', 'rpc4'];
