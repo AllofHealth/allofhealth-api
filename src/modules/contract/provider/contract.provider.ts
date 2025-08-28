@@ -126,11 +126,11 @@ export class ContractProvider {
     };
   }
 
-  provideAdminContractInstance(rpc?: stirng) {
+  provideAdminContractInstance(rpc?: string) {
     return new ethers.Contract(
       this.contractConfig.CONTRACT_ADDRESS,
       this.provideABI(),
-      this.eoaService.provideAdminSigner(),
+      this.eoaService.provideAdminSigner(rpc),
     );
   }
 
