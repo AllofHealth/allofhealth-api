@@ -157,6 +157,7 @@ export const approvals = pgTable('approvals', {
 export const admin = pgTable('admin', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   userName: varchar('user_name', { length: 255 }).notNull().unique(),
+  profilePicture: text('profile_picture').default(PLACEHOLDER),
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
   permissionLevel: text('permission_level').notNull().default('system'),

@@ -13,7 +13,7 @@ import { ApprovalModule } from '../approval/approval.module';
 
 @Module({
   imports: [
-    AuthModule,
+    forwardRef(() => AuthModule),
     forwardRef(() => UserModule),
     forwardRef(() => TokenModule),
     forwardRef(() => DoctorModule),
@@ -22,5 +22,6 @@ import { ApprovalModule } from '../approval/approval.module';
   ],
   providers: [AdminProvider, AdminService, ErrorHandler, AuthUtils],
   controllers: [AdminController],
+  exports: [AdminService],
 })
 export class AdminModule {}

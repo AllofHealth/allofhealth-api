@@ -38,3 +38,13 @@ export interface IGenerateTokens {
   email: string;
   save?: boolean;
 }
+
+export interface ILoginResponse {
+  userId: string;
+  email: string;
+  profilePicture: string;
+  role: string;
+  accessToken: string;
+  refreshToken: string;
+  permissionLevel?: string;
+}

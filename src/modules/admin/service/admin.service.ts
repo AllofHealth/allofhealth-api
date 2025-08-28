@@ -58,4 +58,8 @@ export class AdminService {
   async fetchUserData(userId: string) {
     return await this.adminProvider.fetchUserData(userId);
   }
+
+  async determineIsAdmin(emailAddress: string) {
+    return await this.adminProvider.determineIsAdmin(emailAddress);
+  }
 }
