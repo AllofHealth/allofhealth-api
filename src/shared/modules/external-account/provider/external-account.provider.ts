@@ -27,7 +27,6 @@ export class ExternalAccountProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
     private readonly config: ContractConfig,
-    private readonly handlerService: ErrorHandler,
   ) {
     this.rpcUrl =
       process.env.NODE_ENV === 'production'
