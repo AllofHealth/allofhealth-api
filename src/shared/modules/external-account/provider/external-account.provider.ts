@@ -27,7 +27,6 @@ export class ExternalAccountProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
     private readonly config: ContractConfig,
-    private readonly handlerService: ErrorHandler,
   ) {
     this.rpcUrl =
       process.env.NODE_ENV === 'production'
@@ -35,7 +34,10 @@ export class ExternalAccountProvider {
         : LISK_TESTNET_RPC_URL;
   }
 
-  handleGetProvider() {
+  handleGetProvider(rpc?: string) {
+    if (rpc) {
+      return new ethers.JsonRpcProvider(rpc);
+    }
     return new ethers.JsonRpcProvider(this.rpcUrl);
   }
 
@@ -94,10 +96,10 @@ export class ExternalAccountProvider {
     }
   }
 
-  provideAdminSigner() {
+  provideAdminSigner(rpc?: string) {
     const signer = new ethers.Wallet(
       this.config.SUPER_PRIVATE_KEY,
-      this.handleGetProvider(),
+      this.handleGetProvider(rpc),
     );
     return signer;
   }

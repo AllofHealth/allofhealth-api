@@ -5,6 +5,7 @@ import { SharedEvents } from '@/shared/events/shared.events';
 import {
   ICreateUser,
   IFetchPatients,
+  IFetchUsers,
   IUpdateUser,
 } from '../interface/user.interface';
 import { UserProvider } from '../provider/user.provider';
@@ -54,6 +55,10 @@ export class UserService {
   }
   async fetchAllPatients(ctx: IFetchPatients) {
     return await this.userProvider.fetchAllPatients(ctx);
+  }
+
+  async fetchAllUsers(ctx: IFetchUsers) {
+    return await this.userProvider.fetchAllUsers(ctx);
   }
 
   async determineUserRole(userId: string) {

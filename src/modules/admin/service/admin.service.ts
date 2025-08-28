@@ -10,7 +10,10 @@ import {
 } from '../interface/admin.interface';
 import { AdminProvider } from '../provider/admin.provider';
 import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
-import { IFetchPatients } from '@/modules/user/interface/user.interface';
+import {
+  IFetchPatients,
+  IFetchUsers,
+} from '@/modules/user/interface/user.interface';
 
 @Injectable()
 export class AdminService {
@@ -53,6 +56,10 @@ export class AdminService {
 
   async fetchAllPatients(ctx: IFetchPatients) {
     return await this.adminProvider.fetchAllPatients(ctx);
+  }
+
+  async fetchAllUsers(ctx: IFetchUsers) {
+    return await this.adminProvider.fetchAllUsers(ctx);
   }
 
   async fetchUserData(userId: string) {
