@@ -23,6 +23,14 @@ export interface IFetchPatientApprovals {
   userId: string;
   page?: number;
   limit?: number;
+  status?: TApprovalStatus;
+}
+
+export interface IFetchDoctorApprovals {
+  userId: string;
+  page?: number;
+  limit?: number;
+  status?: TApprovalStatus;
 }
 
 export interface IResetApprovalPermissions {
