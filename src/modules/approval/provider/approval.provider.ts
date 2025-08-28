@@ -298,7 +298,7 @@ export class ApprovalProvider {
   }
 
   async fetchDoctorApprovals(ctx: IFetchDoctorApprovals) {
-    const { userId, page = 1, limit = 12, status } = ctx;
+    const { userId, page = 1, limit = 12, status = 'PENDING' } = ctx;
     const skip = (page - 1) * limit;
     try {
       const isCompliant = await this.practitionerCompliance(userId);
@@ -499,8 +499,17 @@ export class ApprovalProvider {
       }
 
       await this.db
-        .delete(schema.approvals)
-        .where(eq(schema.approvals.id, approvalId));
+        .update(schema.approvals)
+        .set({
+          status: APPROVAL_STATUS.REJECTED,
+          isRequestAccepted: false,
+        })
+        .where(
+          and(
+            eq(schema.approvals.id, approvalId),
+            eq(schema.approvals.practitionerAddress, doctorAddress),
+          ),
+        );
 
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,
