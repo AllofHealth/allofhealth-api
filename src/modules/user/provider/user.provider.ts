@@ -124,7 +124,9 @@ export class UserProvider {
     try {
       const [baseData, approvalData] = await Promise.all([
         this.findUserById(userId),
-        this.approvalService.fetchDoctorApprovals(userId),
+        this.approvalService.fetchDoctorApprovals({
+          userId,
+        }),
       ]);
 
       if (!('data' in baseData) || !baseData || !baseData.data) {
