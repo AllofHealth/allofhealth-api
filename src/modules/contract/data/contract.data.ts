@@ -1858,7 +1858,13 @@ export const TOKEN_ABI = [
   },
 ];
 
-/**
- * @todo Swap dummy rpc for live rpcs
- */
-export const rpcUrls: string[] = ['rpc1', 'rpc2', 'rpc3', 'rpc4'];
+export const rpcUrls: string[] = [
+  process.env.LISK_TENDERLY_RPC_URL || '',
+  process.env.LISK_GELATO_RPC_URL || '',
+  process.env.LISK_DRPC_RPC_URL || '',
+];
+export const rpcUrlsTestnet: string[] = [
+  process.env.LISK_TENDERLY_SEPOLIA_RPC_URL || '',
+  process.env.LISK_GELATO_SEPOLIA_RPC_URL || '',
+  process.env.LISK_DRPC_SEPOLIA_RPC_URL || '',
+];
