@@ -33,6 +33,7 @@ import {
 } from '../data/approval.data';
 import {
   IAcceptApproval,
+  IFetchDoctorApprovals,
   IFetchPatientApprovals,
   IRejectApproval,
   IResetApprovalPermissions,
@@ -296,9 +297,11 @@ export class ApprovalProvider {
     }
   }
 
-  async fetchDoctorApprovals(doctorId: string) {
+  async fetchDoctorApprovals(ctx: IFetchDoctorApprovals) {
+    const { userId, page = 1, limit = 12, status = 'PENDING' } = ctx;
+    const skip = (page - 1) * limit;
     try {
-      const isCompliant = await this.practitionerCompliance(doctorId);
+      const isCompliant = await this.practitionerCompliance(userId);
       if (!isCompliant) {
         return this.handler.handleReturn({
           status: HttpStatus.BAD_REQUEST,
@@ -306,7 +309,24 @@ export class ApprovalProvider {
         });
       }
 
-      const doctorAddress = await this.getSmartAddress(doctorId);
+      const doctorAddress = await this.getSmartAddress(userId);
+
+      let whereClause: any = eq(
+        schema.approvals.practitionerAddress,
+        doctorAddress,
+      );
+      if (status) {
+        whereClause = and(whereClause, eq(schema.approvals.status, status));
+      }
+
+      const totalDoctorApprovalsResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.approvals)
+        .where(eq(schema.approvals.practitionerAddress, doctorAddress));
+
+      const totalCount = Number(totalDoctorApprovalsResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
       const approvals = await this.db
         .select({
           id: schema.approvals.id,
@@ -322,24 +342,27 @@ export class ApprovalProvider {
         })
         .from(schema.approvals)
         .innerJoin(schema.user, eq(schema.approvals.userId, schema.user.id))
-        .where(eq(schema.approvals.practitionerAddress, doctorAddress));
-
-      if (!approvals || approvals.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: AEM.APPROVALS_NOT_FOUND,
-          data: [],
-        });
-      }
+        .where(whereClause)
+        .limit(limit)
+        .offset(skip);
 
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,
-        new EOnUserLogin(doctorId, new Date(), new Date()),
+        new EOnUserLogin(userId, new Date(), new Date()),
       );
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: ASM.APPROVAL_FETCHED,
         data: approvals,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_FETCHING_DOCTOR_APPROVAL);
@@ -476,8 +499,17 @@ export class ApprovalProvider {
       }
 
       await this.db
-        .delete(schema.approvals)
-        .where(eq(schema.approvals.id, approvalId));
+        .update(schema.approvals)
+        .set({
+          status: APPROVAL_STATUS.REJECTED,
+          isRequestAccepted: false,
+        })
+        .where(
+          and(
+            eq(schema.approvals.id, approvalId),
+            eq(schema.approvals.practitionerAddress, doctorAddress),
+          ),
+        );
 
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,
@@ -762,9 +794,13 @@ export class ApprovalProvider {
   }
 
   async fetchPatientApprovals(ctx: IFetchPatientApprovals) {
-    const { userId, page = 1, limit = 12 } = ctx;
+    const { userId, page = 1, limit = 12, status } = ctx;
     const skip = (page - 1) * limit;
     try {
+      let whereClause: any = eq(schema.approvals.userId, userId);
+      if (status) {
+        whereClause = and(whereClause, eq(schema.approvals.status, status));
+      }
       await this.userService.checkUserSuspension(userId);
       const totalPatientApprovalsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
@@ -777,7 +813,7 @@ export class ApprovalProvider {
       const patientApprovals = await this.db
         .select()
         .from(schema.approvals)
-        .where(eq(schema.approvals.userId, userId))
+        .where(whereClause)
         .limit(limit)
         .offset(skip);
 
