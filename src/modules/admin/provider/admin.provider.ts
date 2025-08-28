@@ -186,11 +186,12 @@ export class AdminProvider {
   async determineIsAdmin(emailAddress: string) {
     let isAdmin: boolean = false;
     try {
-      const admin = await this.db.query.admin.findFirst({
-        where: eq(schema.admin.email, emailAddress),
-      });
+      const admin = await this.db
+        .select()
+        .from(schema.admin)
+        .where(eq(schema.admin.email, emailAddress));
 
-      if (admin && admin.id) {
+      if (admin && admin.length > 0) {
         isAdmin = true;
       }
 
