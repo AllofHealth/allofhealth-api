@@ -26,6 +26,8 @@ import {
   ContractErrorMessages as CEM,
   ContractSuccessMessages as CSM,
   Duration,
+  rpcUrls,
+  rpcUrlsTestnet,
   TOKEN_ABI,
 } from '../data/contract.data';
 import {
@@ -38,6 +40,7 @@ import {
   IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
+import { RpcRotationService } from '@/shared/utils/contract/rpc-rotation.contract';
 
 @Injectable()
 export class ContractProvider {
@@ -153,13 +156,47 @@ export class ContractProvider {
   async handleGetSystemAdminCount() {
     try {
       const contract = this.provideAdminContractInstance();
-      const count = await contract.systemAdminCount();
-      const data = Number(count);
-      return this.handlerService.handleReturn({
-        status: HttpStatus.OK,
-        message: CSM.TX_EXECUTED_SUCCESSFULLY,
-        data,
-      });
+
+      if (!contract) {
+        throw new InternalServerErrorException('Can not instantiate contract');
+      }
+
+      try {
+        const count = await contract.systemAdminCount();
+        const data = Number(count);
+        return this.handlerService.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.TX_EXECUTED_SUCCESSFULLY,
+          data,
+        });
+      } catch (e) {
+        const contractRotationProvider = new RpcRotationService();
+
+        while (!contractRotationProvider.allUsed()) {
+          try {
+            const contract = contractRotationProvider.getNextContractInstance({
+              adminContractInstance:
+                this.provideAdminContractInstance.bind(this),
+            });
+
+            if (contract === null) {
+              continue;
+            }
+
+            const count = await contract.systemAdminCount();
+            const data = Number(count);
+            return this.handlerService.handleReturn({
+              status: HttpStatus.OK,
+              message: CSM.TX_EXECUTED_SUCCESSFULLY,
+              data,
+            });
+          } catch (rpcError) {
+            continue;
+          }
+        }
+
+        throw new InternalServerErrorException('All RPC endpoints failed');
+      }
     } catch (e) {
       return this.handlerService.handleError(
         e,
@@ -171,13 +208,46 @@ export class ContractProvider {
   async handleGetPatientCount() {
     try {
       const contract = this.provideAdminContractInstance();
-      const count = await contract.patientCount();
-      const data = Number(count);
-      return this.handlerService.handleReturn({
-        status: HttpStatus.OK,
-        message: CSM.TX_EXECUTED_SUCCESSFULLY,
-        data,
-      });
+      if (!contract) {
+        throw new InternalServerErrorException('Contract instance not found');
+      }
+
+      try {
+        const count = await contract.patientCount();
+        const data = Number(count);
+        return this.handlerService.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.TX_EXECUTED_SUCCESSFULLY,
+          data,
+        });
+      } catch (e) {
+        const contractRotationProvider = new RpcRotationService();
+
+        while (!contractRotationProvider.allUsed()) {
+          try {
+            const contract = contractRotationProvider.getNextContractInstance({
+              adminContractInstance:
+                this.provideAdminContractInstance.bind(this),
+            });
+
+            if (contract === null) {
+              continue;
+            }
+
+            const count = await contract.patientCount();
+            const data = Number(count);
+            return this.handlerService.handleReturn({
+              status: HttpStatus.OK,
+              message: CSM.TX_EXECUTED_SUCCESSFULLY,
+              data,
+            });
+          } catch (rpcError) {
+            continue;
+          }
+        }
+
+        throw new InternalServerErrorException('All RPC endpoints failed');
+      }
     } catch (e) {
       return this.handlerService.handleError(
         e,
@@ -190,18 +260,57 @@ export class ContractProvider {
     const { patientId, doctorAddress } = ctx;
     try {
       const contract = this.provideAdminContractInstance();
-      const isApproved = await contract.isApprovedByPatientToAddNewRecord(
-        patientId,
-        doctorAddress,
-      );
 
-      return this.handlerService.handleReturn({
-        status: HttpStatus.OK,
-        message: CSM.TX_EXECUTED_SUCCESSFULLY,
-        data: {
-          isApproved,
-        },
-      });
+      if (!contract) {
+        throw new InternalServerErrorException('Contract instance not found');
+      }
+
+      try {
+        const isApproved = await contract.isApprovedByPatientToAddNewRecord(
+          patientId,
+          doctorAddress,
+        );
+
+        return this.handlerService.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.TX_EXECUTED_SUCCESSFULLY,
+          data: {
+            isApproved,
+          },
+        });
+      } catch (e) {
+        const contractRotationProvider = new RpcRotationService();
+
+        while (!contractRotationProvider.allUsed()) {
+          try {
+            const contract = contractRotationProvider.getNextContractInstance({
+              adminContractInstance:
+                this.provideAdminContractInstance.bind(this),
+            });
+
+            if (contract === null) {
+              continue;
+            }
+
+            const isApproved = await contract.isApprovedByPatientToAddNewRecord(
+              patientId,
+              doctorAddress,
+            );
+
+            return this.handlerService.handleReturn({
+              status: HttpStatus.OK,
+              message: CSM.TX_EXECUTED_SUCCESSFULLY,
+              data: {
+                isApproved,
+              },
+            });
+          } catch (rpcError) {
+            continue;
+          }
+        }
+
+        throw new InternalServerErrorException('All RPC endpoints failed');
+      }
     } catch (e) {
       console.error(e);
       return this.handlerService.handleError(
@@ -215,19 +324,58 @@ export class ContractProvider {
     const { practitionerAddress, patientId, recordId } = ctx;
     try {
       const contract = this.provideAdminContractInstance();
-      const hasAccess = await contract.viewerHasAccessToMedicalRecord(
-        practitionerAddress,
-        patientId,
-        recordId,
-      );
+      if (!contract) {
+        throw new InternalServerErrorException('Can not instantiate contract');
+      }
 
-      return this.handlerService.handleReturn({
-        status: HttpStatus.OK,
-        message: CSM.TX_EXECUTED_SUCCESSFULLY,
-        data: {
-          hasAccess: hasAccess as boolean,
-        },
-      });
+      try {
+        const hasAccess = await contract.viewerHasAccessToMedicalRecord(
+          practitionerAddress,
+          patientId,
+          recordId,
+        );
+
+        return this.handlerService.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.TX_EXECUTED_SUCCESSFULLY,
+          data: {
+            hasAccess: hasAccess as boolean,
+          },
+        });
+      } catch (e) {
+        const contractRotationProvider = new RpcRotationService();
+
+        while (!contractRotationProvider.allUsed()) {
+          try {
+            const contract = contractRotationProvider.getNextContractInstance({
+              adminContractInstance:
+                this.provideAdminContractInstance.bind(this),
+            });
+
+            if (contract === null) {
+              continue;
+            }
+
+            const hasAccess = await contract.viewerHasAccessToMedicalRecord(
+              practitionerAddress,
+              patientId,
+              recordId,
+            );
+
+            return this.handlerService.handleReturn({
+              status: HttpStatus.OK,
+              message: CSM.TX_EXECUTED_SUCCESSFULLY,
+              data: {
+                hasAccess: hasAccess as boolean,
+              },
+            });
+          } catch (rpcError) {
+            continue;
+          }
+        }
+
+        throw new InternalServerErrorException('All RPC endpoints failed');
+      }
     } catch (e) {
       return this.handlerService.handleError(
         e,
@@ -243,15 +391,44 @@ export class ContractProvider {
         throw new InternalServerErrorException('Can not instantiate contract');
       }
 
-      const id = await contract.patientIds(patientAddress);
+      try {
+        const id = await contract.patientIds(patientAddress);
+        return this.handlerService.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.PATIENT_ID_FETCHED_SUCCESSFULLY,
+          data: {
+            patientId: Number(id),
+          },
+        });
+      } catch (e) {
+        const contractRotationProvider = new RpcRotationService();
 
-      return this.handlerService.handleReturn({
-        status: HttpStatus.OK,
-        message: CSM.PATIENT_ID_FETCHED_SUCCESSFULLY,
-        data: {
-          patientId: Number(id),
-        },
-      });
+        while (!contractRotationProvider.allUsed()) {
+          try {
+            const contract = contractRotationProvider.getNextContractInstance({
+              adminContractInstance:
+                this.provideAdminContractInstance.bind(this),
+            });
+
+            if (contract === null) {
+              continue;
+            }
+
+            const id = await contract.patientIds(patientAddress);
+            return this.handlerService.handleReturn({
+              status: HttpStatus.OK,
+              message: CSM.PATIENT_ID_FETCHED_SUCCESSFULLY,
+              data: {
+                patientId: Number(id),
+              },
+            });
+          } catch (rpcError) {
+            continue;
+          }
+        }
+
+        throw new InternalServerErrorException('All RPC endpoints failed');
+      }
     } catch (e) {
       return this.handlerService.handleError(e, CEM.ERROR_FETCHING_PATIENT_ID);
     }
@@ -260,15 +437,51 @@ export class ContractProvider {
   async handleGetdoctorId(doctorAddress: string) {
     try {
       const contract = this.provideAdminContractInstance();
-      const id = await contract.doctorIds(doctorAddress);
 
-      return this.handlerService.handleReturn({
-        status: HttpStatus.OK,
-        message: CSM.DOCTOR_ID_FETCHED_SUCCESSFULLY,
-        data: {
-          doctorId: Number(id),
-        },
-      });
+      if (!contract) {
+        throw new InternalServerErrorException('Contract instance not found');
+      }
+
+      try {
+        const id = await contract.doctorIds(doctorAddress);
+
+        return this.handlerService.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.DOCTOR_ID_FETCHED_SUCCESSFULLY,
+          data: {
+            doctorId: Number(id),
+          },
+        });
+      } catch (e) {
+        const contractRotationProvider = new RpcRotationService();
+
+        while (!contractRotationProvider.allUsed()) {
+          try {
+            const contract = contractRotationProvider.getNextContractInstance({
+              adminContractInstance:
+                this.provideAdminContractInstance.bind(this),
+            });
+
+            if (contract === null) {
+              continue;
+            }
+
+            const id = await contract.doctorIds(doctorAddress);
+
+            return this.handlerService.handleReturn({
+              status: HttpStatus.OK,
+              message: CSM.DOCTOR_ID_FETCHED_SUCCESSFULLY,
+              data: {
+                doctorId: Number(id),
+              },
+            });
+          } catch (rpcError) {
+            continue;
+          }
+        }
+
+        throw new InternalServerErrorException('All RPC endpoints failed');
+      }
     } catch (e) {
       return this.handlerService.handleError(e, CEM.ERROR_FETCHING_DOCTOR_ID);
     }
