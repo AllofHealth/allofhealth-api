@@ -48,6 +48,14 @@ export class DoctorProvider {
         });
       }
 
+      let servicesOffered: string[];
+
+      if (!Array.isArray(doctor[0].doctors.servicesOffered)) {
+        servicesOffered = [doctor[0].doctors.servicesOffered as string];
+      } else {
+        servicesOffered = doctor[0].doctors.servicesOffered as string[];
+      }
+
       const parsedDoctor: IDoctorSnippet = {
         userId: doctor[0].users.id,
         fullName: doctor[0].users.fullName,
@@ -58,7 +66,7 @@ export class DoctorProvider {
         role: doctor[0].users.role,
         status: doctor[0].users.status,
         bio: doctor[0].doctors.bio || '',
-        servicesOffered: doctor[0].doctors.servicesOffered as string[],
+        servicesOffered: servicesOffered,
         certifications: doctor[0].doctors.certifications as string[],
         hospitalAssociation: doctor[0].doctors.hospitalAssociation,
         specialization: doctor[0].doctors.specialization,
