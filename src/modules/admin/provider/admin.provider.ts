@@ -379,6 +379,12 @@ export class AdminProvider {
         (await this.approvalService.fetchPendingApprovalCount(userId)) || 0;
 
       const parsedDoctor = doctor.map((d) => {
+        let servicesOffered: string[] = [];
+        if (!Array.isArray(d.servicesOffered)) {
+          servicesOffered = [d.servicesOffered as string];
+        } else {
+          servicesOffered = d.servicesOffered as string[];
+        }
         return {
           ...d,
           dateJoined: formatDateToReadable(d.dateJoined),
@@ -389,9 +395,7 @@ export class AdminProvider {
           bio: d.bio || '',
           yearsOfExperience: d.yearsOfExperience || 0,
           hospitalAffiliation: d.hospitalAffiliation || 'none',
-          servicesOffered: Array.isArray(d.servicesOffered)
-            ? d.servicesOffered
-            : [],
+          servicesOffered,
           languagesSpoken: Array.isArray(d.languagesSpoken)
             ? d.languagesSpoken
             : [],
