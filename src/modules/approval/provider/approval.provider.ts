@@ -298,7 +298,7 @@ export class ApprovalProvider {
   }
 
   async fetchDoctorApprovals(ctx: IFetchDoctorApprovals) {
-    const { userId, page = 1, limit = 12, status = 'PENDING' } = ctx;
+    const { userId, page = 1, limit = 12, status = 'CREATED' } = ctx;
     const skip = (page - 1) * limit;
     try {
       const isCompliant = await this.practitionerCompliance(userId);
