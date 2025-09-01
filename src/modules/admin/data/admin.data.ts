@@ -52,4 +52,6 @@ export enum SUSPENSION_REASON {
 
 export enum REJECTION_REASON {
   DEFAULT = 'User has violated some of our authentication terms, please see read our terms and conditions',
+  SIGN_UP = 'This email is associated with an account that has violated our services',
+  LOGIN_IN = 'User has violated our login terms and conditions',
 }
