@@ -30,6 +30,7 @@ import {
   CreateSystemAdminDto,
   DeleteAdminDto,
   ManagePermissionsDto,
+  RejectUserDto,
   SuspendUserDto,
   VerifyPractitionerDto,
 } from '../dto/admin.dto';
@@ -344,6 +345,38 @@ export class AdminController {
   async suspendUser(@Ip() ip: string, @Body() ctx: SuspendUserDto) {
     this.logger.log(`Suspending user ${ctx.userId} from ${ip}`);
     return await this.adminService.suspendUser(ctx);
+  }
+
+  @Post('rejectUser')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Reject a user (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.USER_REJECTED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_REJECTED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_REJECTING_USER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_REJECTING_USER,
+    },
+  })
+  async rejectUser(@Ip() ip: string, @Body() ctx: RejectUserDto) {
+    this.logger.log(`Rejecting user ${ctx.userId} from ${ip}`);
+    return await this.adminService.rejectUser(ctx);
   }
 
   @Get('dashboard/patient-management')
