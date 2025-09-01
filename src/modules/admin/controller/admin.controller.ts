@@ -643,7 +643,7 @@ export class AdminController {
     return await this.adminService.fetchUserData(userId);
   }
 
-  @Get('approval-management')
+  @Get('fetchNonVerifiedEntities')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Fetch approval management data (requires admin)' })
   @ApiQuery({ name: 'page', required: false })
