@@ -102,3 +102,8 @@ export interface IRejectUser {
   userId: string;
   reason?: string;
 }
+
+export interface IHandleIsUserRejected {
+  userId?: string;
+  email?: string;
+}
