@@ -714,6 +714,8 @@ export class AdminProvider {
     }
   }
 
+  async rejectUser() {}
+
   async fetchPatientManagementDashboard() {
     try {
       const [
