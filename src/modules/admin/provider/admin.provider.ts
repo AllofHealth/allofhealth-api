@@ -19,6 +19,7 @@ import {
   IInspectDoctorResponse,
   IInspectPatientResponse,
   IManagePermissions,
+  IRejectUser,
   ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
@@ -26,6 +27,7 @@ import {
   ACTIVITY_THRESHOLD,
   ADMIN_ERROR_MESSAGES as AEM,
   ADMIN_SUCCESS_MESSAGES as ASM,
+  REJECTION_REASON,
   SUSPENSION_REASON,
 } from '../data/admin.data';
 import { AuthUtils } from '@/shared/utils/auth.utils';
@@ -714,7 +716,55 @@ export class AdminProvider {
     }
   }
 
-  async rejectUser() {}
+  async rejectUser(ctx: IRejectUser) {
+    const { userId, reason } = ctx;
+    try {
+      const userResult = await this.userService.findUser(userId);
+
+      if (userResult.status !== HttpStatus.OK) {
+        return this.handler.handleReturn({
+          status: userResult.status,
+          message: userResult.message,
+        });
+      }
+
+      if (!('data' in userResult && userResult.data)) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+        });
+      }
+
+      const user = userResult.data;
+      if (user.status === USER_STATUS.REJECTED) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.USER_REJECTED_SUCCESSFULLY,
+        });
+      }
+
+      await this.db.transaction(async (tx) => {
+        await tx
+          .update(schema.user)
+          .set({
+            status: USER_STATUS.REJECTED,
+          })
+          .where(eq(schema.user.id, userId));
+
+        await tx.insert(schema.rejectionLogs).values({
+          email: user.email,
+          reason: reason || REJECTION_REASON.DEFAULT,
+        });
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.USER_REJECTED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_REJECTING_USER);
+    }
+  }
 
   async fetchPatientManagementDashboard() {
     try {
