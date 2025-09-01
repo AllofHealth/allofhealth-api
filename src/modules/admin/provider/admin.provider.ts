@@ -66,6 +66,7 @@ export class AdminProvider {
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     private readonly doctorService: DoctorService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly assetService: AssetService,
     private readonly approvalService: ApprovalService,
