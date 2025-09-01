@@ -33,6 +33,7 @@ import {
   RejectUserDto,
   SuspendUserDto,
   VerifyPractitionerDto,
+  FetchApprovalManagementDataDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
@@ -640,5 +641,62 @@ export class AdminController {
   async fetchUserData(@Ip() ip: string, @Query('userId') userId: string) {
     this.logger.log(`Admin fetching user data for ${userId} from ${ip}`);
     return await this.adminService.fetchUserData(userId);
+  }
+
+  @Get('approval-management')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch approval management data (requires admin)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'filter', required: false })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiOkResponse({
+    description: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+      data: [
+        {
+          userId: '507f1f77bcf86cd799439011',
+          fullName: 'Dr. John Doe',
+          userType: 'DOCTOR',
+          specialty: 'Cardiology',
+          licenseId: 'MD123456',
+          createdAt: '01/01/2024',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalPages: 5,
+        totalCount: 50,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+    },
+  })
+  async fetchApprovalManagementData(
+    @Ip() ip: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('filter') filter?: 'DOCTOR' | 'PHARMACIST',
+    @Query('sort') sort?: 'ASC' | 'DESC',
+  ) {
+    this.logger.log(`Admin fetching approval management data from ${ip}`);
+    return await this.adminService.fetchApprovalManagementData({
+      page,
+      limit,
+      filter,
+      sort,
+    });
   }
 }
