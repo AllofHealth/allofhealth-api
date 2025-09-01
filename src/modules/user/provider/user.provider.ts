@@ -341,6 +341,7 @@ export class UserProvider {
         updatedAt: formatDateToReadable(user[0].updatedAt),
         isOtpVerified: user[0].isOtpVerified,
         phoneNumber: user[0].phoneNumber,
+        status: user[0].status,
         walletData: {
           walletAddress: walletInfo.data.walletAddress,
           balance: walletInfo.data.balance,
