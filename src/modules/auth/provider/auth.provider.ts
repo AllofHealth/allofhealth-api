@@ -31,6 +31,7 @@ import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
 @Injectable()
 export class AuthProvider {
   constructor(
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly tokenService: TokenService,
