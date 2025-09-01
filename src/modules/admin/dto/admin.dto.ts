@@ -205,3 +205,40 @@ export class RejectUserDto {
   @IsString()
   reason?: string;
 }
+
+export class FetchApprovalManagementDataDto {
+  @ApiPropertyOptional({
+    description: 'Page number for pagination',
+    example: 1,
+    default: 1,
+  })
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of items per page',
+    example: 12,
+    default: 12,
+  })
+  @IsOptional()
+  limit?: number;
+
+  @ApiPropertyOptional({
+    description: 'Filter by user role',
+    enum: ['DOCTOR', 'PHARMACIST'],
+    example: 'DOCTOR',
+  })
+  @IsOptional()
+  @IsIn(['DOCTOR', 'PHARMACIST'])
+  filter?: 'DOCTOR' | 'PHARMACIST';
+
+  @ApiPropertyOptional({
+    description: 'Sort order for results',
+    enum: ['ASC', 'DESC'],
+    example: 'DESC',
+    default: 'DESC',
+  })
+  @IsOptional()
+  @IsIn(['ASC', 'DESC'])
+  sort?: 'ASC' | 'DESC';
+}
