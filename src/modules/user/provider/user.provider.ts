@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -50,6 +51,8 @@ import { ContractService } from '@/modules/contract/service/contract.service';
 import { OtpService } from '@/modules/otp/service/otp.service';
 import { ResendService } from '@/shared/modules/resend/service/resend.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { AdminService } from '@/modules/admin/service/admin.service';
+import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
 
 @Injectable()
 export class UserProvider {
@@ -66,6 +69,8 @@ export class UserProvider {
     private readonly contractService: ContractService,
     private readonly otpService: OtpService,
     private readonly resendService: ResendService,
+    @Inject(forwardRef(() => AdminService))
+    private readonly adminService: AdminService,
   ) {}
 
   private async emitEvent(ctx: ICreateDoctor) {
@@ -341,6 +346,7 @@ export class UserProvider {
         updatedAt: formatDateToReadable(user[0].updatedAt),
         isOtpVerified: user[0].isOtpVerified,
         phoneNumber: user[0].phoneNumber,
+        status: user[0].status,
         walletData: {
           walletAddress: walletInfo.data.walletAddress,
           balance: walletInfo.data.balance,
@@ -571,13 +577,23 @@ export class UserProvider {
   async createUser(ctx: ICreateUser) {
     try {
       const hashedPassword = await this.authUtils.hash(ctx.password);
-
       const emailExists = await this.validateEmailAddress(ctx.emailAddress);
 
       if (emailExists) {
         return this.handler.handleReturn({
           status: HttpStatus.FOUND,
           message: UEM.USER_EXISTS,
+        });
+      }
+
+      const isUserRejected = await this.adminService.verifyRejectionStatus({
+        email: ctx.emailAddress,
+      });
+
+      if (isUserRejected) {
+        return this.handler.handleReturn({
+          status: HttpStatus.FORBIDDEN,
+          message: REJECTION_REASON.SIGN_UP,
         });
       }
 

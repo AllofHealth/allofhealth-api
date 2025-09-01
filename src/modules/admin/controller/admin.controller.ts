@@ -30,8 +30,10 @@ import {
   CreateSystemAdminDto,
   DeleteAdminDto,
   ManagePermissionsDto,
+  RejectUserDto,
   SuspendUserDto,
   VerifyPractitionerDto,
+  FetchApprovalManagementDataDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
@@ -346,6 +348,38 @@ export class AdminController {
     return await this.adminService.suspendUser(ctx);
   }
 
+  @Post('rejectUser')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Reject a user (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.USER_REJECTED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_REJECTED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_REJECTING_USER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_REJECTING_USER,
+    },
+  })
+  async rejectUser(@Ip() ip: string, @Body() ctx: RejectUserDto) {
+    this.logger.log(`Rejecting user ${ctx.userId} from ${ip}`);
+    return await this.adminService.rejectUser(ctx);
+  }
+
   @Get('dashboard/patient-management')
   @UseGuards(AdminGuard)
   @ApiOperation({
@@ -607,5 +641,62 @@ export class AdminController {
   async fetchUserData(@Ip() ip: string, @Query('userId') userId: string) {
     this.logger.log(`Admin fetching user data for ${userId} from ${ip}`);
     return await this.adminService.fetchUserData(userId);
+  }
+
+  @Get('fetchNonVerifiedEntities')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch approval management data (requires admin)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'filter', required: false })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiOkResponse({
+    description: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+      data: [
+        {
+          userId: '507f1f77bcf86cd799439011',
+          fullName: 'Dr. John Doe',
+          userType: 'DOCTOR',
+          specialty: 'Cardiology',
+          licenseId: 'MD123456',
+          createdAt: '01/01/2024',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalPages: 5,
+        totalCount: 50,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+    },
+  })
+  async fetchApprovalManagementData(
+    @Ip() ip: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('filter') filter?: 'DOCTOR' | 'PHARMACIST',
+    @Query('sort') sort?: 'ASC' | 'DESC',
+  ) {
+    this.logger.log(`Admin fetching approval management data from ${ip}`);
+    return await this.adminService.fetchApprovalManagementData({
+      page,
+      limit,
+      filter,
+      sort,
+    });
   }
 }

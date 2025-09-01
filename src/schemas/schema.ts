@@ -78,7 +78,7 @@ export const doctors = pgTable('doctors', {
   updatedAt: date('updated_at').notNull().defaultNow(),
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
-  isVerified: boolean('is_verified').default(true).notNull(),
+  isVerified: boolean('is_verified').default(false).notNull(),
 });
 
 export const accounts = pgTable('accounts', {
@@ -316,5 +316,12 @@ export const suspensionLogs = pgTable('suspension_logs', {
   reason: varchar('reason', { length: 255 }).notNull(),
   startDate: date('start_date').defaultNow(),
   endDate: date('end_date'),
+  createdAt: date('created_at').defaultNow(),
+});
+
+export const rejectionLogs = pgTable('rejection_logs', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  email: varchar('email', { length: 255 }).notNull(),
+  reason: varchar('reason', { length: 255 }).notNull(),
   createdAt: date('created_at').defaultNow(),
 });
