@@ -4,6 +4,7 @@ import {
   ICreateAdmin,
   ICreateSystemAdmin,
   IDeleteAdmin,
+  IHandleIsUserRejected,
   IManagePermissions,
   IRejectUser,
   ISuspendUser,
@@ -73,5 +74,9 @@ export class AdminService {
 
   async rejectUser(ctx: IRejectUser) {
     return await this.adminProvider.rejectUser(ctx);
+  }
+
+  async verifyRejectionStatus(ctx: IHandleIsUserRejected) {
+    return await this.adminProvider.handleIsUserRejected(ctx);
   }
 }
