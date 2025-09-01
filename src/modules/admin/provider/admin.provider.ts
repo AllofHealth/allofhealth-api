@@ -12,10 +12,12 @@ import {
 } from '@nestjs/common';
 import {
   IAdminLogin,
+  IApprovalDashboardResponse,
   ICreateAdmin,
   ICreateSystemAdmin,
   IDeleteAdmin,
   IDetermineActivityStatus,
+  IFetchApprovalManagementData,
   IHandleIsUserRejected,
   IInspectDoctorResponse,
   IInspectPatientResponse,
@@ -32,7 +34,7 @@ import {
   SUSPENSION_REASON,
 } from '../data/admin.data';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { AuthService } from '@/modules/auth/service/auth.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
@@ -51,7 +53,10 @@ import {
   IFetchUsers,
   IUserSnippet,
 } from '@/modules/user/interface/user.interface';
-import { formatDateToReadable } from '@/shared/utils/date.utils';
+import {
+  formatDateToReadable,
+  formatDateToStandard,
+} from '@/shared/utils/date.utils';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { ILoginResponse } from '@/modules/auth/interface/auth.interface';
@@ -924,6 +929,79 @@ export class AdminProvider {
         return await this.inspectDoctorData(userId);
       default:
         'Role not implemented yet';
+    }
+  }
+
+  async fetchApprovalManagementData(ctx: IFetchApprovalManagementData) {
+    const { page = 1, limit = 12, sort = 'desc', filter } = ctx;
+    const skip = (page - 1) * limit;
+    const sortFn = sort === 'desc' ? desc : asc;
+    const sortColumn = schema.user.createdAt;
+    try {
+      let whereConditions: any = and(
+        eq(schema.user.role, USER_ROLE.DOCTOR),
+        eq(schema.doctors.isVerified, false),
+      );
+      if (filter && filter === USER_ROLE.DOCTOR) {
+        whereConditions = and(
+          eq(schema.user.role, USER_ROLE.DOCTOR),
+          eq(schema.doctors.isVerified, false),
+        );
+      }
+
+      const totalUserResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.user)
+        .leftJoin(schema.doctors, eq(schema.user.id, schema.doctors.userId))
+        .where(whereConditions);
+
+      const totalCount = Number(totalUserResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const users = await this.db
+        .select({
+          userId: schema.user.id,
+          fullName: schema.user.fullName,
+          role: schema.user.role,
+          createdAt: schema.user.createdAt,
+          specialization: schema.doctors.specialization,
+          medicalLicenseNumber: schema.doctors.medicalLicenseNumber,
+        })
+        .from(schema.user)
+        .leftJoin(schema.doctors, eq(schema.user.id, schema.doctors.userId))
+        .where(whereConditions)
+        .orderBy(sortFn(sortColumn))
+        .offset(skip)
+        .limit(limit);
+
+      const approvalData = users.map((user) => {
+        return {
+          userId: user.userId,
+          fullName: user.fullName,
+          licenseId: user.medicalLicenseNumber || 'Unknown',
+          specialty: user.specialization || 'Unknown',
+          userType: user.role,
+          createdAt: formatDateToStandard(user.createdAt),
+        } as IApprovalDashboardResponse;
+      });
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+        data: approvalData,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(
+        e,
+        AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+      );
     }
   }
 }
