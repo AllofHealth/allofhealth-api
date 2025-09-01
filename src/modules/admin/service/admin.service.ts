@@ -5,6 +5,7 @@ import {
   ICreateSystemAdmin,
   IDeleteAdmin,
   IManagePermissions,
+  IRejectUser,
   ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
@@ -68,5 +69,9 @@ export class AdminService {
 
   async determineIsAdmin(emailAddress: string) {
     return await this.adminProvider.determineIsAdmin(emailAddress);
+  }
+
+  async rejectUser(ctx: IRejectUser) {
+    return await this.adminProvider.rejectUser(ctx);
   }
 }
