@@ -97,3 +97,8 @@ export interface IInspectDoctorResponse {
   identityAssets: IIdentityAssets;
   doctorActivity: IDoctorActivity;
 }
+
+export interface IRejectUser {
+  userId: string;
+  reason?: string;
+}
