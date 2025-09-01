@@ -318,3 +318,10 @@ export const suspensionLogs = pgTable('suspension_logs', {
   endDate: date('end_date'),
   createdAt: date('created_at').defaultNow(),
 });
+
+export const rejectionLogs = pgTable('rejection_logs', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  email: varchar('email', { length: 255 }).notNull(),
+  reason: varchar('reason', { length: 255 }).notNull(),
+  createdAt: date('created_at').defaultNow(),
+});
