@@ -4,7 +4,10 @@ import {
   ICreateAdmin,
   ICreateSystemAdmin,
   IDeleteAdmin,
+  IFetchApprovalManagementData,
+  IHandleIsUserRejected,
   IManagePermissions,
+  IRejectUser,
   ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
@@ -68,5 +71,17 @@ export class AdminService {
 
   async determineIsAdmin(emailAddress: string) {
     return await this.adminProvider.determineIsAdmin(emailAddress);
+  }
+
+  async rejectUser(ctx: IRejectUser) {
+    return await this.adminProvider.rejectUser(ctx);
+  }
+
+  async verifyRejectionStatus(ctx: IHandleIsUserRejected) {
+    return await this.adminProvider.handleIsUserRejected(ctx);
+  }
+
+  async fetchApprovalManagementData(ctx: IFetchApprovalManagementData) {
+    return await this.adminProvider.fetchApprovalManagementData(ctx);
   }
 }

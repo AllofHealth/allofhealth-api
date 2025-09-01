@@ -1,5 +1,10 @@
+import { TUserRole } from '@/modules/user/interface/user.interface';
+
 export type TPermissionLevel = 'super' | 'system';
 export type TPractitionerRole = 'doctor' | 'pharmacist';
+
+export type TRoleFilter = 'DOCTOR' | 'PHARMACIST';
+export type TSort = 'ASC' | 'DESC';
 
 export interface ICreateAdmin {
   userName: string;
@@ -96,4 +101,30 @@ export interface IInspectDoctorResponse {
   servicesOffered: string[];
   identityAssets: IIdentityAssets;
   doctorActivity: IDoctorActivity;
+}
+
+export interface IRejectUser {
+  userId: string;
+  reason?: string;
+}
+
+export interface IHandleIsUserRejected {
+  userId?: string;
+  email?: string;
+}
+
+export interface IApprovalDashboardResponse {
+  userId: string;
+  fullName: string;
+  userType: TUserRole;
+  specialty?: string;
+  licenseId: string;
+  createdAt: string;
+}
+
+export interface IFetchApprovalManagementData {
+  page?: number;
+  limit?: number;
+  filter?: TRoleFilter;
+  sort?: TSort;
 }
