@@ -21,6 +21,7 @@ export enum ADMIN_ERROR_MESSAGES {
   PATIENT_NOT_FOUND = 'Patient not found',
   ERROR_VERIFYING_ADMIN_STATUS = 'Error verifying admin status',
   ERROR_REJECTING_USER = 'Error rejecting user',
+  ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA = 'Error fetching approval management data',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
@@ -39,6 +40,7 @@ export enum ADMIN_SUCCESS_MESSAGES {
   PATIENT_DATA_FETCHED = 'Patient data fetched successfully',
   DOCTOR_DATA_FETCHED = 'Doctor data fetched successfully',
   USER_REJECTED_SUCCESSFULLY = 'User rejected successfully',
+  APPROVAL_MANAGEMENT_DATA_FETCHED = 'Approval management data fetched successfully',
 }
 
 export enum ACTIVITY_THRESHOLD {
