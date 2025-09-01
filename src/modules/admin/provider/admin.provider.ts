@@ -16,6 +16,7 @@ import {
   ICreateSystemAdmin,
   IDeleteAdmin,
   IDetermineActivityStatus,
+  IHandleIsUserRejected,
   IInspectDoctorResponse,
   IInspectPatientResponse,
   IManagePermissions,
@@ -763,6 +764,53 @@ export class AdminProvider {
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_REJECTING_USER);
+    }
+  }
+
+  async handleIsUserRejected(ctx: IHandleIsUserRejected) {
+    const { userId, email } = ctx;
+    let isUserRejected = false;
+    try {
+      let userEmail: string = email ? email : '';
+      if (userId) {
+        const userResult = await this.userService.findUser(userId);
+
+        if (userResult.status !== HttpStatus.OK) {
+          return this.handler.handleReturn({
+            status: userResult.status,
+            message: userResult.message,
+          });
+        }
+
+        if (!('data' in userResult && userResult.data)) {
+          return this.handler.handleReturn({
+            status: HttpStatus.NOT_FOUND,
+            message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+          });
+        }
+
+        const user = userResult.data;
+        userEmail = user.email;
+      }
+
+      const rejectedUser = await this.db.query.rejectionLogs.findFirst({
+        where: eq(schema.rejectionLogs.email, userEmail),
+      });
+
+      if (rejectedUser?.id) {
+        isUserRejected = true;
+      }
+
+      return isUserRejected;
+    } catch (e) {
+      throw new HttpException(
+        new AdminError(
+          'Error verifying user rejection',
+          { cause: e },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
