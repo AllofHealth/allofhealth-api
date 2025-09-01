@@ -26,6 +26,7 @@ import {
   ILoginResponse,
 } from '../interface/auth.interface';
 import { AdminService } from '@/modules/admin/service/admin.service';
+import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
 
 @Injectable()
 export class AuthProvider {
@@ -202,6 +203,16 @@ export class AuthProvider {
       }
 
       const userProfile = result.data;
+      const isUserRejected = await this.adminService.verifyRejectionStatus({
+        email: userProfile.email,
+      });
+
+      if (isUserRejected) {
+        return this.handler.handleReturn({
+          status: HttpStatus.FORBIDDEN,
+          message: REJECTION_REASON.LOGIN_IN,
+        });
+      }
       await this.userService.checkUserSuspension(userProfile.userId);
 
       const isPasswordValid = await this.authUtils.compare({
