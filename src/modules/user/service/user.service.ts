@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { EOnUserLogin, ESendOtp, EValidateOtp } from '@/shared/dtos/event.dto';
+import {
+  DeleteUser,
+  EOnUserLogin,
+  ESendOtp,
+  EValidateOtp,
+} from '@/shared/dtos/event.dto';
 import { SharedEvents } from '@/shared/events/shared.events';
 import {
   ICreateUser,
@@ -63,5 +68,9 @@ export class UserService {
 
   async determineUserRole(userId: string) {
     return await this.userProvider.handleDetermineUserRole(userId);
+  }
+
+  async deleteUser(ctx: DeleteUser) {
+    return await this.userProvider.deleteUser(ctx);
   }
 }
