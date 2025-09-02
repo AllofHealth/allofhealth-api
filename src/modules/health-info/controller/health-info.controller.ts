@@ -38,6 +38,7 @@ import {
 } from '../dto/health-info.dto';
 import { HealthInfoService } from '../service/health-info.service';
 import { OwnerGuard } from '@/modules/user/guard/user.guard';
+import { SuspensionGuard } from '@/modules/auth/guards/suspension.guard';
 
 @ApiTags('Health Information Operations')
 @Controller('health-info')
@@ -62,7 +63,7 @@ export class HealthInfoController {
       }),
     }),
   )
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, SuspensionGuard)
   @ApiOperation({
     summary: 'Create health information',
     description:
@@ -172,7 +173,7 @@ export class HealthInfoController {
       }),
     }),
   )
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Update health information',
     description:
@@ -275,7 +276,7 @@ export class HealthInfoController {
   }
 
   @Get('fetchHealthInfo')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, SuspensionGuard)
   @ApiOperation({
     summary: 'Fetch health information',
     description:
