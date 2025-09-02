@@ -326,3 +326,25 @@ export class ResendOtpDto {
   @IsEmail()
   emailAddress: string;
 }
+
+export class ForgotPasswordDto {
+  @ApiProperty({
+    description: 'Email address of the user who forgot their password',
+    example: 'user@example.com',
+  })
+  emailAddress: string;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty({
+    description: 'Email address of the user resetting their password',
+    example: 'user@example.com',
+  })
+  emailAddress: string;
+
+  @ApiProperty({
+    description: 'The new password to set',
+    example: 'NewPassword123!',
+  })
+  password: string;
+}
