@@ -141,7 +141,10 @@ export class EDeleteApproval {
 }
 
 export class ESendOtp {
-  constructor(readonly email: string) {}
+  constructor(
+    readonly email: string,
+    readonly subject?: string,
+  ) {}
 }
 
 export class EValidateOtp {
