@@ -34,6 +34,7 @@ import {
   SuspendUserDto,
   VerifyPractitionerDto,
   FetchApprovalManagementDataDto,
+  DeleteUserDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
@@ -698,5 +699,37 @@ export class AdminController {
       filter,
       sort,
     });
+  }
+
+  @Delete('deleteUser')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Delete a user (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.USER_DELETED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_DELETED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: USER_ERROR_MESSAGES.ERROR_DELETING_USER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: USER_ERROR_MESSAGES.ERROR_DELETING_USER,
+    },
+  })
+  async deleteUser(@Ip() ip: string, @Body() ctx: DeleteUserDto) {
+    this.logger.log(`Admin deleting user ${ctx.userId} from ${ip}`);
+    return await this.adminService.deleteUser(ctx.userId);
   }
 }
