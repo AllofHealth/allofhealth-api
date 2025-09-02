@@ -727,6 +727,39 @@ export class AdminProvider {
     }
   }
 
+  async revokeSuspension(userId: string) {
+    try {
+      const userSuspended = await this.isUserSuspended(userId);
+      if (!userSuspended) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: ASM.USER_NOT_SUSPENDED,
+        });
+      }
+
+      await this.db.transaction(async (tx) => {
+        await tx
+          .update(schema.user)
+          .set({
+            status: USER_STATUS.ACTIVE,
+          })
+          .from(schema.user)
+          .where(eq(schema.user.id, userId));
+
+        await tx
+          .delete(schema.suspensionLogs)
+          .where(eq(schema.suspensionLogs.userId, userId));
+
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
+        });
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_REVOKING_SUSPENSION);
+    }
+  }
+
   async rejectUser(ctx: IRejectUser) {
     const { userId, reason } = ctx;
     try {
