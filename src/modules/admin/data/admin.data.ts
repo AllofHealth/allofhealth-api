@@ -41,6 +41,7 @@ export enum ADMIN_SUCCESS_MESSAGES {
   DOCTOR_DATA_FETCHED = 'Doctor data fetched successfully',
   USER_REJECTED_SUCCESSFULLY = 'User rejected successfully',
   APPROVAL_MANAGEMENT_DATA_FETCHED = 'Approval management data fetched successfully',
+  USER_DELETED_SUCCESSFULLY = 'User deleted successfully',
 }
 
 export enum ACTIVITY_THRESHOLD {

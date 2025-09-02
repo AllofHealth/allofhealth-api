@@ -1008,4 +1008,10 @@ export class AdminProvider {
       );
     }
   }
+
+  async deleteUser(userId: string) {
+    return await this.userService.deleteUser({
+      userId,
+    });
+  }
 }

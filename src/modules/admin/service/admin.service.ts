@@ -84,4 +84,8 @@ export class AdminService {
   async fetchApprovalManagementData(ctx: IFetchApprovalManagementData) {
     return await this.adminProvider.fetchApprovalManagementData(ctx);
   }
+
+  async deleteUser(userId: string) {
+    return await this.adminProvider.deleteUser(userId);
+  }
 }
