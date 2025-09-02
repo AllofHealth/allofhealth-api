@@ -88,4 +88,8 @@ export class AdminService {
   async deleteUser(userId: string) {
     return await this.adminProvider.deleteUser(userId);
   }
+
+  async revokeSuspension(userId: string) {
+    return await this.adminProvider.revokeSuspension(userId);
+  }
 }

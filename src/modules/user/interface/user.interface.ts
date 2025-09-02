@@ -90,3 +90,8 @@ export interface IHandleDoctorRegistration {
 export interface IFetchPatients extends IFetchDoctors {}
 
 export interface IFetchUsers extends IFetchPatients {}
+
+export interface IPasswordReset {
+  emailAddress: string;
+  password: string;
+}
