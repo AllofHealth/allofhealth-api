@@ -11,6 +11,7 @@ import {
   ICreateUser,
   IFetchPatients,
   IFetchUsers,
+  IPasswordReset,
   IUpdateUser,
 } from '../interface/user.interface';
 import { UserProvider } from '../provider/user.provider';
@@ -72,5 +73,13 @@ export class UserService {
 
   async deleteUser(ctx: DeleteUser) {
     return await this.userProvider.deleteUser(ctx);
+  }
+
+  async forgotPassword(emailAddress: string) {
+    return await this.userProvider.handleForgotPassword(emailAddress);
+  }
+
+  async resetPassword(ctx: IPasswordReset) {
+    return await this.userProvider.handleResetPassword(ctx);
   }
 }

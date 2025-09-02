@@ -22,6 +22,7 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_VERIFYING_ADMIN_STATUS = 'Error verifying admin status',
   ERROR_REJECTING_USER = 'Error rejecting user',
   ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA = 'Error fetching approval management data',
+  ERROR_REVOKING_SUSPENSION = 'Error revoking suspension',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
@@ -34,7 +35,7 @@ export enum ADMIN_SUCCESS_MESSAGES {
   SUCCESS_DELETING_ADMIN = 'Admin deleted successfully',
   USER_ALREADY_SUSPENDED = 'User is already suspended',
   USER_SUSPENDED_SUCCESSFULLY = 'User suspended successfully',
-  SUSPENSION_LIFITED_SUCCESSFULLY = 'Suspension lifted successfully',
+  SUSPENSION_LIFTED_SUCCESSFULLY = 'Suspension lifted successfully',
   PATIENT_MANAGEMENT_DASHBOARD_FETCHED = 'Patient management dashboard fetched successfully',
   USER_DATA_FETCHED = 'User data fetched successfully',
   PATIENT_DATA_FETCHED = 'Patient data fetched successfully',
@@ -42,6 +43,8 @@ export enum ADMIN_SUCCESS_MESSAGES {
   USER_REJECTED_SUCCESSFULLY = 'User rejected successfully',
   APPROVAL_MANAGEMENT_DATA_FETCHED = 'Approval management data fetched successfully',
   USER_DELETED_SUCCESSFULLY = 'User deleted successfully',
+  SUSPENSION_REVOKED_SUCCESSFULLY = 'Suspension revoked successfully',
+  USER_NOT_SUSPENDED = 'User is not suspended',
 }
 
 export enum ACTIVITY_THRESHOLD {
