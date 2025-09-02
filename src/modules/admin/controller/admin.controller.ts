@@ -35,6 +35,7 @@ import {
   VerifyPractitionerDto,
   FetchApprovalManagementDataDto,
   DeleteUserDto,
+  RevokeSuspensionDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
@@ -347,6 +348,46 @@ export class AdminController {
   async suspendUser(@Ip() ip: string, @Body() ctx: SuspendUserDto) {
     this.logger.log(`Suspending user ${ctx.userId} from ${ip}`);
     return await this.adminService.suspendUser(ctx);
+  }
+
+  @Post('revokeSuspension')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Revoke a user suspension (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: ASM.USER_NOT_SUSPENDED,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: ASM.USER_NOT_SUSPENDED,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_REVOKING_SUSPENSION,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_REVOKING_SUSPENSION,
+    },
+  })
+  async revokeSuspension(@Ip() ip: string, @Body() ctx: RevokeSuspensionDto) {
+    this.logger.log(`Revoking suspension for user ${ctx.userId} from ${ip}`);
+    return await this.adminService.revokeSuspension(ctx.userId);
   }
 
   @Post('rejectUser')
