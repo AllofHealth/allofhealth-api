@@ -31,7 +31,12 @@ import {
   USER_ERROR_MESSAGES as UEM,
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
-import { ResendOtpDto, UpdateUserDto } from '../dto/user.dto';
+import {
+  ForgotPasswordDto,
+  ResendOtpDto,
+  ResetPasswordDto,
+  UpdateUserDto,
+} from '../dto/user.dto';
 import { UserError } from '../error/user.error';
 import { OwnerGuard } from '../guard/user.guard';
 import { UserService } from '../service/user.service';
@@ -291,5 +296,86 @@ export class UserController {
       ...ctx,
       profilePictureFilePath: path,
     });
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({
+    summary: 'Request a password reset OTP',
+    description: "Sends an OTP to the user's email address for password reset.",
+  })
+  @ApiBody({
+    description: 'Email address for password reset',
+    type: ForgotPasswordDto,
+  })
+  @ApiOkResponse({
+    description: 'OTP sent successfully for password reset',
+    type: SuccessResponseDto,
+    example: {
+      status: 200,
+      message: USM.SUCCESS_SENDING_OTP,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid email address',
+    type: UserError,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: UEM.INVALID_EMAIL_ADDRESS,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error handling forgot password',
+    type: UserError,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: UEM.ERROR_HANDLING_FORGOT_PASSWORD,
+    },
+  })
+  async forgotPassword(@Ip() ip: string, @Body() ctx: ForgotPasswordDto) {
+    this.logger.log(
+      `Forgot password requested for email ${ctx.emailAddress} from ${ip}`,
+    );
+    return this.userService.forgotPassword(ctx.emailAddress);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Reset user password',
+    description:
+      "Resets the user's password using the provided email and new password.",
+  })
+  @ApiBody({
+    description: 'Email address and new password',
+    type: ResetPasswordDto,
+  })
+  @ApiOkResponse({
+    description: 'Password reset successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: 200,
+      message: USM.PASSWORD_RESET_SUCCESSFUL,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid email address or password',
+    type: UserError,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: UEM.INVALID_EMAIL_ADDRESS,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error resetting password',
+    type: UserError,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: UEM.ERROR_RESETING_PASSWORD,
+    },
+  })
+  async resetPassword(@Ip() ip: string, @Body() ctx: ResetPasswordDto) {
+    this.logger.log(
+      `Reset password requested for email ${ctx.emailAddress} from ${ip}`,
+    );
+    return this.userService.resetPassword(ctx);
   }
 }
