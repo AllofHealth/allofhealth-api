@@ -37,6 +37,7 @@ import {
   RejectApprovalDto,
 } from '../dto/approval.dto';
 import { ApprovalService } from '../service/approval.service';
+import { SuspensionGuard } from '@/modules/auth/guards/suspension.guard';
 
 @ApiTags('Approval Operations')
 @Controller('approval')
@@ -45,7 +46,7 @@ export class ApprovalController {
   constructor(private readonly approvalService: ApprovalService) {}
 
   @Post('createApproval')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Create new approvals',
     description:
@@ -173,7 +174,7 @@ export class ApprovalController {
   }
 
   @Get('fetchDoctorApprovals')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({ summary: 'Fetch approvals for a doctor' })
   @ApiOkResponse({
     description: ASM.APPROVAL_FETCHED,
@@ -223,7 +224,7 @@ export class ApprovalController {
   }
 
   @Get('fetchPatientApprovals')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Fetch approvals for a patient',
     description:
@@ -295,7 +296,7 @@ export class ApprovalController {
   }
 
   @Get('fetchApprovedApprovals')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Fetch approved approvals for a user',
     description:
@@ -356,7 +357,7 @@ export class ApprovalController {
   }
 
   @Post('acceptApproval')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, SuspensionGuard)
   @ApiOperation({ summary: 'Accept an approval request' })
   @ApiOkResponse({
     description: ASM.APPROVAL_ACCEPTED,
@@ -401,7 +402,7 @@ export class ApprovalController {
   }
 
   @Post('rejectApproval')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({ summary: 'Reject an approval request' })
   @ApiOkResponse({
     description: ASM.APPROVAL_REJECTED,
@@ -446,7 +447,7 @@ export class ApprovalController {
   }
 
   @Get('findApproval')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, SuspensionGuard)
   @ApiOperation({
     summary: 'Find an approval by ID',
     description:
