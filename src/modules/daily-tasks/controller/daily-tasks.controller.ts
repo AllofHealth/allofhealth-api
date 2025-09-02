@@ -26,6 +26,7 @@ import {
   TaskStatsResponseDto,
 } from '../dto/daily-tasks.dto';
 import { DailyTasksService } from '../service/daily-tasks.service';
+import { SuspensionGuard } from '@/modules/auth/guards/suspension.guard';
 
 @ApiTags('Daily Tasks Operations')
 @Controller('daily-tasks')
@@ -58,7 +59,7 @@ export class DailyTasksController {
   }
 
   @Get('userDailyTasks')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Get user daily tasks',
     description:
@@ -95,7 +96,7 @@ export class DailyTasksController {
   }
 
   @Post('completeDailyTask')
-  @UseGuards(AuthGuard, AdminGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, AdminGuard)
   @ApiOperation({
     summary: 'Complete a daily task',
     description:
@@ -119,7 +120,7 @@ export class DailyTasksController {
   }
 
   @Get('userDailyStats')
-  @UseGuards(AuthGuard, AdminGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, AdminGuard)
   @ApiOperation({
     summary: 'Get task statistics',
     description:
