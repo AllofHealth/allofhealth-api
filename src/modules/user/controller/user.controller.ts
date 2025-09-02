@@ -41,6 +41,7 @@ import { UserError } from '../error/user.error';
 import { OwnerGuard } from '../guard/user.guard';
 import { UserService } from '../service/user.service';
 import { ESendOtp } from '@/shared/dtos/event.dto';
+import { SuspensionGuard } from '@/modules/auth/guards/suspension.guard';
 
 @ApiTags('User Operations')
 @Controller('user')
@@ -49,7 +50,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('dashboard')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Fetch user dashboard data',
     description:
@@ -178,7 +179,7 @@ export class UserController {
       }),
     }),
   )
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({ summary: 'Updates an existing user' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
