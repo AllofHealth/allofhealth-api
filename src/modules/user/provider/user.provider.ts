@@ -41,6 +41,7 @@ import {
   ICreateUser,
   IFetchPatients,
   IFetchUsers,
+  IPasswordReset,
   IUpdateUser,
   IUserSnippet,
 } from '../interface/user.interface';
@@ -562,7 +563,7 @@ export class UserProvider {
       await this.resendService.sendEmail({
         to: ctx.email,
         body,
-        subject: 'OTP Verification',
+        subject: ctx.subject || 'OTP Verification',
       });
 
       return this.handler.handleReturn({
@@ -874,6 +875,79 @@ export class UserProvider {
         ),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async handleForgotPassword(emailAddress: string) {
+    try {
+      const isValidUserEmail = await this.validateEmailAddress(emailAddress);
+      if (!isValidUserEmail) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: UEM.INVALID_EMAIL_ADDRESS,
+        });
+      }
+
+      return await this.sendOtp({
+        email: emailAddress,
+        subject: 'Forgot Password',
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_HANDLING_FORGOT_PASSWORD);
+    }
+  }
+
+  async handleResetPassword(ctx: IPasswordReset) {
+    const { emailAddress, password } = ctx;
+    try {
+      const isValidUserEmail = await this.validateEmailAddress(emailAddress);
+      if (!isValidUserEmail) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: UEM.INVALID_EMAIL_ADDRESS,
+        });
+      }
+
+      const user = await this.db
+        .select({ password: schema.user.password })
+        .from(schema.user)
+        .where(eq(schema.user.emailAddress, emailAddress))
+        .limit(1);
+
+      if (!user || user.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: UEM.USER_NOT_FOUND,
+        });
+      }
+
+      const oldPassword = user[0].password;
+      const newPassword = await this.authUtils.hash(password);
+
+      const isSameAsOld = await this.authUtils.compare({
+        password: password,
+        hashedPassword: oldPassword,
+      });
+      if (isSameAsOld) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: UEM.PASSWORD_SAME_AS_OLD,
+        });
+      }
+
+      await this.db
+        .update(schema.user)
+        .set({
+          password: newPassword,
+        })
+        .where(eq(schema.user.emailAddress, emailAddress));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.PASSWORD_RESET_SUCCESSFUL,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_RESETING_PASSWORD);
     }
   }
 }
