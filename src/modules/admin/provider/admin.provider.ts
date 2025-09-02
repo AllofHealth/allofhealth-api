@@ -709,18 +709,16 @@ export class AdminProvider {
           .set({
             status: USER_STATUS.SUSPENDED,
           })
-          .from(schema.user)
           .where(eq(schema.user.id, userId));
 
         await tx.insert(schema.suspensionLogs).values({
           userId,
           reason,
         });
-
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: ASM.USER_SUSPENDED_SUCCESSFULLY,
-        });
+      });
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.USER_SUSPENDED_SUCCESSFULLY,
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_SUSPENDING_USER);
@@ -743,17 +741,15 @@ export class AdminProvider {
           .set({
             status: USER_STATUS.ACTIVE,
           })
-          .from(schema.user)
           .where(eq(schema.user.id, userId));
 
         await tx
           .delete(schema.suspensionLogs)
           .where(eq(schema.suspensionLogs.userId, userId));
-
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
-        });
+      });
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_REVOKING_SUSPENSION);
