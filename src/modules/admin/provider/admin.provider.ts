@@ -704,9 +704,13 @@ export class AdminProvider {
       }
 
       await this.db.transaction(async (tx) => {
-        await tx.update(schema.user).set({
-          status: USER_STATUS.SUSPENDED,
-        });
+        await tx
+          .update(schema.user)
+          .set({
+            status: USER_STATUS.SUSPENDED,
+          })
+          .from(schema.user)
+          .where(eq(schema.user.id, userId));
 
         await tx.insert(schema.suspensionLogs).values({
           userId,
@@ -1003,5 +1007,11 @@ export class AdminProvider {
         AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
       );
     }
+  }
+
+  async deleteUser(userId: string) {
+    return await this.userService.deleteUser({
+      userId,
+    });
   }
 }
