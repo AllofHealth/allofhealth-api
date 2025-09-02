@@ -216,6 +216,16 @@ export class RejectUserDto {
   reason?: string;
 }
 
+export class RevokeSuspensionDto {
+  @ApiProperty({
+    description: 'ID of the user whose suspension is to be revoked',
+    example: '507f1f77bcf86cd799439011',
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+}
+
 export class FetchApprovalManagementDataDto {
   @ApiPropertyOptional({
     description: 'Page number for pagination',
