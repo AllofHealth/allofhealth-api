@@ -1043,4 +1043,19 @@ export class AdminProvider {
       userId,
     });
   }
+
+  async deleteUserMoodMetrics(userId: string) {
+    try {
+      await this.db
+        .delete(schema.moodMetrics)
+        .where(eq(schema.moodMetrics.userId, userId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: 'User mood metrics deleted successfully',
+      });
+    } catch (e) {
+      this.handler.handleError(e, AEM.ERROR_DELETING_USER_MOOD_METRICS);
+    }
+  }
 }
