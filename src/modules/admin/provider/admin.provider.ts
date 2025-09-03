@@ -1046,6 +1046,15 @@ export class AdminProvider {
 
   async deleteUserMoodMetrics(userId: string) {
     try {
+      const user = await this.userService.findUser(userId);
+
+      if (user.status !== HttpStatus.OK) {
+        return this.handler.handleReturn({
+          status: user.status,
+          message: user.message,
+        });
+      }
+
       await this.db
         .delete(schema.moodMetrics)
         .where(eq(schema.moodMetrics.userId, userId));
@@ -1056,6 +1065,29 @@ export class AdminProvider {
       });
     } catch (e) {
       this.handler.handleError(e, AEM.ERROR_DELETING_USER_MOOD_METRICS);
+    }
+  }
+
+  async clearUserHealthJournal(userId: string) {
+    try {
+      const user = await this.userService.findUser(userId);
+
+      if (user.status !== HttpStatus.OK) {
+        return this.handler.handleReturn({
+          status: user.status,
+          message: user.message,
+        });
+      }
+      await this.db
+        .delete(schema.health_journal)
+        .where(eq(schema.health_journal.userId, userId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.HEALTH_JOURNAL_CLEARED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      this.handler.handleError(e, AEM.ERROR_CLEARING_USER_HEALTH_JOURNAL);
     }
   }
 }
