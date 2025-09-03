@@ -23,6 +23,8 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_REJECTING_USER = 'Error rejecting user',
   ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA = 'Error fetching approval management data',
   ERROR_REVOKING_SUSPENSION = 'Error revoking suspension',
+  ERROR_DELETING_USER_MOOD_METRICS = 'Error deleting user mood metrics',
+  ERROR_CLEARING_USER_HEALTH_JOURNAL = 'Error clearing user health journal',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
@@ -45,6 +47,7 @@ export enum ADMIN_SUCCESS_MESSAGES {
   USER_DELETED_SUCCESSFULLY = 'User deleted successfully',
   SUSPENSION_REVOKED_SUCCESSFULLY = 'Suspension revoked successfully',
   USER_NOT_SUSPENDED = 'User is not suspended',
+  HEALTH_JOURNAL_CLEARED_SUCCESSFULLY = 'Health journal cleared successfully',
 }
 
 export enum ACTIVITY_THRESHOLD {
