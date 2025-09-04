@@ -31,6 +31,7 @@ import { RewardModule } from './modules/reward/reward.module';
 import { DailyTasksModule } from './modules/daily-tasks/daily-tasks.module';
 import { MintQueueModule } from './shared/queues/mint/mint-queue.module';
 import { AccountQueueModule } from './shared/queues/account/account-queue.module';
+import { BrevoModule } from './shared/modules/brevo/brevo.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { AccountQueueModule } from './shared/queues/account/account-queue.module
     RewardModule,
     ApprovalModule,
     DailyTasksModule,
+    BrevoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
