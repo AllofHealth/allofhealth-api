@@ -9,5 +9,6 @@ import { BrevoModule } from '@/shared/modules/brevo/brevo.module';
   imports: [BrevoModule],
   providers: [NewsletterProvider, NewsletterService, ErrorHandler],
   controllers: [NewsletterController],
+  exports: [NewsletterService],
 })
 export class NewsletterModule {}
