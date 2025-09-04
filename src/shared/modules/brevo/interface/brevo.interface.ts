@@ -8,3 +8,9 @@ export interface IGetBrevoOptions {
 export interface ICreateContact {
   emailAddress: string;
 }
+
+export interface IFetchAllContacts {
+  limit?: number;
+  offset?: number;
+  sort?: 'ASC' | 'DESC';
+}
