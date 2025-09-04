@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { Brevo } from './brevo';
-import { BrevoService } from './brevo.service';
-import { BrevoController } from './brevo.controller';
+import { BrevoProvider } from './provider/brevo.provider';
+import { BrevoService } from './service/brevo.service';
+import { BrevoController } from './controller/brevo.controller';
 
 @Module({
-  providers: [Brevo, BrevoService],
-  controllers: [BrevoController]
+  providers: [BrevoProvider, BrevoService, BrevoController],
+  exports: [BrevoService],
 })
 export class BrevoModule {}
