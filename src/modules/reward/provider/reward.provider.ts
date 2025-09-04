@@ -234,9 +234,6 @@ export class RewardProvider {
           message: REM.TOKEN_BALANCE_NOT_FOUND,
         });
       }
-      const totalPointsEarned = this.fetchTotalEarnedRewardPoints({
-        tokenBalance,
-      });
 
       const [claimedBalance, pendingRewards] = await Promise.all([
         this.fetchClaimedRewards({
@@ -245,6 +242,13 @@ export class RewardProvider {
         }),
         await this.fetchPendingRewards(userId),
       ]);
+
+      const optimisticBalance =
+        Number(tokenBalance) + Number(pendingRewards.tokensEarnedToday);
+
+      const totalPointsEarned = this.fetchTotalEarnedRewardPoints({
+        tokenBalance: String(optimisticBalance),
+      });
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
