@@ -40,6 +40,7 @@ import {
 import { RecordsService } from '../service/records.service';
 import { AuthGuard } from '@/modules/auth/guards/auth.guard';
 import { OwnerGuard } from '@/modules/user/guard/user.guard';
+import { SuspensionGuard } from '@/modules/auth/guards/suspension.guard';
 
 @ApiTags('Medical Records Operations')
 @Controller('records')
@@ -347,7 +348,7 @@ export class RecordsController {
   }
 
   @Get('fetchRecordByChainId')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, SuspensionGuard)
   @ApiOperation({
     summary: 'Fetch a specific medical record by chain ID',
     description:
