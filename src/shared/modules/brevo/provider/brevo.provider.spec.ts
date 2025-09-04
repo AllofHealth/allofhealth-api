@@ -36,5 +36,11 @@ describe('BrevoProvider', () => {
       console.log(data);
       expect(data).toBeDefined();
     }, 50000);
+
+    it.only('Should fetch all contacts', async () => {
+      const data = await provider.getAllContacts({});
+      console.log(data);
+      expect(data).toBeDefined();
+    }, 50000);
   });
 });
