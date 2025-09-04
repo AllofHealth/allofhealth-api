@@ -914,7 +914,7 @@ export class AdminController {
     @Ip() ip: string,
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
-    @Query('sort') sort?: string,
+    @Query('sort') sort?: 'ASC' | 'DESC',
   ) {
     this.logger.log(`Admin fetching newsletter subscribers from ${ip}`);
     return await this.adminService.fetchNewsletterSubscribers({
