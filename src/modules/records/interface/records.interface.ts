@@ -13,7 +13,7 @@ export interface IEncryptRecord {
   clinicalNotes: string[];
   diagnosis: string[];
   labResults?: string[];
-  medicationsPrscribed?: string[];
+  medicationsPrescribed?: string[];
 }
 
 export interface IDecryptRecord extends IEncryptRecord {}
