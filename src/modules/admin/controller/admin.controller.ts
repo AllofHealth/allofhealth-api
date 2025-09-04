@@ -773,4 +773,87 @@ export class AdminController {
     this.logger.log(`Admin deleting user ${ctx.userId} from ${ip}`);
     return await this.adminService.deleteUser(ctx.userId);
   }
+
+  @Delete('deleteMoodMetrics')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Delete mood metrics for a user (requires admin)' })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'User ID whose mood metrics should be deleted',
+  })
+  @ApiOkResponse({
+    description: 'Mood metrics deleted successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Mood metrics deleted successfully',
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error deleting mood metrics',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error deleting mood metrics',
+    },
+  })
+  async deleteMoodMetrics(@Ip() ip: string, @Query('userId') userId: string) {
+    this.logger.log(
+      `Admin deleting mood metrics for user ${userId} from ${ip}`,
+    );
+    return await this.adminService.deleteMoodMetrics(userId);
+  }
+
+  @Delete('deleteUserHealthJournal')
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: 'Delete health journal for a user (requires admin)',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'User ID whose health journal should be deleted',
+  })
+  @ApiOkResponse({
+    description: 'Health journal deleted successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Health journal deleted successfully',
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error deleting health journal',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error deleting health journal',
+    },
+  })
+  async deleteUserHealthJournal(
+    @Ip() ip: string,
+    @Query('userId') userId: string,
+  ) {
+    this.logger.log(
+      `Admin deleting health journal for user ${userId} from ${ip}`,
+    );
+    return await this.adminService.deleteUserHealthJournal(userId);
+  }
 }

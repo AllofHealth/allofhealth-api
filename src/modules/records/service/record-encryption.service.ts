@@ -49,7 +49,7 @@ export class RecordsEncryptionService {
       clinicalNotes,
       diagnosis,
       labResults,
-      medicationsPrscribed,
+      medicationsPrescribed,
       title,
     } = ctx;
 
@@ -60,15 +60,16 @@ export class RecordsEncryptionService {
       const encryptedDiagnosis = await this.batchEncryptRecords(diagnosis);
 
       let encryptedLabResults: string[] = [];
-      let encryptedMedicationsPrscribed: string[] = [];
+      let encryptedMedicationsPrescribed: string[] = [];
 
       if (labResults) {
         encryptedLabResults = await this.batchEncryptRecords(labResults);
       }
 
-      if (medicationsPrscribed) {
-        encryptedMedicationsPrscribed =
-          await this.batchEncryptRecords(medicationsPrscribed);
+      if (medicationsPrescribed) {
+        encryptedMedicationsPrescribed = await this.batchEncryptRecords(
+          medicationsPrescribed,
+        );
       }
 
       return this.handler.handleReturn({
@@ -79,7 +80,7 @@ export class RecordsEncryptionService {
           clinicalNotes: encryptedClinicalNotes,
           diagnosis: encryptedDiagnosis,
           labResults: encryptedLabResults,
-          medicationsPrscribed: encryptedMedicationsPrscribed,
+          medicationsPrescribed: encryptedMedicationsPrescribed,
         },
       });
     } catch (e) {
@@ -94,7 +95,7 @@ export class RecordsEncryptionService {
       clinicalNotes,
       diagnosis,
       labResults,
-      medicationsPrscribed,
+      medicationsPrescribed,
       title,
     } = ctx;
 
@@ -105,15 +106,16 @@ export class RecordsEncryptionService {
       const decryptedTitle = this.decryptRecord(title);
 
       let decryptedLabResults: string[] = [];
-      let decryptedMedicationsPrscribed: string[] = [];
+      let decryptedMedicationsPrescribed: string[] = [];
 
       if (labResults) {
         decryptedLabResults = await this.batchDecryptRecords(labResults);
       }
 
-      if (medicationsPrscribed) {
-        decryptedMedicationsPrscribed =
-          await this.batchDecryptRecords(medicationsPrscribed);
+      if (medicationsPrescribed) {
+        decryptedMedicationsPrescribed = await this.batchDecryptRecords(
+          medicationsPrescribed,
+        );
       }
 
       return this.handler.handleReturn({
@@ -124,7 +126,7 @@ export class RecordsEncryptionService {
           clinicalNotes: decryptedClinicalNotes,
           diagnosis: decryptedDiagnosis,
           labResults: decryptedLabResults,
-          medicationsPrscribed: decryptedMedicationsPrscribed,
+          medicationsPrescribed: decryptedMedicationsPrescribed,
         },
       });
     } catch (e) {

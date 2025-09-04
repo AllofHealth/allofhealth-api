@@ -80,7 +80,7 @@ export class RecordsProvider {
       clinicalNotes,
       diagnosis,
       labResults,
-      medicationsPrscribed,
+      medicationsPrescribed,
       attachment1,
       attachment2,
       attachment3,
@@ -128,7 +128,7 @@ export class RecordsProvider {
           clinicalNotes,
           diagnosis,
           title,
-          medicationsPrscribed,
+          medicationsPrescribed,
           labResults,
         });
 
@@ -198,7 +198,7 @@ export class RecordsProvider {
         clinicalNotes: encryptedResult.clinicalNotes,
         title: encryptedResult.title,
         diagnosis: encryptedResult.diagnosis,
-        medicationsPrscribed: encryptedResult.medicationsPrscribed,
+        medicationsPrscribed: encryptedResult.medicationsPrescribed,
         labResults: encryptedResult.labResults,
         attachments: attachments,
       });
@@ -443,7 +443,9 @@ export class RecordsProvider {
                   clinicalNotes: encryptedRecord.clinicalNotes,
                   diagnosis: encryptedRecord.diagnosis,
                   labResults: encryptedRecord.labResults,
-                  medicationsPrscribed: encryptedRecord.medicationsPrscribed,
+                  medicationsPrescribed:
+                    encryptedRecord.medicationsPrescribed ||
+                    encryptedRecord.medicationsPrscribed,
                 });
 
               const recordData = {
@@ -451,9 +453,13 @@ export class RecordsProvider {
                 clinicalNotes: decryptedRecord.data?.clinicalNotes,
                 diagnosis: decryptedRecord.data?.diagnosis,
                 labResults: decryptedRecord.data?.labResults,
-                medicationsPrscribed:
-                  decryptedRecord.data?.medicationsPrscribed,
-                attachments: encryptedRecord.attachments,
+                medicationsPrescribed:
+                  decryptedRecord.data?.medicationsPrescribed,
+                attachments: Array.isArray(encryptedRecord.attachments)
+                  ? encryptedRecord.attachments.map(
+                      (cid) => `https://ipfs.io/ipfs/${cid}`,
+                    )
+                  : [],
               };
 
               this.logger.log(
