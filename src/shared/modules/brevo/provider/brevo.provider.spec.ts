@@ -26,4 +26,15 @@ describe('BrevoProvider', () => {
   it('should be defined', () => {
     expect(provider).toBeDefined();
   });
+
+  describe('Contacts', () => {
+    it('Should create a contact', async () => {
+      const data = await provider.createContact({
+        emailAddress: 'preciousegbu@gmail.com',
+      });
+
+      console.log(data);
+      expect(data).toBeDefined();
+    }, 50000);
+  });
 });
