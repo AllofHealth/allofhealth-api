@@ -60,6 +60,8 @@ import {
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { ILoginResponse } from '@/modules/auth/interface/auth.interface';
+import { NewsletterService } from '@/modules/newsletter/service/newsletter.service';
+import { IFetchAllContacts } from '@/shared/modules/brevo/interface/brevo.interface';
 
 @Injectable()
 export class AdminProvider {
@@ -75,6 +77,7 @@ export class AdminProvider {
     private readonly userService: UserService,
     private readonly assetService: AssetService,
     private readonly approvalService: ApprovalService,
+    private readonly newsletterService: NewsletterService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -1089,5 +1092,9 @@ export class AdminProvider {
     } catch (e) {
       this.handler.handleError(e, AEM.ERROR_CLEARING_USER_HEALTH_JOURNAL);
     }
+  }
+
+  async fetchAllSubscribers(ctx: IFetchAllContacts) {
+    return await this.newsletterService.fetchAllSubscribers(ctx);
   }
 }
