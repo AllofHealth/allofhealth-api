@@ -57,6 +57,30 @@ export class BrevoProvider {
     );
   }
 
+  private async getContactInfo(emailAddress: string) {
+    const url = `${CONTACT_PATH.CONTACTS}/${emailAddress}`;
+    const options = this.getBrevoOptions({
+      method: 'GET',
+    });
+    try {
+      const response = await fetch(url, options as Object);
+      const data = await response.json();
+      if (response.ok) {
+        if (data && data.email === emailAddress) {
+          return true;
+        }
+      }
+
+      return false;
+    } catch (e) {
+      throw new HttpException(
+        new BrevoError(BEM.ERROR_CREATING_CONTACT),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        { cause: e },
+      );
+    }
+  }
+
   async createContact(ctx: ICreateContact) {
     try {
       const options = this.getBrevoOptions({
@@ -65,6 +89,14 @@ export class BrevoProvider {
           email: ctx.emailAddress,
         },
       });
+
+      const hasSubscribed = await this.getContactInfo(ctx.emailAddress);
+      if (hasSubscribed) {
+        return {
+          status: HttpStatus.CREATED,
+          message: 'Email already exist',
+        };
+      }
 
       const response = await fetch(CONTACT_PATH.CONTACTS, options as Object);
       const data = await response.json();
