@@ -17,6 +17,7 @@ import {
   IFetchPatients,
   IFetchUsers,
 } from '@/modules/user/interface/user.interface';
+import { IFetchAllContacts } from '@/shared/modules/brevo/interface/brevo.interface';
 
 @Injectable()
 export class AdminService {
@@ -99,5 +100,9 @@ export class AdminService {
 
   async deleteUserHealthJournal(userId: string) {
     return await this.adminProvider.clearUserHealthJournal(userId);
+  }
+
+  async fetchNewsletterSubscribers(ctx: IFetchAllContacts) {
+    return await this.adminProvider.fetchAllSubscribers(ctx);
   }
 }
