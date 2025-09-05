@@ -23,6 +23,7 @@ import {
   EHandleRegisterPatient,
   EOnUserLogin,
   ERegisterEntity,
+  ESendEmail,
   ESendOtp,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
@@ -643,6 +644,20 @@ export class UserProvider {
               ctx.governmentIdfilePath,
             ),
           );
+
+          this.eventEmitter.emit(
+            SharedEvents.SEND_ONBOARDING,
+            new ESendEmail(
+              ctx.emailAddress,
+              undefined,
+              undefined,
+              ctx.fullName,
+              undefined,
+              undefined,
+              'WELCOME',
+            ),
+          );
+
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -683,6 +698,19 @@ export class UserProvider {
               insertedUser.id,
               ctx.governmentIdfilePath,
               ctx.scannedLicensefilePath!,
+            ),
+          );
+
+          this.eventEmitter.emit(
+            SharedEvents.SEND_ONBOARDING,
+            new ESendEmail(
+              ctx.emailAddress,
+              undefined,
+              undefined,
+              ctx.fullName,
+              undefined,
+              undefined,
+              'WELCOME',
             ),
           );
 
