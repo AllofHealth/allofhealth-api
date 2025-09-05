@@ -94,7 +94,7 @@ export class ResendProvider {
           const otpConfig = this.handleOtpTemplate({
             to: to,
             name: name!,
-            code: body,
+            code: body!,
           });
           response = await resend.emails.send({
             from: otpConfig.from,
