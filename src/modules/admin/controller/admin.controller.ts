@@ -856,4 +856,71 @@ export class AdminController {
     );
     return await this.adminService.deleteUserHealthJournal(userId);
   }
+
+  @Get('fetchNewsletterSubscribers')
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: 'Fetch all newsletter subscribers (requires admin)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Maximum number of subscribers to fetch',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    description: 'Number of subscribers to skip (for pagination)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    description: 'Sort order for subscribers',
+    type: String,
+    enum: ['ASC', 'DESC'],
+  })
+  @ApiOkResponse({
+    description: 'Newsletter subscribers fetched successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: 200,
+      message: 'Newsletter subscribers fetched successfully',
+      data: [
+        {
+          id: 2,
+          emailBlacklisted: false,
+          smsBlacklisted: false,
+          createdAt: '2025-09-04T18:09:56.375+02:00',
+          modifiedAt: '2025-09-04T18:09:56.375+02:00',
+          email: 'johndoe@gmail.com',
+          listIds: [],
+          listUnsubscribed: null,
+          attributes: {},
+        },
+      ],
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error fetching newsletter subscribers',
+    type: ErrorResponseDto,
+    example: {
+      status: 500,
+      message: 'Error fetching newsletter subscribers',
+    },
+  })
+  async fetchNewsletterSubscribers(
+    @Ip() ip: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+    @Query('sort') sort?: 'ASC' | 'DESC',
+  ) {
+    this.logger.log(`Admin fetching newsletter subscribers from ${ip}`);
+    return await this.adminService.fetchNewsletterSubscribers({
+      limit,
+      offset,
+      sort,
+    });
+  }
 }

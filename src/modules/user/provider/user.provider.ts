@@ -23,6 +23,7 @@ import {
   EHandleRegisterPatient,
   EOnUserLogin,
   ERegisterEntity,
+  ESendEmail,
   ESendOtp,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
@@ -559,11 +560,12 @@ export class UserProvider {
         emailAddress: ctx.email,
         code: otp,
       });
-      const body = `Here's your OTP: ${otp}`;
+      const body = otp;
       await this.resendService.sendEmail({
         to: ctx.email,
+        name: ctx.name,
         body,
-        subject: ctx.subject || 'OTP Verification',
+        context: 'OTP',
       });
 
       return this.handler.handleReturn({
@@ -643,6 +645,20 @@ export class UserProvider {
               ctx.governmentIdfilePath,
             ),
           );
+
+          this.eventEmitter.emit(
+            SharedEvents.SEND_ONBOARDING,
+            new ESendEmail(
+              ctx.emailAddress,
+              undefined,
+              undefined,
+              ctx.fullName,
+              undefined,
+              undefined,
+              'WELCOME',
+            ),
+          );
+
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -654,7 +670,7 @@ export class UserProvider {
 
           this.eventEmitter.emit(
             SharedEvents.SEND_OTP,
-            new ESendOtp(ctx.emailAddress),
+            new ESendOtp(ctx.emailAddress, undefined, ctx.fullName),
           );
 
           return this.handler.handleReturn({
@@ -686,6 +702,19 @@ export class UserProvider {
             ),
           );
 
+          this.eventEmitter.emit(
+            SharedEvents.SEND_ONBOARDING,
+            new ESendEmail(
+              ctx.emailAddress,
+              undefined,
+              undefined,
+              ctx.fullName,
+              undefined,
+              undefined,
+              'WELCOME',
+            ),
+          );
+
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -697,7 +726,7 @@ export class UserProvider {
 
           this.eventEmitter.emit(
             SharedEvents.SEND_OTP,
-            new ESendOtp(ctx.emailAddress),
+            new ESendOtp(ctx.emailAddress, undefined, ctx.fullName),
           );
 
           return this.handler.handleReturn({

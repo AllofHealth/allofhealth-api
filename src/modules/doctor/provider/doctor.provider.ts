@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ne, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
@@ -14,7 +14,7 @@ import {
   IFetchDoctors,
   IUpdateRecordsReviewed,
 } from '../interface/doctor.interface';
-import { USER_ROLE } from '@/modules/user/data/user.data';
+import { USER_ROLE, USER_STATUS } from '@/modules/user/data/user.data';
 import { formatDateToReadable } from '@/shared/utils/date.utils';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { DoctorError } from '../errors/doctor.errors';
@@ -141,13 +141,17 @@ export class DoctorProvider {
     const sortFn = sort === 'desc' ? desc : asc;
     const sortColumn = schema.user.createdAt;
     try {
-      let whereConditions: any = eq(schema.user.role, USER_ROLE.DOCTOR);
+      const constantQuery = [
+        eq(schema.user.role, USER_ROLE.DOCTOR),
+        ne(schema.user.status, USER_STATUS.SUSPENDED),
+      ];
+      let whereConditions: any;
 
       if (query && query.trim()) {
         const searchQuery = `%${query.trim()}%`;
         whereConditions = and(
-          whereConditions,
-          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery})`,
+          ...constantQuery,
+          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery}`,
         );
       }
 
