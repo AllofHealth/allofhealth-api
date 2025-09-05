@@ -670,7 +670,7 @@ export class UserProvider {
 
           this.eventEmitter.emit(
             SharedEvents.SEND_OTP,
-            new ESendOtp(ctx.emailAddress),
+            new ESendOtp(ctx.emailAddress, undefined, ctx.fullName),
           );
 
           return this.handler.handleReturn({
@@ -726,7 +726,7 @@ export class UserProvider {
 
           this.eventEmitter.emit(
             SharedEvents.SEND_OTP,
-            new ESendOtp(ctx.emailAddress),
+            new ESendOtp(ctx.emailAddress, undefined, ctx.fullName),
           );
 
           return this.handler.handleReturn({
