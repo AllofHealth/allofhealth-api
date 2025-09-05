@@ -62,7 +62,7 @@ export class OtpProvider {
       algorithm: 'SHA1',
       secret: this.generateSecret(),
       digits: 6,
-      period: 120,
+      period: 900,
     });
   }
 
