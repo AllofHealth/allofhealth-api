@@ -52,3 +52,6 @@ export const RECORD_ENCRYPTION_KEY = process.env.RECORD_ENCRYPTION_KEY;
 
 // EMAIL RESEND
 export const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+// Brevo
+export const BREVO_API_KEY = process.env.BREVO_API_KEY;

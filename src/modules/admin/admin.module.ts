@@ -10,6 +10,7 @@ import { DoctorModule } from '../doctor/doctor.module';
 import { UserModule } from '../user/user.module';
 import { AssetModule } from '../asset/asset.module';
 import { ApprovalModule } from '../approval/approval.module';
+import { NewsletterModule } from '../newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ApprovalModule } from '../approval/approval.module';
     forwardRef(() => DoctorModule),
     forwardRef(() => AssetModule),
     forwardRef(() => ApprovalModule),
+    forwardRef(() => NewsletterModule),
   ],
   providers: [AdminProvider, AdminService, ErrorHandler, AuthUtils],
   controllers: [AdminController],
