@@ -43,31 +43,41 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           `}
         </style>
       </Head>
-      <Preview>Welcome to Allof Health – Your Records, Your Control</Preview>
+      <Preview>Welcome to AllofHealth – Your Records, Your Control</Preview>
       <Body style={main}>
         <Container className="container" style={container}>
           {/* Logo */}
-          <Section style={{ marginBottom: '24px' }}>
+          <Section
+            style={{
+              marginBottom: '24px',
+              border: '1px solid #ccc',
+              borderRadius: '8px',
+              padding: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
             <Img
-              src="https://your-logo-url.com/logo.png"
+              src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg"
               width="120"
-              alt="Allof Health"
+              alt="AllofHealth"
             />
           </Section>
 
           {/* Heading */}
           <Heading as="h2" style={heading}>
-            Welcome to Allof Health – Your Records, Your Control
+            Welcome to AllofHealth – Your Records, Your Control
           </Heading>
 
           {/* Greeting */}
           <Text style={paragraph}>Hi {name},</Text>
 
           {/* Intro */}
-          <Text style={paragraph}>Welcome to Allof Health</Text>
+          <Text style={paragraph}>Welcome to AllofHealth</Text>
 
           <Text style={paragraph}>
-            We’re excited to have you join Allof Health, the secure,
+            We’re excited to have you join AllofHealth, the secure,
             blockchain-powered platform that puts your medical records back in
             your hands.
           </Text>
@@ -100,7 +110,7 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           {/* Closing */}
           <Text style={paragraph}>
             Thanks, <br />
-            <strong>Allof Health Team</strong>
+            <strong>AllofHealth Team</strong>
           </Text>
 
           <Hr style={hr} />
