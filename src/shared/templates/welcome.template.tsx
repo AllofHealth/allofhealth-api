@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   Html,
   Head,
@@ -50,18 +49,16 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           <Section
             style={{
               marginBottom: '24px',
-              border: '1px solid #ccc',
-              borderRadius: '8px',
-              padding: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
             }}
           >
             <Img
               src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg"
               width="120"
+              height="120"
               alt="AllofHealth"
+              style={{
+                objectFit: 'cover',
+              }}
             />
           </Section>
 
