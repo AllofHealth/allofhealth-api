@@ -3,8 +3,8 @@ export type TEmailContext = 'WELCOME' | 'OTP' | 'APPROVAL';
 export interface ISendEmail {
   name?: string;
   to: string;
-  subject: string;
-  body: string;
+  subject?: string;
+  body?: string;
   from?: string;
   useHtml?: boolean;
   context?: TEmailContext;
