@@ -145,6 +145,7 @@ export class ESendOtp {
   constructor(
     readonly email: string,
     readonly subject?: string,
+    readonly name?: string,
   ) {}
 }
 
