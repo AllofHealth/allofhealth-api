@@ -57,6 +57,7 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
               height="120"
               alt="AllofHealth"
               style={{
+                borderRadius: '15px',
                 objectFit: 'cover',
               }}
             />

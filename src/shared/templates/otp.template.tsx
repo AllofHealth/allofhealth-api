@@ -70,6 +70,7 @@ export const VerificationEmail = ({
               height="120"
               alt="AllofHealth"
               style={{
+                borderRadius: '15px',
                 objectFit: 'cover',
               }}
             />
