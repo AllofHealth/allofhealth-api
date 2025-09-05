@@ -3,6 +3,7 @@ import type { TRole } from '../interface/shared.interface';
 import { TActionTypes } from '@/modules/daily-tasks/interface/daily-tasks.interface';
 import { IRewardUsers } from '@/modules/reward/interface/reward.interface';
 import { TOperation } from '@/modules/doctor/interface/doctor.interface';
+import { TEmailContext } from '../modules/resend/interface/resend.interface';
 
 export class CreateDoctor {
   constructor(
@@ -173,5 +174,17 @@ export class EUpdateReviewCount {
   constructor(
     readonly userId: string,
     readonly op: TOperation,
+  ) {}
+}
+
+export class ESendEmail {
+  constructor(
+    readonly to: string,
+    readonly body?: string,
+    readonly subject?: string,
+    readonly name?: string,
+    readonly from?: string,
+    readonly useHtml?: boolean,
+    readonly context?: TEmailContext,
   ) {}
 }
