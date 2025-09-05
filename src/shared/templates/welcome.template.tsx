@@ -15,13 +15,10 @@ import {
 
 interface OnboardingEmailProps {
   name: string;
-  dashboardUrl: string;
+  loginUrl: string;
 }
 
-export const OnboardingEmail = ({
-  name,
-  dashboardUrl,
-}: OnboardingEmailProps) => {
+export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
   return (
     <Html>
       <Head>
@@ -95,8 +92,8 @@ export const OnboardingEmail = ({
 
           {/* Button */}
           <Section style={{ textAlign: 'center', margin: '24px 0' }}>
-            <Button className="button" style={button} href={dashboardUrl}>
-              Go To My Dashboard
+            <Button className="button" style={button} href={loginUrl}>
+              Next Step
             </Button>
           </Section>
 
