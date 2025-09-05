@@ -94,7 +94,8 @@ export const VerificationEmail = ({
           </Row>
 
           <Text style={smallText}>
-            This code will expire in 1 hour. Please do not share it with anyone.
+            This code will expire in 15 minutes. Please do not share it with
+            anyone.
             <br />
             <br />
             If you didn’t request this code, you can safely ignore this email.
