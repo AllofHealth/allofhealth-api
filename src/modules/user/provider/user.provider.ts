@@ -560,11 +560,12 @@ export class UserProvider {
         emailAddress: ctx.email,
         code: otp,
       });
-      const body = `Here's your OTP: ${otp}`;
+      const body = otp;
       await this.resendService.sendEmail({
         to: ctx.email,
+        name: ctx.name,
         body,
-        subject: ctx.subject || 'OTP Verification',
+        context: 'OTP',
       });
 
       return this.handler.handleReturn({
