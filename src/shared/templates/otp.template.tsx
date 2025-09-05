@@ -17,8 +17,8 @@ import {
 
 interface VerificationEmailProps {
   name: string;
-  code: string; // e.g. "4486"
-  verifyUrl: string;
+  code: string;
+  verifyUrl?: string;
 }
 
 export const VerificationEmail = ({
@@ -95,11 +95,11 @@ export const VerificationEmail = ({
           </Text>
 
           {/* Button */}
-          <Section style={{ textAlign: 'center', margin: '24px 0' }}>
+          {/*<Section style={{ textAlign: 'center', margin: '24px 0' }}>
             <Button className="button" style={button} href={verifyUrl}>
               Verify Email
             </Button>
-          </Section>
+          </Section>*/}
 
           <Text style={paragraph}>
             Thanks, <br />
