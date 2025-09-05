@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   Html,
   Head,
@@ -9,7 +8,6 @@ import {
   Section,
   Text,
   Heading,
-  Button,
   Row,
   Column,
   Hr,
@@ -57,15 +55,23 @@ export const VerificationEmail = ({
           `}
         </style>
       </Head>
-      <Preview>Your Allof Health verification code</Preview>
+      <Preview>Your AllofHealth verification code</Preview>
       <Body style={main}>
         <Container className="container" style={container}>
           {/* Logo */}
-          <Section style={{ marginBottom: '24px' }}>
+          <Section
+            style={{
+              marginBottom: '24px',
+            }}
+          >
             <Img
-              src="https://your-logo-url.com/logo.png"
+              src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg"
               width="120"
-              alt="Allof Health"
+              height="120"
+              alt="AllofHealth"
+              style={{
+                objectFit: 'cover',
+              }}
             />
           </Section>
 
@@ -103,7 +109,7 @@ export const VerificationEmail = ({
 
           <Text style={paragraph}>
             Thanks, <br />
-            <strong>Allof Health Team</strong>
+            <strong>AllofHealth Team</strong>
           </Text>
 
           <Hr style={hr} />
