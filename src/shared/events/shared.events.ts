@@ -21,4 +21,5 @@ export enum SharedEvents {
   DELETE_IPFS_RECORD = 'delete.ipfs.record',
   RESET_APPROVAL_PERMISSIONS = 'reset.approval.permissions',
   UPDATE_REVIEW_COUNT = 'update.review.count',
+  SEND_ONBOARDING = 'send.onboarding',
 }
