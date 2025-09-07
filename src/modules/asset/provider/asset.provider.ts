@@ -17,16 +17,16 @@ import {
   IUploadProfilePicture,
   TUploadContext,
 } from '../interface/asset.interface';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class AssetProvider {
-  private handler: ErrorHandler;
   constructor(
     private readonly imageKitConfig: ImageKitConfig,
     private readonly eventEmitter: EventEmitter2,
-  ) {
-    this.handler = new ErrorHandler();
-  }
+    private readonly myLoggerService: MyLoggerService,
+    private readonly handler: ErrorHandler,
+  ) {}
 
   private initImageKit() {
     //eslint-disable-next-line

@@ -49,7 +49,6 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           <Section
             style={{
               marginBottom: '24px',
-              backgroundColor: '#000000',
               width: '100%',
               padding: '24px 0',
               textAlign: 'center',

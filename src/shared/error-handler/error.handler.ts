@@ -4,10 +4,10 @@ import type { IHandleReturn } from '../interface/shared.interface';
 
 @Injectable()
 export class ErrorHandler {
-  private readonly logger = new MyLoggerService(ErrorHandler.name);
+  constructor(private readonly myLoggerService: MyLoggerService) {}
+
   handleError(error: any, context: string) {
-    console.error(error, context);
-    this.logger.error(`${context}: ${error.message}`);
+    this.myLoggerService.error(`${context}: ${error.message}`);
     if (error.status) {
       return {
         //eslint-disable-next-line
@@ -26,6 +26,7 @@ export class ErrorHandler {
   }
 
   handleReturn<T, D = undefined, M = undefined>(args: IHandleReturn<T, D, M>) {
+    this.myLoggerService.log(`Returning data: ${JSON.stringify(args)}`);
     return {
       status: args.status,
       message: args.message,
