@@ -18,14 +18,14 @@ export class MyLoggerService extends ConsoleLogger {
       const pathExist = fs.existsSync(logsDir);
 
       if (!pathExist) {
-        console.log('creating directory');
         await fsPromises.mkdir(logsDir, { recursive: true });
+        // Use super.log to avoid recursion since this is called from log methods
+        super.log(`Created logs directory: ${logsDir}`, 'MyLoggerService');
       }
 
       // Writing to the log file
       const logFilePath = path.join(logsDir, 'myLogFile.log');
       await fsPromises.appendFile(logFilePath, formattedEntry);
-      console.log(`file written to ${logFilePath}`);
     } catch (e) {
       console.error('Error writing to the log file:', e);
     }
