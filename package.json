@@ -22,7 +22,7 @@
     "migrate": "node migrate.js",
     "migrate:drizzle": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org allof-health --project node-nestjs ./out && sentry-cli sourcemaps upload --org allof-health --project node-nestjs ./out"
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org allof-health --project node-nestjs ./dist && sentry-cli sourcemaps upload --org allof-health --project node-nestjs ./dist"
   },
   "dependencies": {
     "@biconomy/account": "^4.5.7",
