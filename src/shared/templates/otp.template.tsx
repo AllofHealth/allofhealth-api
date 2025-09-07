@@ -69,9 +69,9 @@ export const VerificationEmail = ({
             }}
           >
             <Img
-              src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg"
-              width="150"
-              height="150"
+              src="https://res.cloudinary.com/dojfgco87/image/upload/v1757275101/Banner_uot1xr.png"
+              width="auto"
+              height="auto"
               alt="Allof Health"
               style={{
                 objectFit: 'cover',

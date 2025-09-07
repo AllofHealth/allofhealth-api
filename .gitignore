@@ -65,3 +65,6 @@ cache/
 
 #kubo
 #/scripts
+
+# Sentry Config File
+.sentryclirc
