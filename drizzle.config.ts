@@ -1,3 +1,4 @@
+import config from '@/shared/config/config';
 import * as dotenv from 'dotenv';
 import { defineConfig } from 'drizzle-kit';
 
@@ -8,7 +9,10 @@ export default defineConfig({
   schema: './src/schemas/schema.ts',
   out: './drizzle/migrations',
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    url:
+      process.env.NODE_ENV === 'PRODUCTION'
+        ? process.env.DATABASE_URL!
+        : process.env.DATABASE_URL_STAGING!,
   },
   verbose: true,
   strict: true,
