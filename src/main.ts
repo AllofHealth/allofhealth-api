@@ -1,13 +1,19 @@
-import './instrument.ts';
+import './instrument';
 
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { PORT } from './shared/data/constants';
+import { MyLoggerService } from './modules/my-logger/service/my-logger.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+
+  // Use custom logger globally
+  app.useLogger(app.get(MyLoggerService));
 
   const config = new DocumentBuilder()
     .setTitle('AllofHealth API')

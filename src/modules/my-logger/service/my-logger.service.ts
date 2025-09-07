@@ -1,4 +1,5 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
@@ -33,18 +34,58 @@ export class MyLoggerService extends ConsoleLogger {
   log(message: any, context?: string) {
     const entry = `${context}\t${message}`;
     void this.logToFile(entry);
+
+    // Send to Sentry
+    Sentry.addBreadcrumb({
+      message: typeof message === 'string' ? message : JSON.stringify(message),
+      level: 'info',
+      category: context || 'log',
+    });
+
     super.log(message, context);
   }
 
   error(message: any, stackOrContext?: string) {
     const entry = `${stackOrContext}\t${message}`;
     void this.logToFile(entry);
+
+    // Send to Sentry as an error
+    if (message instanceof Error) {
+      Sentry.captureException(message);
+    } else {
+      Sentry.captureMessage(
+        typeof message === 'string' ? message : JSON.stringify(message),
+        'error',
+      );
+    }
+
     super.error(message, stackOrContext);
   }
 
   info(message: any, context?: string) {
     const entry = `${context}\t${message}`;
     void this.logToFile(entry);
+
+    // Send to Sentry
+    Sentry.addBreadcrumb({
+      message: typeof message === 'string' ? message : JSON.stringify(message),
+      level: 'info',
+      category: context || 'info',
+    });
+
     super.verbose(message, context);
+  }
+
+  warn(message: any, context?: string) {
+    const entry = `${context}\t${message}`;
+    void this.logToFile(entry);
+
+    // Send to Sentry
+    Sentry.captureMessage(
+      typeof message === 'string' ? message : JSON.stringify(message),
+      'warning',
+    );
+
+    super.warn(message, context);
   }
 }
