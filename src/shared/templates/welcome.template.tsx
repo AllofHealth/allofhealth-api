@@ -42,7 +42,7 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           `}
         </style>
       </Head>
-      <Preview>Welcome to AllofHealth – Your Records, Your Control</Preview>
+      <Preview>Welcome to Allof Health – Your Records, Your Control</Preview>
       <Body style={main}>
         <Container className="container" style={container}>
           {/* Logo */}
@@ -71,17 +71,17 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
 
           {/* Heading */}
           <Heading as="h2" style={heading}>
-            Welcome to AllofHealth – Your Records, Your Control
+            Welcome to Allof Health – Your Records, Your Control
           </Heading>
 
           {/* Greeting */}
           <Text style={paragraph}>Hi {name},</Text>
 
           {/* Intro */}
-          <Text style={paragraph}>Welcome to AllofHealth</Text>
+          <Text style={paragraph}>Welcome to Allof Health</Text>
 
           <Text style={paragraph}>
-            We’re excited to have you join AllofHealth, the secure,
+            We’re excited to have you join Allof Health, the secure,
             blockchain-powered platform that puts your medical records back in
             your hands.
           </Text>
@@ -114,7 +114,7 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           {/* Closing */}
           <Text style={paragraph}>
             Thanks, <br />
-            <strong>AllofHealth Team</strong>
+            <strong>Allof Health Team</strong>
           </Text>
 
           <Hr style={hr} />
