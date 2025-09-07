@@ -70,11 +70,10 @@ export const VerificationEmail = ({
           >
             <Img
               src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg"
-              width="120"
-              height="120"
+              width="150"
+              height="150"
               alt="Allof Health"
               style={{
-                borderRadius: '15px',
                 objectFit: 'cover',
                 display: 'block',
                 margin: '0 auto',
