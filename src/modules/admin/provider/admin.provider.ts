@@ -362,8 +362,8 @@ export class AdminProvider {
           dateJoined: schema.user.createdAt,
           dob: schema.user.dateOfBirth,
           role: schema.user.role,
-          governmentIdUrl: schema.identity.governmentId,
-          medicalLicenseUrl: schema.identity.scannedLicense,
+          governmentIdUrl: schema.identity.governmentFileId,
+          medicalLicenseUrl: schema.identity.scannedLicenseFileId,
           yearsOfExperience: schema.doctors.yearsOfExperience,
           hospitalAffiliation: schema.doctors.hospitalAssociation,
           bio: schema.doctors.bio,
@@ -390,49 +390,55 @@ export class AdminProvider {
       const pendingApprovals =
         (await this.approvalService.fetchPendingApprovalCount(userId)) || 0;
 
-      const parsedDoctor = doctor.map((d) => {
-        let servicesOffered: string[] = [];
-        if (!Array.isArray(d.servicesOffered)) {
-          servicesOffered = [d.servicesOffered as string];
-        } else {
-          servicesOffered = d.servicesOffered as string[];
-        }
-        return {
-          ...d,
-          dateJoined: formatDateToReadable(d.dateJoined),
-          lastActive: d.lastActive
-            ? formatDateToReadable(d.lastActive)
-            : 'never',
-          dob: formatDateToReadable(d.dob),
-          bio: d.bio || '',
-          yearsOfExperience: d.yearsOfExperience || 0,
-          hospitalAffiliation: d.hospitalAffiliation || 'none',
-          servicesOffered,
-          languagesSpoken: Array.isArray(d.languagesSpoken)
-            ? d.languagesSpoken
-            : [],
-          certifications: Array.isArray(d.certifications)
-            ? d.certifications
-            : [],
-          medicalLicenseNumber: d.medicalLicenseNumber || 'none',
-          recordsReviewed: d.recordsReviewed || 0,
-          identityAssets: {
-            governmentIdUrl: this.assetService.generateUrl(
+      const parsedDoctor = await Promise.all(
+        doctor.map(async (d) => {
+          let servicesOffered: string[] = [];
+          if (!Array.isArray(d.servicesOffered)) {
+            servicesOffered = [d.servicesOffered as string];
+          } else {
+            servicesOffered = d.servicesOffered as string[];
+          }
+
+          const [governmentIdUrl, medicalLicenseUrl] = await Promise.all([
+            this.assetService.generateUrlFromFileId(
               d.governmentIdUrl as string,
             ),
-            medicalLicenseUrl: this.assetService.generateUrl(
+            this.assetService.generateUrlFromFileId(
               d.medicalLicenseUrl as string,
             ),
-          },
-          doctorActivity: {
-            patientsAttended: 0,
-            recordsReviewed: d.recordsReviewed || 0,
-            pendingApprovals,
-          },
-        } as IInspectDoctorResponse;
-      });
+          ]);
 
-      this.logger.debug(`Parsed doctor data ${JSON.stringify(parsedDoctor)}`);
+          return {
+            ...d,
+            dateJoined: formatDateToReadable(d.dateJoined),
+            lastActive: d.lastActive
+              ? formatDateToReadable(d.lastActive)
+              : 'never',
+            dob: formatDateToReadable(d.dob),
+            bio: d.bio || '',
+            yearsOfExperience: d.yearsOfExperience || 0,
+            hospitalAffiliation: d.hospitalAffiliation || 'none',
+            servicesOffered,
+            languagesSpoken: Array.isArray(d.languagesSpoken)
+              ? d.languagesSpoken
+              : [],
+            certifications: Array.isArray(d.certifications)
+              ? d.certifications
+              : [],
+            medicalLicenseNumber: d.medicalLicenseNumber || 'none',
+            recordsReviewed: d.recordsReviewed || 0,
+            identityAssets: {
+              governmentIdUrl,
+              medicalLicenseUrl,
+            },
+            doctorActivity: {
+              patientsAttended: 0,
+              recordsReviewed: d.recordsReviewed || 0,
+              pendingApprovals,
+            },
+          } as IInspectDoctorResponse;
+        }),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
