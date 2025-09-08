@@ -42,40 +42,44 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           `}
         </style>
       </Head>
-      <Preview>Welcome to AllofHealth – Your Records, Your Control</Preview>
+      <Preview>Welcome to Allof Health – Your Records, Your Control</Preview>
       <Body style={main}>
         <Container className="container" style={container}>
           {/* Logo */}
           <Section
             style={{
               marginBottom: '24px',
+              width: '100%',
+              padding: '24px 0',
+              textAlign: 'center',
             }}
           >
             <Img
-              src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg"
-              width="120"
-              height="120"
+              src="https://res.cloudinary.com/dojfgco87/image/upload/v1757275101/Banner_uot1xr.png"
+              width="auto"
+              height="auto"
               alt="AllofHealth"
               style={{
-                borderRadius: '15px',
                 objectFit: 'cover',
+                display: 'block',
+                margin: '0 auto',
               }}
             />
           </Section>
 
           {/* Heading */}
           <Heading as="h2" style={heading}>
-            Welcome to AllofHealth – Your Records, Your Control
+            Welcome to Allof Health – Your Records, Your Control
           </Heading>
 
           {/* Greeting */}
           <Text style={paragraph}>Hi {name},</Text>
 
           {/* Intro */}
-          <Text style={paragraph}>Welcome to AllofHealth</Text>
+          <Text style={paragraph}>Welcome to Allof Health</Text>
 
           <Text style={paragraph}>
-            We’re excited to have you join AllofHealth, the secure,
+            We’re excited to have you join Allof Health, the secure,
             blockchain-powered platform that puts your medical records back in
             your hands.
           </Text>
@@ -108,7 +112,7 @@ export const OnboardingEmail = ({ name, loginUrl }: OnboardingEmailProps) => {
           {/* Closing */}
           <Text style={paragraph}>
             Thanks, <br />
-            <strong>AllofHealth Team</strong>
+            <strong>Allof Health Team</strong>
           </Text>
 
           <Hr style={hr} />

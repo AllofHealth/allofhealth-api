@@ -132,7 +132,10 @@ async function runMigrations() {
     `${colors.cyan}Connection timeout set to ${DB_CONNECTION_TIMEOUT}ms${colors.reset}`,
   );
 
-  const uri = process.env.DATABASE_URL;
+  const uri =
+    process.env.NODE_ENV === 'PRODUCTION'
+      ? process.env.DATABASE_URL
+      : process.env.DATABASE_URL_STAGING;
   if (!uri) {
     console.error(
       `${colors.red}ERROR: DATABASE_URL is not defined in .env file${colors.reset}`,

@@ -55,23 +55,27 @@ export const VerificationEmail = ({
           `}
         </style>
       </Head>
-      <Preview>Your AllofHealth verification code</Preview>
+      <Preview>Your Allof Health verification code</Preview>
       <Body style={main}>
         <Container className="container" style={container}>
           {/* Logo */}
           <Section
             style={{
               marginBottom: '24px',
+              width: '100%',
+              padding: '24px 0',
+              textAlign: 'center',
             }}
           >
             <Img
-              src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg"
-              width="120"
-              height="120"
-              alt="AllofHealth"
+              src="https://res.cloudinary.com/dojfgco87/image/upload/v1757275101/Banner_uot1xr.png"
+              width="auto"
+              height="auto"
+              alt="Allof Health"
               style={{
-                borderRadius: '15px',
                 objectFit: 'cover',
+                display: 'block',
+                margin: '0 auto',
               }}
             />
           </Section>
@@ -111,7 +115,7 @@ export const VerificationEmail = ({
 
           <Text style={paragraph}>
             Thanks, <br />
-            <strong>AllofHealth Team</strong>
+            <strong>Allof Health Team</strong>
           </Text>
 
           <Hr style={hr} />

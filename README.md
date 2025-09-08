@@ -1,7 +1,7 @@
 # AllOf Health - Blockchain-Powered Digital Health Platform
 
 <p align="center">
-  <img src="https://via.placeholder.com/300x120/4A90E2/FFFFFF?text=AllOf+Health" alt="AllOf Health Logo" />
+  <img src="https://res.cloudinary.com/dojfgco87/image/upload/w_1000,ar_16:9,c_fill,g_auto,e_sharpen/v1757085409/allofhealth_logo_so87va.jpg" alt="AllOfHealth Logo" />
 </p>
 
 <p align="center">
@@ -55,10 +55,19 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 
 #### Admin Management System
 - ✅ Super admin creation and management
-- ✅ System admin role management
-- ✅ Permission management system
+- ✅ System admin role management with hierarchical permissions
+- ✅ Comprehensive permission management system
 - ✅ Practitioner verification workflows
 - ✅ Admin authentication and access control
+- ✅ User suspension and revocation system
+- ✅ User rejection and account management
+- ✅ Patient management dashboard with comprehensive metrics
+- ✅ Admin-only user directory with search and pagination
+- ✅ Individual user data access and profile management
+- ✅ Non-verified entities management for approvals
+- ✅ User deletion and account cleanup capabilities
+- ✅ Mood metrics and health journal data management
+- ✅ Newsletter subscriber management and analytics
 
 #### Patient Portal
 - ✅ Comprehensive approval management for data access
@@ -116,14 +125,41 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - ✅ Comprehensive encryption service with proper key management
 
 #### Gamified Reward System
-- ✅ Daily task tracking and completion monitoring
-- ✅ Blockchain-based health token rewards (0.01 tokens per daily target)
+- ✅ Advanced daily task generation system with role-based tasks
+- ✅ Blockchain-based health token rewards (0.01 tokens per task completion)
 - ✅ Automated reward distribution with cron jobs
 - ✅ Queue-based token minting system with retry mechanisms
 - ✅ Daily task reset at midnight (automatic cleanup)
-- ✅ Dashboard integration showing token balance and progress
+- ✅ Comprehensive reward metrics tracking and analytics
 - ✅ Event-driven task completion tracking
-- ✅ Multi-activity reward triggers (health journaling, approvals)
+- ✅ Multi-activity reward triggers (health journaling, approvals, medical records)
+- ✅ Task type initialization and management system
+- ✅ Task statistics with completion rates and historical data
+- ✅ Role-specific task generation (Patient, Doctor, Healthcare Provider)
+- ✅ Token balance tracking with claimed and pending rewards
+- ✅ Old task cleanup and maintenance operations
+
+### 🆕 New Features (Recently Added)
+
+#### Newsletter Management System
+- ✅ Newsletter subscription functionality
+- ✅ Admin-controlled subscriber management
+- ✅ Brevo integration for email campaigns
+- ✅ Subscriber analytics and reporting
+
+#### Enhanced Task & Reward System
+- ✅ Daily task generation with 5 different task types
+- ✅ Role-based task assignment (Patient, Doctor roles)
+- ✅ Task completion tracking with token rewards
+- ✅ Comprehensive task statistics and analytics
+- ✅ Task type management and initialization
+
+#### Advanced Admin Dashboard
+- ✅ Patient management dashboard with metrics
+- ✅ Comprehensive user management (view, suspend, delete)
+- ✅ Practitioner verification and approval workflows
+- ✅ Newsletter subscriber management
+- ✅ Health data cleanup and management tools
 
 ### 🔄 In Progress Features
 
@@ -133,7 +169,6 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - 🔄 Enhanced security features and audit logging
 - 🔄 Real-time notifications system
 - 🔄 Medical records retrieval interface
-- 🔄 Reward system expansion with more task types
 - 🔄 Achievement badges and milestone rewards
 
 ### 🔮 Advanced Features (Planned)
@@ -320,6 +355,19 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - `POST /admin/login` - Admin authentication
 - `POST /admin/verifyPractitioner` - Verify healthcare practitioners
 - `DELETE /admin/deleteAdmin` - Delete administrator accounts
+- `POST /admin/suspendUser` - Suspend user accounts
+- `POST /admin/revokeSuspension` - Revoke user suspensions
+- `POST /admin/rejectUser` - Reject user registration
+- `DELETE /admin/deleteUser` - Delete user accounts
+- `GET /admin/dashboard/patient-management` - Patient management dashboard
+- `GET /admin/fetchAllDoctors` - Fetch all doctors with pagination
+- `GET /admin/fetchAllPatients` - Fetch all patients with pagination
+- `GET /admin/fetchAllUsers` - Fetch all users with search and filters
+- `GET /admin/fetchUserData` - Get detailed user information
+- `GET /admin/fetchNonVerifiedEntities` - Get pending verification requests
+- `DELETE /admin/deleteMoodMetrics` - Delete user mood data
+- `DELETE /admin/deleteUserHealthJournal` - Delete user health journals
+- `GET /admin/fetchNewsletterSubscribers` - Manage newsletter subscribers
 
 ### Approval Management
 - `POST /approval/createApproval` - Create new approval request for patient data access
@@ -339,6 +387,18 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - `POST /health-journal/addJournalEntry` - Add personal health journal entry (triggers daily task completion)
 - `GET /health-journal/fetchUserJournals` - Fetch user's health journal entries
 
+### Daily Tasks & Rewards
+- `POST /daily-tasks/generateDailyTasks` - Generate daily tasks for users
+- `GET /daily-tasks/userDailyTasks` - Get user's daily tasks
+- `POST /daily-tasks/completeDailyTask` - Complete a daily task and earn rewards
+- `GET /daily-tasks/userDailyStats` - Get task completion statistics
+- `POST /daily-tasks/initialize-task-types` - Initialize default task types
+- `DELETE /daily-tasks/cleanup` - Clean up old completed tasks
+- `GET /reward/fetchRewardMetrics` - Get user reward metrics and token balance
+
+### Newsletter Management
+- `POST /newsletter/subscribe` - Subscribe to newsletter
+
 ### IPFS Integration
 - `GET /ipfs/testIpfs` - Test IPFS functionality and upload
 
@@ -346,9 +406,11 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **Internal Service**: `RewardService` - Daily task tracking and reward management
 - **Automated Distribution**: Cron-based reward distribution every minute for qualified users
 - **Daily Reset**: Automatic daily task counter reset at midnight
-- **Token Minting**: Queue-based health token minting (0.01 tokens per daily target)
-- **Task Triggers**: Health journal entries, approval acceptances
-- **Dashboard Integration**: Token balance and progress displayed in user dashboards
+- **Token Minting**: Queue-based health token minting (0.01 tokens per task completion)
+- **Task Triggers**: Health journal entries, approval acceptances, medical records, profile updates
+- **Metrics Tracking**: Comprehensive reward metrics with total points, claimed balance, and pending rewards
+- **Role-Based Tasks**: Different task types for patients and doctors
+- **Task Management**: Task type initialization and cleanup operations
 
 ### Record Encryption Service
 - **Internal Service**: `RecordsEncryptionService` - Medical record encryption/decryption
@@ -434,12 +496,16 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [x] **Automated startup script**
 - [x] **Record encryption service with AES-256-CBC**
 - [x] **Batch encryption/decryption for medical records**
-- [x] **Gamified reward system with daily task tracking**
-- [x] **Blockchain-based health token rewards**
+- [x] **Enhanced gamified reward system with role-based daily tasks**
+- [x] **Blockchain-based health token rewards with comprehensive tracking**
 - [x] **Automated reward distribution and daily resets**
-- [x] **Queue-based token minting system**
+- [x] **Queue-based token minting system with retry mechanisms**
 - [x] **Event-driven task completion tracking**
-- [x] **Dashboard integration for reward display**
+- [x] **Advanced reward metrics and analytics dashboard**
+- [x] **Newsletter management system with admin controls**
+- [x] **Comprehensive admin dashboard with user management**
+- [x] **User suspension, rejection, and account management**
+- [x] **Task statistics and historical reward data**
 
 ### 🔄 In Progress
 - [ ] Frontend web application development
@@ -449,8 +515,9 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [ ] Enhanced security features and audit logging
 - [ ] Prescription management system
 - [ ] Real-time notifications system
-- [ ] Reward system expansion with more task types
 - [ ] Achievement system and milestone tracking
+- [ ] Advanced email campaign management
+- [ ] Mobile push notifications for task reminders
 
 ### 📋 Planned
 - [ ] One-time prescription keys with automatic expiration

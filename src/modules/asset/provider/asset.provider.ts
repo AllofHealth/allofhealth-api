@@ -17,16 +17,16 @@ import {
   IUploadProfilePicture,
   TUploadContext,
 } from '../interface/asset.interface';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class AssetProvider {
-  private handler: ErrorHandler;
   constructor(
     private readonly imageKitConfig: ImageKitConfig,
     private readonly eventEmitter: EventEmitter2,
-  ) {
-    this.handler = new ErrorHandler();
-  }
+    private readonly myLoggerService: MyLoggerService,
+    private readonly handler: ErrorHandler,
+  ) {}
 
   private initImageKit() {
     //eslint-disable-next-line
@@ -67,6 +67,30 @@ export class AssetProvider {
     });
 
     return imageUrl;
+  }
+
+  async generateUrlFromFileId(fileId: string) {
+    const imageKit = this.initImageKit();
+
+    try {
+      const fileDetails = await imageKit.getFileDetails(fileId);
+
+      const imageUrl = imageKit.url({
+        path: fileDetails.filePath,
+        transformation: [
+          {
+            height: '500',
+            width: '500',
+            crop: 'pad',
+            aspectRatio: '16:9',
+          },
+        ],
+      });
+
+      return imageUrl;
+    } catch (error) {
+      throw new Error(`Failed to generate URL from fileId: ${error.message}`);
+    }
   }
 
   async folderExists(folderPath: string) {
