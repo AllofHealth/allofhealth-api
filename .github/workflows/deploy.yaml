@@ -3,7 +3,7 @@ name: Deploy to DigitalOcean
 on:
   push:
     branches:
-      - deploy
+      - staging
 
 jobs:
   build_and_push:
@@ -29,10 +29,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }} .
+          docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi_staging:${{ env.IMAGE_TAG }} .
 
       - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }}
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi_staging:${{ env.IMAGE_TAG }}
 
   deploy_to_digitalocean:
     name: Deploy on DigitalOcean
@@ -62,13 +62,13 @@ jobs:
 
             # Deploy the application with embedded IPFS
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
-            docker stop allofhealthapi || true
-            docker rm allofhealthapi || true
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi_staging:$IMAGE_TAG
+            docker stop allofhealthapi_staging || true
+            docker rm allofhealthapi_staging || true
             docker run -d \
             -p 3003:3000 \
             -v ipfs-data:/root/.ipfs \
-            --name allofhealthapi \
-            ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
+            --name allofhealthapi_staging \
+            ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi_staging:$IMAGE_TAG
             
             
