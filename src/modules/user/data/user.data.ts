@@ -18,6 +18,10 @@ export enum USER_ERROR_MESSAGES {
   ERROR_FETCHING_PATIENTS = 'Error fetching patients',
   ERROR_DETERMINING_USER_ROLE = 'Error determining user role',
   ERROR_FETCHING_ALL_USERS = 'Error fetching all users',
+  ERROR_HANDLING_FORGOT_PASSWORD = 'Error handling forgot password',
+  INVALID_EMAIL_ADDRESS = 'Invalid email address',
+  ERROR_RESETING_PASSWORD = 'Error resetting password',
+  PASSWORD_SAME_AS_OLD = 'Password cannot be the same as the old password',
 }
 
 export enum USER_SUCCESS_MESSAGE {
@@ -31,6 +35,7 @@ export enum USER_SUCCESS_MESSAGE {
   PATIENTS_FETCHED_SUCCESSFULLY = 'Patients fetched successfully',
   USER_ROLE_FETCHED_SUCCESSFULLY = 'User role fetched successfully',
   USERS_FETCHED_SUCCESSFULLY = 'User fetched successfully',
+  PASSWORD_RESET_SUCCESSFUL = 'Password reset successful',
 }
 
 export enum USER_STATUS {
@@ -38,6 +43,7 @@ export enum USER_STATUS {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   PENDING = 'PENDING',
+  REJECTED = 'REJECTED',
 }
 
 export enum USER_ROLE {

@@ -26,6 +26,7 @@ import {
 } from '../data/health-journal.data';
 import { ErrorResponseDto, SuccessResponseDto } from '@/shared/dtos/shared.dto';
 import { TDuration } from '../interface/health-journal.interface';
+import { SuspensionGuard } from '@/modules/auth/guards/suspension.guard';
 
 @ApiTags('Journal Operations')
 @Controller('health-journal')
@@ -34,7 +35,7 @@ export class HealthJournalController {
   constructor(private readonly journalService: HealthJournalService) {}
 
   @Post('addJournalEntry')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({ summary: 'Add a journal entry' })
   @ApiOkResponse({
     description: HSM.SUCCESS_ADDING_ENTRY,
@@ -58,7 +59,7 @@ export class HealthJournalController {
   }
 
   @Get('fetchUserJournals')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({ summary: 'Fetch user journals' })
   @ApiOkResponse({
     description: HSM.SUCCESS_FETCHING_JOURNAL,
@@ -108,7 +109,7 @@ export class HealthJournalController {
   }
 
   @Get('fetchJournalMetrics')
-  @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'Fetch health journal metrics',
     description:

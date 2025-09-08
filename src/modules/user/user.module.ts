@@ -12,6 +12,7 @@ import { ApprovalModule } from '../approval/approval.module';
 import { ContractModule } from '../contract/contract.module';
 import { OtpModule } from '../otp/otp.module';
 import { ResendModule } from '@/shared/modules/resend/resend.module';
+import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ResendModule } from '@/shared/modules/resend/resend.module';
     forwardRef(() => ContractModule),
     forwardRef(() => OtpModule),
     forwardRef(() => ResendModule),
+    forwardRef(() => AdminModule),
   ],
   providers: [UserProvider, UserService, AuthUtils, ErrorHandler],
   controllers: [UserController],

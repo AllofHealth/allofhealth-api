@@ -4,7 +4,10 @@ import {
   ICreateAdmin,
   ICreateSystemAdmin,
   IDeleteAdmin,
+  IFetchApprovalManagementData,
+  IHandleIsUserRejected,
   IManagePermissions,
+  IRejectUser,
   ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
@@ -14,6 +17,7 @@ import {
   IFetchPatients,
   IFetchUsers,
 } from '@/modules/user/interface/user.interface';
+import { IFetchAllContacts } from '@/shared/modules/brevo/interface/brevo.interface';
 
 @Injectable()
 export class AdminService {
@@ -68,5 +72,37 @@ export class AdminService {
 
   async determineIsAdmin(emailAddress: string) {
     return await this.adminProvider.determineIsAdmin(emailAddress);
+  }
+
+  async rejectUser(ctx: IRejectUser) {
+    return await this.adminProvider.rejectUser(ctx);
+  }
+
+  async verifyRejectionStatus(ctx: IHandleIsUserRejected) {
+    return await this.adminProvider.handleIsUserRejected(ctx);
+  }
+
+  async fetchApprovalManagementData(ctx: IFetchApprovalManagementData) {
+    return await this.adminProvider.fetchApprovalManagementData(ctx);
+  }
+
+  async deleteUser(userId: string) {
+    return await this.adminProvider.deleteUser(userId);
+  }
+
+  async revokeSuspension(userId: string) {
+    return await this.adminProvider.revokeSuspension(userId);
+  }
+
+  async deleteMoodMetrics(userId: string) {
+    return await this.adminProvider.deleteUserMoodMetrics(userId);
+  }
+
+  async deleteUserHealthJournal(userId: string) {
+    return await this.adminProvider.clearUserHealthJournal(userId);
+  }
+
+  async fetchNewsletterSubscribers(ctx: IFetchAllContacts) {
+    return await this.adminProvider.fetchAllSubscribers(ctx);
   }
 }

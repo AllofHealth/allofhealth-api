@@ -40,10 +40,7 @@ describe('Ipfs', () => {
           provide: IpfsConfig,
           useValue: mockConfig,
         },
-        {
-          provide: IpfsClientService,
-          useValue: mockIpfsClientService,
-        },
+        IpfsClientService,
       ],
     }).compile();
 
@@ -56,10 +53,8 @@ describe('Ipfs', () => {
 
   describe('initialize ipfs', () => {
     it('should successfully init ipfs', async () => {
-      // Initialize the IPFS client first
       await provider.onModuleInit();
 
-      // Then test the upload functionality
       const result = await provider.testIPFS();
       expect(result).toBeDefined();
     }, 10000);
@@ -69,9 +64,21 @@ describe('Ipfs', () => {
     it.only('should seccessfully fetch record from ipfs', async () => {
       await provider.onModuleInit();
       const record = await provider.fetchRecord(
-        'QmXN3eYQtHxvCyQysD1ATCKiNcoYbivcA1pdD5BKU9Yonk',
+        'QmXRo6Wr5aM2iQcBvESY6supqnKtctGwCyyY2hJJBGs9wd',
       );
       console.log(record);
-    });
+    }, 50000);
+  });
+
+  describe('Findind Path', () => {
+    it('Should return a valid path', async () => {
+      await provider.onModuleInit();
+
+      const path = await provider.findPathFromCid({
+        userId: '37733ba6-a557-47c1-923b-90e9b0efddea',
+        cid: 'Qmf2G1Layb63jxXREKn2Tvf5CwkAm2fKhZvJVptsd1BWyF',
+      });
+      console.log(path);
+    }, 50000);
   });
 });

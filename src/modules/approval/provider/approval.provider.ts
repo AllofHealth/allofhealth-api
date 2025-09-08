@@ -25,7 +25,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { and, count, eq, or, sql } from 'drizzle-orm';
+import { and, count, eq, ne, or, sql } from 'drizzle-orm';
 import {
   APPROVAL_ERROR_MESSAGE as AEM,
   APPROVAL_STATUS,
@@ -166,7 +166,6 @@ export class ApprovalProvider {
           });
         }
 
-        // Check for existing approvals for any of the record IDs
         for (const recordId of recordIds) {
           const existingApproval = await this.db
             .select({ id: schema.approvals.id })
@@ -175,6 +174,7 @@ export class ApprovalProvider {
               and(
                 eq(schema.approvals.recordId, recordId),
                 eq(schema.approvals.userId, userId),
+                ne(schema.approvals.status, APPROVAL_STATUS.TIMED_OUT),
                 or(
                   eq(schema.approvals.accessLevel, 'write'),
                   eq(schema.approvals.accessLevel, 'full'),
@@ -298,7 +298,7 @@ export class ApprovalProvider {
   }
 
   async fetchDoctorApprovals(ctx: IFetchDoctorApprovals) {
-    const { userId, page = 1, limit = 12, status = 'PENDING' } = ctx;
+    const { userId, page = 1, limit = 12, status = 'CREATED' } = ctx;
     const skip = (page - 1) * limit;
     try {
       const isCompliant = await this.practitionerCompliance(userId);

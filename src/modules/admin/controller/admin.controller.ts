@@ -30,8 +30,12 @@ import {
   CreateSystemAdminDto,
   DeleteAdminDto,
   ManagePermissionsDto,
+  RejectUserDto,
   SuspendUserDto,
   VerifyPractitionerDto,
+  FetchApprovalManagementDataDto,
+  DeleteUserDto,
+  RevokeSuspensionDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
@@ -346,6 +350,78 @@ export class AdminController {
     return await this.adminService.suspendUser(ctx);
   }
 
+  @Post('revokeSuspension')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Revoke a user suspension (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: ASM.USER_NOT_SUSPENDED,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: ASM.USER_NOT_SUSPENDED,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_REVOKING_SUSPENSION,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_REVOKING_SUSPENSION,
+    },
+  })
+  async revokeSuspension(@Ip() ip: string, @Body() ctx: RevokeSuspensionDto) {
+    this.logger.log(`Revoking suspension for user ${ctx.userId} from ${ip}`);
+    return await this.adminService.revokeSuspension(ctx.userId);
+  }
+
+  @Post('rejectUser')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Reject a user (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.USER_REJECTED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_REJECTED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_REJECTING_USER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_REJECTING_USER,
+    },
+  })
+  async rejectUser(@Ip() ip: string, @Body() ctx: RejectUserDto) {
+    this.logger.log(`Rejecting user ${ctx.userId} from ${ip}`);
+    return await this.adminService.rejectUser(ctx);
+  }
+
   @Get('dashboard/patient-management')
   @UseGuards(AdminGuard)
   @ApiOperation({
@@ -607,5 +683,244 @@ export class AdminController {
   async fetchUserData(@Ip() ip: string, @Query('userId') userId: string) {
     this.logger.log(`Admin fetching user data for ${userId} from ${ip}`);
     return await this.adminService.fetchUserData(userId);
+  }
+
+  @Get('fetchNonVerifiedEntities')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch approval management data (requires admin)' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'filter', required: false })
+  @ApiQuery({ name: 'sort', required: false })
+  @ApiOkResponse({
+    description: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+      data: [
+        {
+          userId: '507f1f77bcf86cd799439011',
+          fullName: 'Dr. John Doe',
+          userType: 'DOCTOR',
+          specialty: 'Cardiology',
+          licenseId: 'MD123456',
+          createdAt: '01/01/2024',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalPages: 5,
+        totalCount: 50,
+        itemsPerPage: 12,
+        hasNextPage: true,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+    },
+  })
+  async fetchApprovalManagementData(
+    @Ip() ip: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('filter') filter?: 'DOCTOR' | 'PHARMACIST',
+    @Query('sort') sort?: 'ASC' | 'DESC',
+  ) {
+    this.logger.log(`Admin fetching approval management data from ${ip}`);
+    return await this.adminService.fetchApprovalManagementData({
+      page,
+      limit,
+      filter,
+      sort,
+    });
+  }
+
+  @Delete('deleteUser')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Delete a user (requires admin)' })
+  @ApiOkResponse({
+    description: ASM.USER_DELETED_SUCCESSFULLY,
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.USER_DELETED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: USER_ERROR_MESSAGES.ERROR_DELETING_USER,
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: USER_ERROR_MESSAGES.ERROR_DELETING_USER,
+    },
+  })
+  async deleteUser(@Ip() ip: string, @Body() ctx: DeleteUserDto) {
+    this.logger.log(`Admin deleting user ${ctx.userId} from ${ip}`);
+    return await this.adminService.deleteUser(ctx.userId);
+  }
+
+  @Delete('deleteMoodMetrics')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Delete mood metrics for a user (requires admin)' })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'User ID whose mood metrics should be deleted',
+  })
+  @ApiOkResponse({
+    description: 'Mood metrics deleted successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Mood metrics deleted successfully',
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error deleting mood metrics',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error deleting mood metrics',
+    },
+  })
+  async deleteMoodMetrics(@Ip() ip: string, @Query('userId') userId: string) {
+    this.logger.log(
+      `Admin deleting mood metrics for user ${userId} from ${ip}`,
+    );
+    return await this.adminService.deleteMoodMetrics(userId);
+  }
+
+  @Delete('deleteUserHealthJournal')
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: 'Delete health journal for a user (requires admin)',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'User ID whose health journal should be deleted',
+  })
+  @ApiOkResponse({
+    description: 'Health journal deleted successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'Health journal deleted successfully',
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'User not found',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error deleting health journal',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error deleting health journal',
+    },
+  })
+  async deleteUserHealthJournal(
+    @Ip() ip: string,
+    @Query('userId') userId: string,
+  ) {
+    this.logger.log(
+      `Admin deleting health journal for user ${userId} from ${ip}`,
+    );
+    return await this.adminService.deleteUserHealthJournal(userId);
+  }
+
+  @Get('fetchNewsletterSubscribers')
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: 'Fetch all newsletter subscribers (requires admin)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Maximum number of subscribers to fetch',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    description: 'Number of subscribers to skip (for pagination)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    description: 'Sort order for subscribers',
+    type: String,
+    enum: ['ASC', 'DESC'],
+  })
+  @ApiOkResponse({
+    description: 'Newsletter subscribers fetched successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: 200,
+      message: 'Newsletter subscribers fetched successfully',
+      data: [
+        {
+          id: 2,
+          emailBlacklisted: false,
+          smsBlacklisted: false,
+          createdAt: '2025-09-04T18:09:56.375+02:00',
+          modifiedAt: '2025-09-04T18:09:56.375+02:00',
+          email: 'johndoe@gmail.com',
+          listIds: [],
+          listUnsubscribed: null,
+          attributes: {},
+        },
+      ],
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error fetching newsletter subscribers',
+    type: ErrorResponseDto,
+    example: {
+      status: 500,
+      message: 'Error fetching newsletter subscribers',
+    },
+  })
+  async fetchNewsletterSubscribers(
+    @Ip() ip: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+    @Query('sort') sort?: 'ASC' | 'DESC',
+  ) {
+    this.logger.log(`Admin fetching newsletter subscribers from ${ip}`);
+    return await this.adminService.fetchNewsletterSubscribers({
+      limit,
+      offset,
+      sort,
+    });
   }
 }

@@ -20,6 +20,11 @@ export enum ADMIN_ERROR_MESSAGES {
   ERROR_FETCHING_USER_DATA = 'Error fetching user data',
   PATIENT_NOT_FOUND = 'Patient not found',
   ERROR_VERIFYING_ADMIN_STATUS = 'Error verifying admin status',
+  ERROR_REJECTING_USER = 'Error rejecting user',
+  ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA = 'Error fetching approval management data',
+  ERROR_REVOKING_SUSPENSION = 'Error revoking suspension',
+  ERROR_DELETING_USER_MOOD_METRICS = 'Error deleting user mood metrics',
+  ERROR_CLEARING_USER_HEALTH_JOURNAL = 'Error clearing user health journal',
 }
 
 export enum ADMIN_SUCCESS_MESSAGES {
@@ -32,11 +37,17 @@ export enum ADMIN_SUCCESS_MESSAGES {
   SUCCESS_DELETING_ADMIN = 'Admin deleted successfully',
   USER_ALREADY_SUSPENDED = 'User is already suspended',
   USER_SUSPENDED_SUCCESSFULLY = 'User suspended successfully',
-  SUSPENSION_LIFITED_SUCCESSFULLY = 'Suspension lifted successfully',
+  SUSPENSION_LIFTED_SUCCESSFULLY = 'Suspension lifted successfully',
   PATIENT_MANAGEMENT_DASHBOARD_FETCHED = 'Patient management dashboard fetched successfully',
   USER_DATA_FETCHED = 'User data fetched successfully',
   PATIENT_DATA_FETCHED = 'Patient data fetched successfully',
   DOCTOR_DATA_FETCHED = 'Doctor data fetched successfully',
+  USER_REJECTED_SUCCESSFULLY = 'User rejected successfully',
+  APPROVAL_MANAGEMENT_DATA_FETCHED = 'Approval management data fetched successfully',
+  USER_DELETED_SUCCESSFULLY = 'User deleted successfully',
+  SUSPENSION_REVOKED_SUCCESSFULLY = 'Suspension revoked successfully',
+  USER_NOT_SUSPENDED = 'User is not suspended',
+  HEALTH_JOURNAL_CLEARED_SUCCESSFULLY = 'Health journal cleared successfully',
 }
 
 export enum ACTIVITY_THRESHOLD {
@@ -46,4 +57,10 @@ export enum ACTIVITY_THRESHOLD {
 export enum SUSPENSION_REASON {
   DEFAULT = 'User violated all of health terms and conditions',
   ACTIVE_SUSPENSION = 'User has been suspended for violating all of health terms and conditions',
+}
+
+export enum REJECTION_REASON {
+  DEFAULT = 'User has violated some of our authentication terms, please see read our terms and conditions',
+  SIGN_UP = 'This email is associated with an account that has violated our services',
+  LOGIN_IN = 'User has violated our login terms and conditions',
 }

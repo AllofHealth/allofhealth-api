@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class IsApprovedToAddRecordDto {
   @IsNotEmpty()
@@ -19,7 +25,7 @@ export class ViewMedicalRecordDto {
   @IsNumber()
   recordId: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   viewerAddress: string;
 }

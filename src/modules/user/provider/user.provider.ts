@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
   Inject,
@@ -22,6 +23,7 @@ import {
   EHandleRegisterPatient,
   EOnUserLogin,
   ERegisterEntity,
+  ESendEmail,
   ESendOtp,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
@@ -40,6 +42,7 @@ import {
   ICreateUser,
   IFetchPatients,
   IFetchUsers,
+  IPasswordReset,
   IUpdateUser,
   IUserSnippet,
 } from '../interface/user.interface';
@@ -50,10 +53,11 @@ import { ContractService } from '@/modules/contract/service/contract.service';
 import { OtpService } from '@/modules/otp/service/otp.service';
 import { ResendService } from '@/shared/modules/resend/service/resend.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { AdminService } from '@/modules/admin/service/admin.service';
+import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
 
 @Injectable()
 export class UserProvider {
-  private readonly logger = new MyLoggerService(UserProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
@@ -66,7 +70,12 @@ export class UserProvider {
     private readonly contractService: ContractService,
     private readonly otpService: OtpService,
     private readonly resendService: ResendService,
-  ) {}
+    @Inject(forwardRef(() => AdminService))
+    private readonly adminService: AdminService,
+    private readonly logger: MyLoggerService,
+  ) {
+    this.logger.setContext(UserProvider.name);
+  }
 
   private async emitEvent(ctx: ICreateDoctor) {
     try {
@@ -341,6 +350,7 @@ export class UserProvider {
         updatedAt: formatDateToReadable(user[0].updatedAt),
         isOtpVerified: user[0].isOtpVerified,
         phoneNumber: user[0].phoneNumber,
+        status: user[0].status,
         walletData: {
           walletAddress: walletInfo.data.walletAddress,
           balance: walletInfo.data.balance,
@@ -552,11 +562,12 @@ export class UserProvider {
         emailAddress: ctx.email,
         code: otp,
       });
-      const body = `Here's your OTP: ${otp}`;
+      const body = otp;
       await this.resendService.sendEmail({
         to: ctx.email,
+        name: ctx.name,
         body,
-        subject: 'OTP Verification',
+        context: 'OTP',
       });
 
       return this.handler.handleReturn({
@@ -571,13 +582,23 @@ export class UserProvider {
   async createUser(ctx: ICreateUser) {
     try {
       const hashedPassword = await this.authUtils.hash(ctx.password);
-
       const emailExists = await this.validateEmailAddress(ctx.emailAddress);
 
       if (emailExists) {
         return this.handler.handleReturn({
           status: HttpStatus.FOUND,
           message: UEM.USER_EXISTS,
+        });
+      }
+
+      const isUserRejected = await this.adminService.verifyRejectionStatus({
+        email: ctx.emailAddress,
+      });
+
+      if (isUserRejected) {
+        return this.handler.handleReturn({
+          status: HttpStatus.FORBIDDEN,
+          message: REJECTION_REASON.SIGN_UP,
         });
       }
 
@@ -626,6 +647,20 @@ export class UserProvider {
               ctx.governmentIdfilePath,
             ),
           );
+
+          this.eventEmitter.emit(
+            SharedEvents.SEND_ONBOARDING,
+            new ESendEmail(
+              ctx.emailAddress,
+              undefined,
+              undefined,
+              ctx.fullName,
+              undefined,
+              undefined,
+              'WELCOME',
+            ),
+          );
+
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -637,7 +672,7 @@ export class UserProvider {
 
           this.eventEmitter.emit(
             SharedEvents.SEND_OTP,
-            new ESendOtp(ctx.emailAddress),
+            new ESendOtp(ctx.emailAddress, undefined, ctx.fullName),
           );
 
           return this.handler.handleReturn({
@@ -669,6 +704,19 @@ export class UserProvider {
             ),
           );
 
+          this.eventEmitter.emit(
+            SharedEvents.SEND_ONBOARDING,
+            new ESendEmail(
+              ctx.emailAddress,
+              undefined,
+              undefined,
+              ctx.fullName,
+              undefined,
+              undefined,
+              'WELCOME',
+            ),
+          );
+
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -680,7 +728,7 @@ export class UserProvider {
 
           this.eventEmitter.emit(
             SharedEvents.SEND_OTP,
-            new ESendOtp(ctx.emailAddress),
+            new ESendOtp(ctx.emailAddress, undefined, ctx.fullName),
           );
 
           return this.handler.handleReturn({
@@ -858,6 +906,79 @@ export class UserProvider {
         ),
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async handleForgotPassword(emailAddress: string) {
+    try {
+      const isValidUserEmail = await this.validateEmailAddress(emailAddress);
+      if (!isValidUserEmail) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: UEM.INVALID_EMAIL_ADDRESS,
+        });
+      }
+
+      return await this.sendOtp({
+        email: emailAddress,
+        subject: 'Forgot Password',
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_HANDLING_FORGOT_PASSWORD);
+    }
+  }
+
+  async handleResetPassword(ctx: IPasswordReset) {
+    const { emailAddress, password } = ctx;
+    try {
+      const isValidUserEmail = await this.validateEmailAddress(emailAddress);
+      if (!isValidUserEmail) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: UEM.INVALID_EMAIL_ADDRESS,
+        });
+      }
+
+      const user = await this.db
+        .select({ password: schema.user.password })
+        .from(schema.user)
+        .where(eq(schema.user.emailAddress, emailAddress))
+        .limit(1);
+
+      if (!user || user.length === 0) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: UEM.USER_NOT_FOUND,
+        });
+      }
+
+      const oldPassword = user[0].password;
+      const newPassword = await this.authUtils.hash(password);
+
+      const isSameAsOld = await this.authUtils.compare({
+        password: password,
+        hashedPassword: oldPassword,
+      });
+      if (isSameAsOld) {
+        return this.handler.handleReturn({
+          status: HttpStatus.BAD_REQUEST,
+          message: UEM.PASSWORD_SAME_AS_OLD,
+        });
+      }
+
+      await this.db
+        .update(schema.user)
+        .set({
+          password: newPassword,
+        })
+        .where(eq(schema.user.emailAddress, emailAddress));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.PASSWORD_RESET_SUCCESSFUL,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, UEM.ERROR_RESETING_PASSWORD);
     }
   }
 }

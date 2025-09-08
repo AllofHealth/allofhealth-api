@@ -10,17 +10,15 @@ import type {
   IFindValidToken,
   IRevokeToken,
 } from '../interface/token.interface';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class TokenProvider {
-  private handler: ErrorHandler;
-
   constructor(
     @Inject(DRIZZLE_PROVIDER)
     private readonly db: Database,
-  ) {
-    this.handler = new ErrorHandler();
-  }
+    private readonly handler: ErrorHandler,
+  ) {}
 
   async fetchUserToken(userId: string) {
     try {

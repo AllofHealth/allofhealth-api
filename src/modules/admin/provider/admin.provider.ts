@@ -12,13 +12,17 @@ import {
 } from '@nestjs/common';
 import {
   IAdminLogin,
+  IApprovalDashboardResponse,
   ICreateAdmin,
   ICreateSystemAdmin,
   IDeleteAdmin,
   IDetermineActivityStatus,
+  IFetchApprovalManagementData,
+  IHandleIsUserRejected,
   IInspectDoctorResponse,
   IInspectPatientResponse,
   IManagePermissions,
+  IRejectUser,
   ISuspendUser,
   IVerifyPractitioner,
 } from '../interface/admin.interface';
@@ -26,10 +30,11 @@ import {
   ACTIVITY_THRESHOLD,
   ADMIN_ERROR_MESSAGES as AEM,
   ADMIN_SUCCESS_MESSAGES as ASM,
+  REJECTION_REASON,
   SUSPENSION_REASON,
 } from '../data/admin.data';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { AuthService } from '@/modules/auth/service/auth.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
@@ -48,10 +53,15 @@ import {
   IFetchUsers,
   IUserSnippet,
 } from '@/modules/user/interface/user.interface';
-import { formatDateToReadable } from '@/shared/utils/date.utils';
+import {
+  formatDateToReadable,
+  formatDateToStandard,
+} from '@/shared/utils/date.utils';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { ILoginResponse } from '@/modules/auth/interface/auth.interface';
+import { NewsletterService } from '@/modules/newsletter/service/newsletter.service';
+import { IFetchAllContacts } from '@/shared/modules/brevo/interface/brevo.interface';
 
 @Injectable()
 export class AdminProvider {
@@ -63,9 +73,11 @@ export class AdminProvider {
     @Inject(forwardRef(() => AuthService))
     private readonly authService: AuthService,
     private readonly doctorService: DoctorService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly assetService: AssetService,
     private readonly approvalService: ApprovalService,
+    private readonly newsletterService: NewsletterService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -350,8 +362,8 @@ export class AdminProvider {
           dateJoined: schema.user.createdAt,
           dob: schema.user.dateOfBirth,
           role: schema.user.role,
-          governmentIdUrl: schema.identity.governmentId,
-          medicalLicenseUrl: schema.identity.scannedLicense,
+          governmentIdUrl: schema.identity.governmentFileId,
+          medicalLicenseUrl: schema.identity.scannedLicenseFileId,
           yearsOfExperience: schema.doctors.yearsOfExperience,
           hospitalAffiliation: schema.doctors.hospitalAssociation,
           bio: schema.doctors.bio,
@@ -378,45 +390,55 @@ export class AdminProvider {
       const pendingApprovals =
         (await this.approvalService.fetchPendingApprovalCount(userId)) || 0;
 
-      const parsedDoctor = doctor.map((d) => {
-        return {
-          ...d,
-          dateJoined: formatDateToReadable(d.dateJoined),
-          lastActive: d.lastActive
-            ? formatDateToReadable(d.lastActive)
-            : 'never',
-          dob: formatDateToReadable(d.dob),
-          bio: d.bio || '',
-          yearsOfExperience: d.yearsOfExperience || 0,
-          hospitalAffiliation: d.hospitalAffiliation || 'none',
-          servicesOffered: Array.isArray(d.servicesOffered)
-            ? d.servicesOffered
-            : [],
-          languagesSpoken: Array.isArray(d.languagesSpoken)
-            ? d.languagesSpoken
-            : [],
-          certifications: Array.isArray(d.certifications)
-            ? d.certifications
-            : [],
-          medicalLicenseNumber: d.medicalLicenseNumber || 'none',
-          recordsReviewed: d.recordsReviewed || 0,
-          identityAssets: {
-            governmentIdUrl: this.assetService.generateUrl(
+      const parsedDoctor = await Promise.all(
+        doctor.map(async (d) => {
+          let servicesOffered: string[] = [];
+          if (!Array.isArray(d.servicesOffered)) {
+            servicesOffered = [d.servicesOffered as string];
+          } else {
+            servicesOffered = d.servicesOffered as string[];
+          }
+
+          const [governmentIdUrl, medicalLicenseUrl] = await Promise.all([
+            this.assetService.generateUrlFromFileId(
               d.governmentIdUrl as string,
             ),
-            medicalLicenseUrl: this.assetService.generateUrl(
+            this.assetService.generateUrlFromFileId(
               d.medicalLicenseUrl as string,
             ),
-          },
-          doctorActivity: {
-            patientsAttended: 0,
-            recordsReviewed: d.recordsReviewed || 0,
-            pendingApprovals,
-          },
-        } as IInspectDoctorResponse;
-      });
+          ]);
 
-      this.logger.debug(`Parsed doctor data ${JSON.stringify(parsedDoctor)}`);
+          return {
+            ...d,
+            dateJoined: formatDateToReadable(d.dateJoined),
+            lastActive: d.lastActive
+              ? formatDateToReadable(d.lastActive)
+              : 'never',
+            dob: formatDateToReadable(d.dob),
+            bio: d.bio || '',
+            yearsOfExperience: d.yearsOfExperience || 0,
+            hospitalAffiliation: d.hospitalAffiliation || 'none',
+            servicesOffered,
+            languagesSpoken: Array.isArray(d.languagesSpoken)
+              ? d.languagesSpoken
+              : [],
+            certifications: Array.isArray(d.certifications)
+              ? d.certifications
+              : [],
+            medicalLicenseNumber: d.medicalLicenseNumber || 'none',
+            recordsReviewed: d.recordsReviewed || 0,
+            identityAssets: {
+              governmentIdUrl,
+              medicalLicenseUrl,
+            },
+            doctorActivity: {
+              patientsAttended: 0,
+              recordsReviewed: d.recordsReviewed || 0,
+              pendingApprovals,
+            },
+          } as IInspectDoctorResponse;
+        }),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -691,22 +713,152 @@ export class AdminProvider {
       }
 
       await this.db.transaction(async (tx) => {
-        await tx.update(schema.user).set({
-          status: USER_STATUS.SUSPENDED,
-        });
+        await tx
+          .update(schema.user)
+          .set({
+            status: USER_STATUS.SUSPENDED,
+          })
+          .where(eq(schema.user.id, userId));
 
         await tx.insert(schema.suspensionLogs).values({
           userId,
           reason,
         });
-
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: ASM.USER_SUSPENDED_SUCCESSFULLY,
-        });
+      });
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.USER_SUSPENDED_SUCCESSFULLY,
       });
     } catch (e) {
       return this.handler.handleError(e, AEM.ERROR_SUSPENDING_USER);
+    }
+  }
+
+  async revokeSuspension(userId: string) {
+    try {
+      const userSuspended = await this.isUserSuspended(userId);
+      if (!userSuspended) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: ASM.USER_NOT_SUSPENDED,
+        });
+      }
+
+      await this.db.transaction(async (tx) => {
+        await tx
+          .update(schema.user)
+          .set({
+            status: USER_STATUS.ACTIVE,
+          })
+          .where(eq(schema.user.id, userId));
+
+        await tx
+          .delete(schema.suspensionLogs)
+          .where(eq(schema.suspensionLogs.userId, userId));
+      });
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_REVOKING_SUSPENSION);
+    }
+  }
+
+  async rejectUser(ctx: IRejectUser) {
+    const { userId, reason } = ctx;
+    try {
+      const userResult = await this.userService.findUser(userId);
+
+      if (userResult.status !== HttpStatus.OK) {
+        return this.handler.handleReturn({
+          status: userResult.status,
+          message: userResult.message,
+        });
+      }
+
+      if (!('data' in userResult && userResult.data)) {
+        return this.handler.handleReturn({
+          status: HttpStatus.NOT_FOUND,
+          message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+        });
+      }
+
+      const user = userResult.data;
+      if (user.status === USER_STATUS.REJECTED) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.USER_REJECTED_SUCCESSFULLY,
+        });
+      }
+
+      await this.db.transaction(async (tx) => {
+        await tx
+          .update(schema.user)
+          .set({
+            status: USER_STATUS.REJECTED,
+          })
+          .where(eq(schema.user.id, userId));
+
+        await tx.insert(schema.rejectionLogs).values({
+          email: user.email,
+          reason: reason || REJECTION_REASON.DEFAULT,
+        });
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.USER_REJECTED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      return this.handler.handleError(e, AEM.ERROR_REJECTING_USER);
+    }
+  }
+
+  async handleIsUserRejected(ctx: IHandleIsUserRejected) {
+    const { userId, email } = ctx;
+    let isUserRejected = false;
+    try {
+      let userEmail: string = email ? email : '';
+      if (userId) {
+        const userResult = await this.userService.findUser(userId);
+
+        if (userResult.status !== HttpStatus.OK) {
+          return this.handler.handleReturn({
+            status: userResult.status,
+            message: userResult.message,
+          });
+        }
+
+        if (!('data' in userResult && userResult.data)) {
+          return this.handler.handleReturn({
+            status: HttpStatus.NOT_FOUND,
+            message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
+          });
+        }
+
+        const user = userResult.data;
+        userEmail = user.email;
+      }
+
+      const rejectedUser = await this.db.query.rejectionLogs.findFirst({
+        where: eq(schema.rejectionLogs.email, userEmail),
+      });
+
+      if (rejectedUser?.id) {
+        isUserRejected = true;
+      }
+
+      return isUserRejected;
+    } catch (e) {
+      throw new HttpException(
+        new AdminError(
+          'Error verifying user rejection',
+          { cause: e },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -820,5 +972,135 @@ export class AdminProvider {
       default:
         'Role not implemented yet';
     }
+  }
+
+  async fetchApprovalManagementData(ctx: IFetchApprovalManagementData) {
+    const { page = 1, limit = 12, sort = 'desc', filter } = ctx;
+    const skip = (page - 1) * limit;
+    const sortFn = sort === 'desc' ? desc : asc;
+    const sortColumn = schema.user.createdAt;
+    try {
+      let whereConditions: any = and(
+        eq(schema.user.role, USER_ROLE.DOCTOR),
+        eq(schema.doctors.isVerified, false),
+      );
+      if (filter && filter === USER_ROLE.DOCTOR) {
+        whereConditions = and(
+          eq(schema.user.role, USER_ROLE.DOCTOR),
+          eq(schema.doctors.isVerified, false),
+        );
+      }
+
+      const totalUserResult = await this.db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.user)
+        .leftJoin(schema.doctors, eq(schema.user.id, schema.doctors.userId))
+        .where(whereConditions);
+
+      const totalCount = Number(totalUserResult[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const users = await this.db
+        .select({
+          userId: schema.user.id,
+          fullName: schema.user.fullName,
+          role: schema.user.role,
+          createdAt: schema.user.createdAt,
+          specialization: schema.doctors.specialization,
+          medicalLicenseNumber: schema.doctors.medicalLicenseNumber,
+        })
+        .from(schema.user)
+        .leftJoin(schema.doctors, eq(schema.user.id, schema.doctors.userId))
+        .where(whereConditions)
+        .orderBy(sortFn(sortColumn))
+        .offset(skip)
+        .limit(limit);
+
+      const approvalData = users.map((user) => {
+        return {
+          userId: user.userId,
+          fullName: user.fullName,
+          licenseId: user.medicalLicenseNumber || 'Unknown',
+          specialty: user.specialization || 'Unknown',
+          userType: user.role,
+          createdAt: formatDateToStandard(user.createdAt),
+        } as IApprovalDashboardResponse;
+      });
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.APPROVAL_MANAGEMENT_DATA_FETCHED,
+        data: approvalData,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      return this.handler.handleError(
+        e,
+        AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+      );
+    }
+  }
+
+  async deleteUser(userId: string) {
+    return await this.userService.deleteUser({
+      userId,
+    });
+  }
+
+  async deleteUserMoodMetrics(userId: string) {
+    try {
+      const user = await this.userService.findUser(userId);
+
+      if (user.status !== HttpStatus.OK) {
+        return this.handler.handleReturn({
+          status: user.status,
+          message: user.message,
+        });
+      }
+
+      await this.db
+        .delete(schema.moodMetrics)
+        .where(eq(schema.moodMetrics.userId, userId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: 'User mood metrics deleted successfully',
+      });
+    } catch (e) {
+      this.handler.handleError(e, AEM.ERROR_DELETING_USER_MOOD_METRICS);
+    }
+  }
+
+  async clearUserHealthJournal(userId: string) {
+    try {
+      const user = await this.userService.findUser(userId);
+
+      if (user.status !== HttpStatus.OK) {
+        return this.handler.handleReturn({
+          status: user.status,
+          message: user.message,
+        });
+      }
+      await this.db
+        .delete(schema.health_journal)
+        .where(eq(schema.health_journal.userId, userId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.HEALTH_JOURNAL_CLEARED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      this.handler.handleError(e, AEM.ERROR_CLEARING_USER_HEALTH_JOURNAL);
+    }
+  }
+
+  async fetchAllSubscribers(ctx: IFetchAllContacts) {
+    return await this.newsletterService.fetchAllSubscribers(ctx);
   }
 }

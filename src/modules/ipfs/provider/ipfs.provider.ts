@@ -12,6 +12,7 @@ import {
 } from '../ipfs-client/ipfs-client.service';
 import {
   IDeleteRecordFromIpfs,
+  IFindPathFromCid,
   IHandleFileUploads,
   IMedicalRecord,
   IpfsRecord,
@@ -197,6 +198,16 @@ export class IpfsProvider implements OnModuleInit {
       return isDeleted;
     } catch (e) {
       return this.handler.handleError(e, IEM.ERROR_DELETING_RECORD);
+    }
+  }
+
+  async findPathFromCid(ctx: IFindPathFromCid) {
+    try {
+      const ipfs = this.getIpfsClient();
+      const filePath = await ipfs.findFileByCid(ctx.userId, ctx.cid);
+      return filePath;
+    } catch (e) {
+      return this.handler.handleError(e, IEM.ERROR_FINDING_PATH);
     }
   }
 }
