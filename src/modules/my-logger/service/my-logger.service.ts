@@ -1,4 +1,5 @@
 import { ConsoleLogger, Injectable } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
@@ -17,14 +18,14 @@ export class MyLoggerService extends ConsoleLogger {
       const pathExist = fs.existsSync(logsDir);
 
       if (!pathExist) {
-        console.log('creating directory');
         await fsPromises.mkdir(logsDir, { recursive: true });
+        // Use super.log to avoid recursion since this is called from log methods
+        super.log(`Created logs directory: ${logsDir}`, 'MyLoggerService');
       }
 
       // Writing to the log file
       const logFilePath = path.join(logsDir, 'myLogFile.log');
       await fsPromises.appendFile(logFilePath, formattedEntry);
-      console.log(`file written to ${logFilePath}`);
     } catch (e) {
       console.error('Error writing to the log file:', e);
     }
@@ -33,18 +34,58 @@ export class MyLoggerService extends ConsoleLogger {
   log(message: any, context?: string) {
     const entry = `${context}\t${message}`;
     void this.logToFile(entry);
+
+    // Send to Sentry
+    Sentry.addBreadcrumb({
+      message: typeof message === 'string' ? message : JSON.stringify(message),
+      level: 'info',
+      category: context || 'log',
+    });
+
     super.log(message, context);
   }
 
   error(message: any, stackOrContext?: string) {
     const entry = `${stackOrContext}\t${message}`;
     void this.logToFile(entry);
+
+    // Send to Sentry as an error
+    if (message instanceof Error) {
+      Sentry.captureException(message);
+    } else {
+      Sentry.captureMessage(
+        typeof message === 'string' ? message : JSON.stringify(message),
+        'error',
+      );
+    }
+
     super.error(message, stackOrContext);
   }
 
   info(message: any, context?: string) {
     const entry = `${context}\t${message}`;
     void this.logToFile(entry);
+
+    // Send to Sentry
+    Sentry.addBreadcrumb({
+      message: typeof message === 'string' ? message : JSON.stringify(message),
+      level: 'info',
+      category: context || 'info',
+    });
+
     super.verbose(message, context);
+  }
+
+  warn(message: any, context?: string) {
+    const entry = `${context}\t${message}`;
+    void this.logToFile(entry);
+
+    // Send to Sentry
+    Sentry.captureMessage(
+      typeof message === 'string' ? message : JSON.stringify(message),
+      'warning',
+    );
+
+    super.warn(message, context);
   }
 }

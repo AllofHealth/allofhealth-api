@@ -58,7 +58,6 @@ import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
 
 @Injectable()
 export class UserProvider {
-  private readonly logger = new MyLoggerService(UserProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly authUtils: AuthUtils,
@@ -73,7 +72,10 @@ export class UserProvider {
     private readonly resendService: ResendService,
     @Inject(forwardRef(() => AdminService))
     private readonly adminService: AdminService,
-  ) {}
+    private readonly logger: MyLoggerService,
+  ) {
+    this.logger.setContext(UserProvider.name);
+  }
 
   private async emitEvent(ctx: ICreateDoctor) {
     try {

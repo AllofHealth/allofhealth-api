@@ -7,7 +7,7 @@ export default () => ({
   },
   database: {
     url:
-      process.env.NODE_ENV === 'production'
+      process.env.NODE_ENV === 'PRODUCTION'
         ? process.env.DATABASE_URL
         : process.env.DATABASE_URL_STAGING,
   },
