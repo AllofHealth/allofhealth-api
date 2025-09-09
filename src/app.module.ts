@@ -35,6 +35,7 @@ import { BrevoModule } from './shared/modules/brevo/brevo.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
+import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
 
 @Module({
   imports: [
@@ -95,6 +96,7 @@ import { APP_FILTER } from '@nestjs/core';
     DailyTasksModule,
     BrevoModule,
     NewsletterModule,
+    PushNotificationsModule,
   ],
   controllers: [AppController],
   providers: [
