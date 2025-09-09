@@ -35,6 +35,8 @@ import { BrevoModule } from './shared/modules/brevo/brevo.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
 
 @Module({
   imports: [
