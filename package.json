@@ -22,7 +22,9 @@
     "migrate": "node migrate.js",
     "migrate:drizzle": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org allof-health --project node-nestjs ./dist && sentry-cli sourcemaps upload --org allof-health --project node-nestjs ./dist"
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org allof-health --project node-nestjs ./dist && sentry-cli sourcemaps upload --org allof-health --project node-nestjs ./dist",
+    "sentry:sourcemaps:conditional": "if [ \"$SKIP_SENTRY_SOURCEMAPS\" != \"true\" ]; then npm run sentry:sourcemaps; else echo 'Skipping Sentry sourcemaps upload'; fi",
+    "build:ci": "nest build && npm run sentry:sourcemaps:conditional"
   },
   "dependencies": {
     "@biconomy/account": "^4.5.7",
