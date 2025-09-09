@@ -68,3 +68,7 @@ cache/
 
 # Sentry Config File
 .sentryclirc
+
+# Google Service Account Config Files
+*google*.config.json
+allofhealth-google.config.json
