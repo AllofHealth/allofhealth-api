@@ -29,6 +29,7 @@
   "dependencies": {
     "@biconomy/account": "^4.5.7",
     "@itgorillaz/configify": "^4.0.0",
+    "@keyv/redis": "^5.1.1",
     "@neondatabase/serverless": "^1.0.1",
     "@nestjs/bull": "^11.0.2",
     "@nestjs/cache-manager": "^3.0.1",
