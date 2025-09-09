@@ -99,15 +99,15 @@ export class ERegisterEntity {
 export class EHandleRegisterPatient {
   constructor(
     readonly userId: string,
-    readonly governmentIdFilePath: string,
+    readonly governmentIdFilePath?: string,
   ) {}
 }
 
 export class EHandleRegisterDoctor {
   constructor(
     readonly userId: string,
-    readonly governmentIdFilePath: string,
     readonly scannedLicenseFilePath: string,
+    readonly governmentIdFilePath?: string,
   ) {}
 }
 
