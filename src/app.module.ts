@@ -33,10 +33,13 @@ import { MintQueueModule } from './shared/queues/mint/mint-queue.module';
 import { AccountQueueModule } from './shared/queues/account/account-queue.module';
 import { BrevoModule } from './shared/modules/brevo/brevo.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+import { APP_FILTER } from '@nestjs/core';
 
 @Module({
   imports: [
     ConfigifyModule.forRootAsync(),
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
@@ -94,6 +97,12 @@ import { NewsletterModule } from './modules/newsletter/newsletter.module';
     NewsletterModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
+  ],
 })
 export class AppModule {}

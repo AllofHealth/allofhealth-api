@@ -20,4 +20,8 @@ export class AssetService {
   generateUrl(url: string) {
     return this.assetProvider.generateUrl(url);
   }
+
+  generateUrlFromFileId(fileId: string) {
+    return this.assetProvider.generateUrlFromFileId(fileId);
+  }
 }

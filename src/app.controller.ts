@@ -9,4 +9,14 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
+
+  @Get('/debug-sentry')
+  getError() {
+    this.appService.testSentry();
+  }
+
+  @Get('/test-logs')
+  testLogs() {
+    return this.appService.testAllLogLevels();
+  }
 }
