@@ -184,11 +184,13 @@ export class UserProvider {
   private async handlePatientRegistration(ctx: EHandleRegisterPatient) {
     const { userId, governmentIdFilePath } = ctx;
     try {
-      await this.emitStoreIdentity({
-        userId,
-        role: 'PATIENT',
-        governmentIdFilePath,
-      });
+      if (governmentIdFilePath) {
+        await this.emitStoreIdentity({
+          userId,
+          role: 'PATIENT',
+          governmentIdFilePath,
+        });
+      }
 
       await this.eventEmitter.emitAsync(
         SharedEvents.CREATE_SMART_ACCOUNT,
@@ -699,7 +701,7 @@ export class UserProvider {
             SharedEvents.DOCTOR_REGISTRATION,
             new EHandleRegisterDoctor(
               insertedUser.id,
-              ctx.governmentIdfilePath,
+              ctx.governmentIdfilePath!,
               ctx.scannedLicensefilePath!,
             ),
           );

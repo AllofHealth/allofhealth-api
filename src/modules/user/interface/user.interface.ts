@@ -25,7 +25,7 @@ export interface ICreateUser {
   gender: string;
   phoneNumber: string;
   password: string;
-  governmentIdfilePath: string;
+  governmentIdfilePath?: string;
   bio?: string;
   servicesOffered?: string[];
   specialization?: string;
