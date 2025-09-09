@@ -14,13 +14,14 @@ import {
 } from '../data/identity.data';
 import { IdentityError } from '../error/identity.error';
 import type { IStoreIdentification } from '../interface/identity.interface';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class IdentityProvider {
-  private handler: ErrorHandler;
-  constructor(@Inject(DRIZZLE_PROVIDER) private readonly db: Database) {
-    this.handler = new ErrorHandler();
-  }
+  constructor(
+    @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
+    private readonly handler: ErrorHandler,
+  ) {}
 
   async storeId(ctx: IStoreIdentification) {
     try {
@@ -51,8 +52,8 @@ export class IdentityProvider {
             throw new BadRequestException(
               new IdentityError(
                 'Please provide a copy of your medical license',
-                HttpStatus.BAD_REQUEST
-              )
+                HttpStatus.BAD_REQUEST,
+              ),
             );
           }
 
@@ -89,8 +90,8 @@ export class IdentityProvider {
             throw new BadRequestException(
               new IdentityError(
                 'Please provide a copy of your medical license',
-                HttpStatus.BAD_REQUEST
-              )
+                HttpStatus.BAD_REQUEST,
+              ),
             );
           }
 
