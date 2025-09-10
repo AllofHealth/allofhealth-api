@@ -35,6 +35,12 @@ import { BrevoModule } from './shared/modules/brevo/brevo.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
+<<<<<<< HEAD
+=======
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
+import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 @Module({
   imports: [
@@ -63,10 +69,29 @@ import { APP_FILTER } from '@nestjs/core';
         redis: {
           host: configService.get('redis.host'),
           port: configService.get('redis.port'),
-          username: configService.get('redis.username'),
           password: configService.get('redis.password'),
         },
       }),
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const password = configService.getOrThrow<string>('redis.password');
+        const host = configService.getOrThrow<string>('redis.host');
+        const port = configService.getOrThrow<string>('redis.port');
+
+        const url = `redis://${password}@${host}:${port}`;
+
+        return {
+          stores: new KeyvRedis(url),
+          ttl: 600 * 1000,
+          socket: {
+            reconnectStrategy: (retries) => Math.min(retries * 50, 1000),
+          },
+        };
+      },
     }),
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
@@ -95,6 +120,10 @@ import { APP_FILTER } from '@nestjs/core';
     DailyTasksModule,
     BrevoModule,
     NewsletterModule,
+<<<<<<< HEAD
+=======
+    PushNotificationsModule,
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
   ],
   controllers: [AppController],
   providers: [

@@ -29,8 +29,13 @@ jobs:
 
       - name: Build Docker image
         run: |
+<<<<<<< HEAD
           docker build --no-cache -t ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }} .
       
+=======
+          docker build --no-cache --build-arg SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" -t ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }} .
+
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
       - name: Push Docker image to Docker Hub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }}
 
@@ -65,5 +70,15 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
             docker stop allofhealthapi || true
             docker rm allofhealthapi || true
+<<<<<<< HEAD
             docker run -d -p 3003:3000 --name allofhealthapi ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
 
+=======
+            docker run -d \
+            -p 3003:3000 \
+            -v ipfs-data:/root/.ipfs \
+            --name allofhealthapi \
+            ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
+            
+            
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718

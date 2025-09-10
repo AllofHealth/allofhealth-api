@@ -18,6 +18,10 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "jsx": "react-jsx",
+<<<<<<< HEAD
+=======
+    "resolveJsonModule": true,
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
     "paths": {
       "@/*": ["src/*"]

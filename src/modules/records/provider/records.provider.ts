@@ -414,11 +414,21 @@ export class RecordsProvider {
         );
       }
       const recordUris = recordUriResult.data;
+<<<<<<< HEAD
+=======
+      this.logger.log(`Record uri is fetched from chain ${recordUris}`);
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
       if (recordUris && recordUris.length > 0) {
         const decryptedRecords = await Promise.all(
           recordUris.map(async (uri) => {
             const encryptedRecord =
               await this.ipfsService.fetchRecordFromIpfs(uri);
+<<<<<<< HEAD
+=======
+            this.logger.log(
+              `Ipfs server returns with record ${JSON.stringify(encryptedRecord)}`,
+            );
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
             const isIpfsRecord = (record: any): record is IpfsRecord => {
               return (
@@ -458,6 +468,13 @@ export class RecordsProvider {
                   : [],
               };
 
+<<<<<<< HEAD
+=======
+              this.logger.log(
+                `Decrypted record data: ${JSON.stringify(recordData)}`,
+              );
+
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
               return {
                 ...recordData,
                 uploadedAt: formatDateToReadable(encryptedRecord.uploadedAt),
@@ -476,6 +493,10 @@ export class RecordsProvider {
   }
 
   async fetchRecordByChainId(ctx: IFetchRecordById) {
+<<<<<<< HEAD
+=======
+    this.logger.log(`Provider is hit.`);
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
     const { patientId, practitionerId, recordChainId } = ctx;
     let viewerAddress: string | undefined = undefined;
     try {
@@ -552,6 +573,12 @@ export class RecordsProvider {
         );
 
       const recordType = patientRecordType[0].recordType;
+<<<<<<< HEAD
+=======
+      this.logger.log(
+        `Patient record from db ${JSON.stringify(patientRecordType)}`,
+      );
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
       const decryptedRecord = await this.fetchUriAndDecrypt({
         recordIds: [recordChainId],
@@ -559,6 +586,13 @@ export class RecordsProvider {
         viewerAddress,
       });
 
+<<<<<<< HEAD
+=======
+      this.logger.log(
+        `Decrypted record from db ${JSON.stringify(decryptedRecord)}`,
+      );
+
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
       if (!decryptedRecord) {
         throw new HttpException(
           'Failed to decrypt record',
