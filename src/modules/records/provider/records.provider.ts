@@ -203,18 +203,7 @@ export class RecordsProvider {
         attachments: attachments,
       });
 
-      if (!('data' in ipfsResult) || !ipfsResult) {
-        await this.rollbackRecordCreation({
-          recordChainId: dbResult.recordId,
-          userId: patientId,
-        });
-        return this.handler.handleReturn({
-          status: ipfsResult.status,
-          message: ipfsResult.message,
-        });
-      }
-
-      const cid = ipfsResult.data;
+      const cid = ipfsResult?.data;
       if (!cid) {
         return this.handler.handleReturn({
           status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -241,7 +230,7 @@ export class RecordsProvider {
         message: RSM.SUCCESS_CREATING_RECORD,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_CREATING_RECORD);
+      this.handler.handleError(e, REM.ERROR_CREATING_RECORD);
     }
   }
 
@@ -394,7 +383,7 @@ export class RecordsProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
+      this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
     }
   }
 
@@ -407,13 +396,7 @@ export class RecordsProvider {
         viewerAddress,
       });
 
-      if (!('data' in recordUriResult && recordUriResult)) {
-        throw new HttpException(
-          'Failed to fetch record URIs',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      const recordUris = recordUriResult.data;
+      const recordUris = recordUriResult?.data;
       this.logger.log(`Record uri is fetched from chain ${recordUris}`);
       if (recordUris && recordUris.length > 0) {
         const decryptedRecords = await Promise.all(
@@ -608,7 +591,7 @@ export class RecordsProvider {
         data: enrichedRecord,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
+      this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
     }
   }
 }

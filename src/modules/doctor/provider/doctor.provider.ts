@@ -84,17 +84,20 @@ export class DoctorProvider {
         data: parsedDoctor,
       });
     } catch (e) {
-      return this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
+      this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
     }
   }
 
   async validateDoctorExists(userId: string) {
-    const doctor = await this.fetchDoctor(userId);
-    if (doctor.status === HttpStatus.OK) {
+    try {
+      const doctor = await this.fetchDoctor(userId);
+      if (!doctor || !('data' in doctor && doctor.data)) {
+        return false;
+      }
       return true;
+    } catch (error) {
+      return false;
     }
-
-    return false;
   }
 
   async createDoctor(ctx: ICreateDoctor) {
@@ -131,7 +134,7 @@ export class DoctorProvider {
         message: DSM.DOCTOR_CREATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
+      this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
     }
   }
 
@@ -212,7 +215,7 @@ export class DoctorProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, DEM.ERROR_FETCHING_ALL_DOCTORS);
+      this.handler.handleError(e, DEM.ERROR_FETCHING_ALL_DOCTORS);
     }
   }
 

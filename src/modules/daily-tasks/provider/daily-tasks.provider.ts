@@ -53,7 +53,7 @@ export class DailyTasksProvider {
         throw error;
       }
     } catch (e) {
-      return this.handler.handleError(e, 'Error generating daily tasks');
+      this.handler.handleError(e, 'Error generating daily tasks');
     }
   }
 
@@ -172,7 +172,7 @@ export class DailyTasksProvider {
         data: { tasks: formattedTasks },
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error fetching daily tasks');
+      this.handler.handleError(e, 'Error fetching daily tasks');
     }
   }
 
@@ -325,7 +325,7 @@ export class DailyTasksProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error completing task');
+      this.handler.handleError(e, 'Error completing task');
     }
   }
 
@@ -383,7 +383,7 @@ export class DailyTasksProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error fetching task statistics');
+      this.handler.handleError(e, 'Error fetching task statistics');
     }
   }
 
@@ -401,7 +401,7 @@ export class DailyTasksProvider {
         message: 'Task types initialized successfully',
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error initializing task types');
+      this.handler.handleError(e, 'Error initializing task types');
     }
   }
 
@@ -434,7 +434,7 @@ export class DailyTasksProvider {
         message: `Cleaned up tasks older than ${daysToKeep} days`,
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error cleaning up old tasks');
+      this.handler.handleError(e, 'Error cleaning up old tasks');
     }
   }
 }

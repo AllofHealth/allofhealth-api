@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import type { IHandleReturn } from '../interface/shared.interface';
 
@@ -9,20 +14,10 @@ export class ErrorHandler {
   handleError(error: any, context: string) {
     this.myLoggerService.error(`${context}: ${error.message}`);
     if (error.status) {
-      return {
-        //eslint-disable-next-line
-        status: error.status,
-        //eslint-disable-next-line
-        message: error.message || context,
-      };
+      throw new HttpException(context, error.status, { cause: error });
     }
 
-    return {
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: context,
-      //eslint-disable-next-line
-      error: process.env.NODE_ENV !== 'production' ? error.message : undefined,
-    };
+    throw new InternalServerErrorException(error, context);
   }
 
   handleReturn<T, D = undefined, M = undefined>(args: IHandleReturn<T, D, M>) {
