@@ -68,9 +68,6 @@ cache/
 
 # Sentry Config File
 .sentryclirc
-<<<<<<< HEAD
-=======
 
 # Google Service Account
 src/shared/modules/push-notifications/config/allofhealth-google.config.json
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718

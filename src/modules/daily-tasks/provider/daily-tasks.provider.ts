@@ -2,7 +2,12 @@ import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { and, count, desc, eq, sql } from 'drizzle-orm';
 import {
   ICompleteTask,
@@ -44,16 +49,10 @@ export class DailyTasksProvider {
         await this.generateDailyTasksForDate(userId, today);
         return this.getUserDailyTasks({ userId, date: today });
       } catch (error) {
-        if (error.message === 'User not found') {
-          return this.handler.handleReturn({
-            status: HttpStatus.NOT_FOUND,
-            message: 'User not found',
-          });
-        }
         throw error;
       }
     } catch (e) {
-      return this.handler.handleError(e, 'Error generating daily tasks');
+      this.handler.handleError(e, e.message || 'Error generating daily tasks');
     }
   }
 
@@ -172,7 +171,7 @@ export class DailyTasksProvider {
         data: { tasks: formattedTasks },
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error fetching daily tasks');
+      this.handler.handleError(e, e.message || 'Error fetching daily tasks');
     }
   }
 
@@ -258,11 +257,7 @@ export class DailyTasksProvider {
         .limit(1);
 
       if (!incompleteTask.length) {
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: 'No matching incomplete task found',
-          data: { taskCompleted: false, tokensAwarded: 0 },
-        });
+        throw new BadRequestException('No matching incomplete task found');
       }
 
       const task = incompleteTask[0];
@@ -325,7 +320,7 @@ export class DailyTasksProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error completing task');
+      this.handler.handleError(e, e.message || 'Error completing task');
     }
   }
 
@@ -383,7 +378,10 @@ export class DailyTasksProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error fetching task statistics');
+      this.handler.handleError(
+        e,
+        e.message || 'Error fetching task statistics',
+      );
     }
   }
 
@@ -401,7 +399,7 @@ export class DailyTasksProvider {
         message: 'Task types initialized successfully',
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error initializing task types');
+      this.handler.handleError(e, 'Error initializing task types');
     }
   }
 
@@ -434,7 +432,7 @@ export class DailyTasksProvider {
         message: `Cleaned up tasks older than ${daysToKeep} days`,
       });
     } catch (e) {
-      return this.handler.handleError(e, 'Error cleaning up old tasks');
+      this.handler.handleError(e, 'Error cleaning up old tasks');
     }
   }
 }

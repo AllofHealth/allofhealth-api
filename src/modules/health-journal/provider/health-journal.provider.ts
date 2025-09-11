@@ -1,6 +1,7 @@
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import {
+  BadRequestException,
   HttpStatus,
   Inject,
   Injectable,
@@ -72,7 +73,7 @@ export class HealthJournalProvider {
       return formattedJournal;
     } catch (e) {
       throw new InternalServerErrorException(
-        `${HEM.ERROR_FETCHING_MONTHLY_JOURNAL}, ${e}`,
+        e.message || `${HEM.ERROR_FETCHING_MONTHLY_JOURNAL}, ${e}`,
       );
     }
   }
@@ -93,10 +94,7 @@ export class HealthJournalProvider {
         .returning();
 
       if (!journal || journal.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: HEM.ERROR_ADDING_ENTRY,
-        });
+        throw new BadRequestException(HEM.ERROR_ADDING_ENTRY);
       }
 
       const taskData = new EUpdateTaskCount(
@@ -118,7 +116,7 @@ export class HealthJournalProvider {
         message: HSM.SUCCESS_ADDING_ENTRY,
       });
     } catch (e) {
-      return this.handler.handleError(e, HEM.ERROR_ADDING_ENTRY);
+      return this.handler.handleError(e, e.mssage || HEM.ERROR_ADDING_ENTRY);
     }
   }
 
@@ -163,7 +161,10 @@ export class HealthJournalProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, HEM.ERROR_FETCHING_JOURNAL);
+      return this.handler.handleError(
+        e,
+        e.message || HEM.ERROR_FETCHING_JOURNAL,
+      );
     }
   }
 

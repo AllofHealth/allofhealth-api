@@ -35,12 +35,9 @@ import { BrevoModule } from './shared/modules/brevo/brevo.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
-<<<<<<< HEAD
-=======
 import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
 import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 @Module({
   imports: [
@@ -120,10 +117,7 @@ import { PushNotificationsModule } from './shared/modules/push-notifications/pus
     DailyTasksModule,
     BrevoModule,
     NewsletterModule,
-<<<<<<< HEAD
-=======
     PushNotificationsModule,
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
   ],
   controllers: [AppController],
   providers: [

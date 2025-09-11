@@ -5,6 +5,7 @@ import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { monthNumberToName } from '@/shared/utils/date.utils';
 import {
+  BadRequestException,
   HttpStatus,
   Inject,
   Injectable,
@@ -123,7 +124,8 @@ export class JournalMetricsProvider {
     } catch (e) {
       this.logger.debug(e);
       throw new InternalServerErrorException(
-        `${HEM.ERROR_CALCULATING_MONTHLY_AVERAGE_MOOD_SCORE}, ${e}`,
+        e.message ||
+          `${HEM.ERROR_CALCULATING_MONTHLY_AVERAGE_MOOD_SCORE}, ${e}`,
       );
     }
   }
@@ -261,10 +263,7 @@ export class JournalMetricsProvider {
         data: [],
       });
     } catch (e) {
-      return this.handler.handleError(
-        e,
-        HEM.ERROR_CREATING_HEALTH_JOURNAL_METRICS,
-      );
+      this.handler.handleError(e, HEM.ERROR_CREATING_HEALTH_JOURNAL_METRICS);
     }
   }
 
@@ -309,10 +308,7 @@ export class JournalMetricsProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(
-        e,
-        HEM.ERROR_UPDATING_HEALTH_JOURNAL_METRICS,
-      );
+      this.handler.handleError(e, HEM.ERROR_UPDATING_HEALTH_JOURNAL_METRICS);
     }
   }
 
@@ -382,10 +378,9 @@ export class JournalMetricsProvider {
             const minYear = currentYear - 11;
 
             if (year < minYear || year > currentYear) {
-              return this.handler.handleReturn({
-                status: HttpStatus.BAD_REQUEST,
-                message: `Year must be between ${minYear} and ${currentYear}`,
-              });
+              throw new BadRequestException(
+                `Year must be between ${minYear} and ${currentYear}`,
+              );
             }
 
             const yearMetric = await this.fetchYearMetrics(userId, year);
@@ -436,7 +431,7 @@ export class JournalMetricsProvider {
     } catch (e) {
       return this.handler.handleError(
         e,
-        HEM.ERROR_FETCHING_HEALTH_JOURNAL_METRICS,
+        e.message || HEM.ERROR_FETCHING_HEALTH_JOURNAL_METRICS,
       );
     }
   }

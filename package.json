@@ -22,7 +22,10 @@
     "migrate": "node migrate.js",
     "migrate:drizzle": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1465148e661a9c3971499e0af9ff1292185b881c
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org allof-health --project node-nestjs ./dist && sentry-cli sourcemaps upload --org allof-health --project node-nestjs ./dist",
     "sentry:sourcemaps:conditional": "if [ \"$SKIP_SENTRY_SOURCEMAPS\" != \"true\" ]; then npm run sentry:sourcemaps; else echo 'Skipping Sentry sourcemaps upload'; fi",
     "build:ci": "nest build && npm run sentry:sourcemaps:conditional"

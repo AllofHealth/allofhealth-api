@@ -88,11 +88,7 @@ export class DailyTasksService {
         relatedEntityType: 'approval',
       });
 
-      if (!('data' in result && result)) {
-        return;
-      }
-
-      if (result.data?.taskCompleted) {
+      if (result?.data?.taskCompleted) {
         await this.rewardProvider.incrementDailyCount(doctorUserId);
         this.logger.debug(
           `Daily task and reward updated for doctor ${doctorUserId} - approval ${approvalId}`,
@@ -116,14 +112,7 @@ export class DailyTasksService {
         relatedEntityType: 'medical_record',
       });
 
-      if (!('data' in result && result.data)) {
-        this.logger.error(
-          `Error handling medical record creation: ${result.message}`,
-        );
-        return;
-      }
-
-      if (result.data?.taskCompleted) {
+      if (result?.data?.taskCompleted) {
         await this.rewardProvider.incrementDailyCount(doctorUserId);
         this.logger.debug(
           `Daily task and reward updated for doctor ${doctorUserId} - record ${recordId}`,
@@ -146,14 +135,8 @@ export class DailyTasksService {
         relatedEntityId: healthInfoId,
         relatedEntityType: 'health_information',
       });
-      if (!('data' in result && result.data)) {
-        this.logger.error(
-          `Invalid response from completeTask: ${JSON.stringify(result)}`,
-        );
-        return;
-      }
 
-      if (result.data?.taskCompleted) {
+      if (result?.data?.taskCompleted) {
         await this.rewardProvider.incrementDailyCount(userId);
         this.logger.debug(
           `Daily task and reward updated for user ${userId} - health info ${healthInfoId}`,
@@ -178,14 +161,8 @@ export class DailyTasksService {
         relatedEntityId: journalId,
         relatedEntityType: 'health_journal',
       });
-      if (!('data' in result && result.data)) {
-        this.logger.error(
-          `Invalid response from completeTask: ${JSON.stringify(result)}`,
-        );
-        return;
-      }
 
-      if (result.data?.taskCompleted) {
+      if (result?.data?.taskCompleted) {
         await this.rewardProvider.incrementDailyCount(userId);
         this.logger.debug(
           `Daily task and reward updated for user ${userId} - health journal ${journalId}`,

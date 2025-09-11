@@ -1,6 +1,7 @@
 import { BrevoConfig } from '@/shared/config/brevo/brevo.config';
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -92,10 +93,7 @@ export class BrevoProvider {
 
       const hasSubscribed = await this.getContactInfo(ctx.emailAddress);
       if (hasSubscribed) {
-        return {
-          status: HttpStatus.CREATED,
-          message: 'Email already exist',
-        };
+        throw new ConflictException('Already subscribed');
       }
 
       const response = await fetch(CONTACT_PATH.CONTACTS, options as Object);

@@ -41,10 +41,7 @@ export class TokenProvider {
         data: token,
       });
     } catch (e) {
-      return this.handler.handleError(
-        e,
-        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN,
-      );
+      this.handler.handleError(e, TokenErrorMessages.ERROR_FINDING_VALID_TOKEN);
     }
   }
 
@@ -75,7 +72,7 @@ export class TokenProvider {
         message: TokenSuccessMessages.TOKEN_CREATED,
       });
     } catch (e) {
-      return this.handler.handleError(
+      this.handler.handleError(
         e,
         TokenErrorMessages.ERROR_CREATING_REFRESH_TOKEN,
       );
@@ -100,10 +97,7 @@ export class TokenProvider {
         data: result,
       });
     } catch (e) {
-      return this.handler.handleError(
-        e,
-        TokenErrorMessages.ERROR_FINDING_VALID_TOKEN,
-      );
+      this.handler.handleError(e, TokenErrorMessages.ERROR_FINDING_VALID_TOKEN);
     }
   }
 
@@ -143,10 +137,7 @@ export class TokenProvider {
         });
       }
     } catch (e) {
-      return this.handler.handleError(
-        e,
-        TokenErrorMessages.ERROR_REVOKING_TOKEN,
-      );
+      this.handler.handleError(e, TokenErrorMessages.ERROR_REVOKING_TOKEN);
     }
   }
 }
