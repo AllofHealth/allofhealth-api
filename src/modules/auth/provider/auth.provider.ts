@@ -136,7 +136,10 @@ export class AuthProvider {
         },
       };
     } catch (error) {
-      this.handler.handleError(error, AEM.TOKEN_REFRESH_FAILED);
+      this.handler.handleError(
+        error,
+        error.message || AEM.TOKEN_REFRESH_FAILED,
+      );
     }
   }
 
@@ -152,7 +155,7 @@ export class AuthProvider {
         message: ASM.REGISTRATION_SUCCESS,
       };
     } catch (error) {
-      this.handler.handleError(error, AEM.REGISTRATION_FAILED);
+      this.handler.handleError(error, error.message || AEM.REGISTRATION_FAILED);
     }
   }
 
@@ -232,7 +235,7 @@ export class AuthProvider {
         } as ILoginResponse,
       });
     } catch (e) {
-      this.handler.handleError(e, AEM.LOGIN_FAILED);
+      this.handler.handleError(e, e.message || AEM.LOGIN_FAILED);
     }
   }
 }
