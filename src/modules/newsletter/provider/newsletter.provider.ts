@@ -20,12 +20,6 @@ export class NewsletterProvider {
   async subscribe(ctx: ICreateContact) {
     try {
       const data = await this.brevoService.createContact(ctx);
-      if (data.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: data.status,
-          message: data.message,
-        });
-      }
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
@@ -40,12 +34,6 @@ export class NewsletterProvider {
   async fetchAllSubscribers(ctx: IFetchAllContacts) {
     try {
       const data = await this.brevoService.fetchAllContacts(ctx);
-      if (data.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: data.status,
-          message: data.message,
-        });
-      }
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
