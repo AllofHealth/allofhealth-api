@@ -713,7 +713,7 @@ export class AdminProvider {
     try {
       const userSuspended = await this.isUserSuspended(userId);
       if (!userSuspended) {
-        throw new ConflictError(ASM.USER_NOT_SUSPENDED);
+        throw new ConflictException(ASM.USER_NOT_SUSPENDED);
       }
 
       await this.db.transaction(async (tx) => {
@@ -900,9 +900,14 @@ export class AdminProvider {
       });
     } catch (e) {
       this.handler.handleError(
-        new AdminError(e.message || 'Error fetching all doctors', {
-          cause: e.message,
-        }),
+        new AdminError(
+          e.message || 'Error fetching all doctors',
+          {
+            cause: e.message,
+          },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        ),
+        e.message,
       );
     }
   }
