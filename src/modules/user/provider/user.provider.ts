@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  NotFoundException,
   NotImplementedException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -165,7 +166,10 @@ export class UserProvider {
         },
       });
     } catch (e) {
-      this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
+      this.handler.handleError(
+        e,
+        e.message || UEM.ERROR_FETCHING_DASHBOARD_DATA,
+      );
     }
   }
 
@@ -264,6 +268,9 @@ export class UserProvider {
   async validateEmailAddress(emailAddress: string) {
     try {
       const user = await this.findUserByEmail(emailAddress);
+      if (!user?.data) {
+        return false;
+      }
       return true;
     } catch (error) {
       return false;
@@ -279,12 +286,7 @@ export class UserProvider {
         .limit(1);
 
       if (!user || user.length === 0) {
-        console.log('user not found');
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: UEM.USER_NOT_FOUND,
-          data: null,
-        });
+        throw new NotFoundException(UEM.USER_NOT_FOUND);
       }
 
       const usersnippet = {
@@ -351,7 +353,7 @@ export class UserProvider {
         data: updatedParsedUser,
       });
     } catch (e) {
-      this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
+      this.handler.handleError(e, e.message || UEM.ERROR_FETCHING_USER);
     }
   }
 
@@ -364,10 +366,7 @@ export class UserProvider {
         .limit(1);
 
       if (!role || role.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: UEM.USER_NOT_FOUND,
-        });
+        throw new NotFoundException(UEM.USER_NOT_FOUND);
       }
 
       const userRole = role[0].role as TRole;
@@ -384,7 +383,10 @@ export class UserProvider {
           });
       }
     } catch (e) {
-      this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
+      this.handler.handleError(
+        e,
+        e.message || UEM.ERROR_FETCHING_DASHBOARD_DATA,
+      );
     }
   }
 
@@ -451,7 +453,7 @@ export class UserProvider {
     } catch (e) {
       this.logger.error(`${UEM.ERROR_FETCHING_PATIENTS}: ${e}`);
       throw new HttpException(
-        UEM.ERROR_FETCHING_PATIENTS,
+        e.message || UEM.ERROR_FETCHING_PATIENTS,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -517,7 +519,7 @@ export class UserProvider {
     } catch (e) {
       this.logger.error(`${UEM.ERROR_FETCHING_ALL_USERS}: ${e}`);
       throw new HttpException(
-        UEM.ERROR_FETCHING_ALL_USERS,
+        e.message || UEM.ERROR_FETCHING_ALL_USERS,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -722,7 +724,7 @@ export class UserProvider {
           );
       }
     } catch (e) {
-      this.handler.handleError(e, UEM.ERROR_CREATE_USER);
+      this.handler.handleError(e, e.message || UEM.ERROR_CREATE_USER);
     }
   }
 
@@ -837,7 +839,7 @@ export class UserProvider {
         message: USM.USER_UPDATED,
       });
     } catch (e) {
-      this.handler.handleError(e, UEM.ERROR_UPDATING_USER);
+      this.handler.handleError(e, e.message || UEM.ERROR_UPDATING_USER);
     }
   }
 
@@ -877,7 +879,7 @@ export class UserProvider {
       this.logger.error(`${UEM.ERROR_DETERMINING_USER_ROLE}: ${e}`);
       throw new HttpException(
         new UserError(
-          UEM.ERROR_DETERMINING_USER_ROLE,
+          e.message || UEM.ERROR_DETERMINING_USER_ROLE,
           HttpStatus.INTERNAL_SERVER_ERROR,
         ),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -954,7 +956,7 @@ export class UserProvider {
         message: USM.PASSWORD_RESET_SUCCESSFUL,
       });
     } catch (e) {
-      this.handler.handleError(e, UEM.ERROR_RESETING_PASSWORD);
+      this.handler.handleError(e, e.message || UEM.ERROR_RESETING_PASSWORD);
     }
   }
 }
