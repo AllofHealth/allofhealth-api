@@ -99,6 +99,7 @@ export class ERegisterEntity {
 export class EHandleRegisterPatient {
   constructor(
     readonly userId: string,
+
     readonly governmentIdFilePath?: string,
   ) {}
 }

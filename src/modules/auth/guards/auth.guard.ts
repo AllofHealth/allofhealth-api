@@ -39,7 +39,7 @@ export class AuthGuard implements CanActivate {
         await this.tokenService.fetchUserToken(userIdFromPayload);
 
       if (
-        userTokenResult.status !== HttpStatus.FOUND ||
+        userTokenResult?.status !== HttpStatus.FOUND ||
         !('data' in userTokenResult && userTokenResult.data)
       ) {
         throw new UnauthorizedException('No valid session found for user');

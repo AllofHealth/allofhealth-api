@@ -16,10 +16,13 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -117,10 +120,7 @@ export class RecordsProvider {
 
       const name = await this.returnPractitionerName(practitionerId);
       if (!name) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: 'Practitioner not found',
-        });
+        throw new NotFoundException('Practitioner not found');
       }
 
       const encryptedRecordResult =
@@ -134,10 +134,7 @@ export class RecordsProvider {
 
       const encryptedResult = encryptedRecordResult.data;
       if (!encryptedResult) {
-        return this.handler.handleReturn({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: REM.ERROR_CREATING_RECORD,
-        });
+        throw new InternalServerErrorException('Error encrypting record');
       }
 
       const dbResult = await this.db.transaction(async (tx) => {
@@ -203,23 +200,12 @@ export class RecordsProvider {
         attachments: attachments,
       });
 
-      if (!('data' in ipfsResult) || !ipfsResult) {
-        await this.rollbackRecordCreation({
-          recordChainId: dbResult.recordId,
-          userId: patientId,
-        });
-        return this.handler.handleReturn({
-          status: ipfsResult.status,
-          message: ipfsResult.message,
-        });
-      }
-
-      const cid = ipfsResult.data;
+      const cid = ipfsResult?.data;
       if (!cid) {
-        return this.handler.handleReturn({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: IPFS_ERROR_MESSAGES.ERROR_UPLOADING_RECORD,
-        });
+        throw new HttpException(
+          IPFS_ERROR_MESSAGES.ERROR_UPLOADING_RECORD,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
 
       const recordEvent = new EAddMedicalRecordToContract(
@@ -241,7 +227,7 @@ export class RecordsProvider {
         message: RSM.SUCCESS_CREATING_RECORD,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_CREATING_RECORD);
+      this.handler.handleError(e, e.message || REM.ERROR_CREATING_RECORD);
     }
   }
 
@@ -394,7 +380,7 @@ export class RecordsProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
+      this.handler.handleError(e, e.message || REM.ERROR_FETCHING_RECORDS);
     }
   }
 
@@ -407,22 +393,12 @@ export class RecordsProvider {
         viewerAddress,
       });
 
-      if (!('data' in recordUriResult && recordUriResult)) {
-        throw new HttpException(
-          'Failed to fetch record URIs',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      const recordUris = recordUriResult.data;
-      this.logger.log(`Record uri is fetched from chain ${recordUris}`);
+      const recordUris = recordUriResult?.data;
       if (recordUris && recordUris.length > 0) {
         const decryptedRecords = await Promise.all(
           recordUris.map(async (uri) => {
             const encryptedRecord =
               await this.ipfsService.fetchRecordFromIpfs(uri);
-            this.logger.log(
-              `Ipfs server returns with record ${JSON.stringify(encryptedRecord)}`,
-            );
 
             const isIpfsRecord = (record: any): record is IpfsRecord => {
               return (
@@ -462,10 +438,6 @@ export class RecordsProvider {
                   : [],
               };
 
-              this.logger.log(
-                `Decrypted record data: ${JSON.stringify(recordData)}`,
-              );
-
               return {
                 ...recordData,
                 uploadedAt: formatDateToReadable(encryptedRecord.uploadedAt),
@@ -484,7 +456,6 @@ export class RecordsProvider {
   }
 
   async fetchRecordByChainId(ctx: IFetchRecordById) {
-    this.logger.log(`Provider is hit.`);
     const { patientId, practitionerId, recordChainId } = ctx;
     let viewerAddress: string | undefined = undefined;
     try {
@@ -526,10 +497,7 @@ export class RecordsProvider {
           !approvalDetails.isRequestAccepted ||
           !readPermissions.includes(approvalDetails.accessLevel.toLowerCase())
         ) {
-          return this.handler.handleReturn({
-            status: HttpStatus.UNAUTHORIZED,
-            message: 'Invalid permissions',
-          });
+          throw new UnauthorizedException('Invalid permissions');
         }
 
         if (!isValid) {
@@ -538,11 +506,9 @@ export class RecordsProvider {
             new EDeleteApproval(approvalDetails.approvalId),
           );
 
-          return this.handler.handleReturn({
-            status: HttpStatus.CONFLICT,
-            message: 'Approval duration expired, deleting approval',
-            data: approvalDetails.approvalId,
-          });
+          throw new ConflictException(
+            'Approval duration expired, deleting approval',
+          );
         }
       }
 
@@ -561,19 +527,12 @@ export class RecordsProvider {
         );
 
       const recordType = patientRecordType[0].recordType;
-      this.logger.log(
-        `Patient record from db ${JSON.stringify(patientRecordType)}`,
-      );
 
       const decryptedRecord = await this.fetchUriAndDecrypt({
         recordIds: [recordChainId],
         userId: patientId,
         viewerAddress,
       });
-
-      this.logger.log(
-        `Decrypted record from db ${JSON.stringify(decryptedRecord)}`,
-      );
 
       if (!decryptedRecord) {
         throw new HttpException(
@@ -608,7 +567,7 @@ export class RecordsProvider {
         data: enrichedRecord,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
+      this.handler.handleError(e, e.message || REM.ERROR_FETCHING_RECORDS);
     }
   }
 }

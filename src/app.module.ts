@@ -37,6 +37,7 @@ import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
+import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import KeyvRedis from '@keyv/redis';
     DailyTasksModule,
     BrevoModule,
     NewsletterModule,
+    PushNotificationsModule,
   ],
   controllers: [AppController],
   providers: [

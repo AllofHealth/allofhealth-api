@@ -15,6 +15,7 @@ import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 import {
   BadRequestException,
+  ConflictException,
   forwardRef,
   HttpException,
   HttpStatus,
@@ -59,8 +60,8 @@ export class ApprovalProvider {
   private async getSmartAddress(practitionerId: string) {
     const result = await this.aaService.getSmartAddress(practitionerId);
 
-    if (!('data' in result && result.data)) {
-      throw new BadRequestException(result.message);
+    if (!result?.data) {
+      throw new BadRequestException('Failed to get smart address');
     }
 
     return result.data.smartAddress;
@@ -132,17 +133,11 @@ export class ApprovalProvider {
       ]);
 
       if (!isPatient) {
-        return this.handler.handleReturn({
-          status: HttpStatus.UNAUTHORIZED,
-          message: AEM.PATIENT_ONLY,
-        });
+        throw new UnauthorizedException(AEM.PATIENT_ONLY);
       }
 
       if (!isPractitioner) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: AEM.NOT_A_VALID_PRACTITIONER,
-        });
+        throw new UnauthorizedException(AEM.NOT_A_VALID_PRACTITIONER);
       }
 
       const isVerifiedResult = await this.db
@@ -160,10 +155,7 @@ export class ApprovalProvider {
 
       if (accessLevel === 'full') {
         if (!recordIds || recordIds.length === 0) {
-          return this.handler.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: AEM.RECORD_ID_IS_REQUIRED,
-          });
+          throw new BadRequestException(AEM.RECORD_ID_IS_REQUIRED);
         }
 
         for (const recordId of recordIds) {
@@ -184,10 +176,7 @@ export class ApprovalProvider {
             .limit(1);
 
           if (existingApproval.length > 0) {
-            return this.handler.handleReturn({
-              status: HttpStatus.BAD_REQUEST,
-              message: `${AEM.APPROVAL_ALREADY_EXISTS} for record ID: ${recordId}`,
-            });
+            throw new ConflictException(AEM.APPROVAL_ALREADY_EXISTS);
           }
         }
       }
@@ -268,7 +257,7 @@ export class ApprovalProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_CREATING_APPROVAL);
+      this.handler.handleError(e, e.message || AEM.ERROR_CREATING_APPROVAL);
     }
   }
 
@@ -365,7 +354,10 @@ export class ApprovalProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_DOCTOR_APPROVAL);
+      this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_FETCHING_DOCTOR_APPROVAL,
+      );
     }
   }
 
@@ -375,10 +367,7 @@ export class ApprovalProvider {
       await this.userService.checkUserSuspension(doctorId);
       const isCompliant = await this.practitionerCompliance(doctorId);
       if (!isCompliant) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: AEM.NOT_A_VALID_PRACTITIONER,
-        });
+        throw new UnauthorizedException(AEM.NOT_A_VALID_PRACTITIONER);
       }
 
       const isOtpVerifiedResult = await this.db.query.user.findFirst({
@@ -386,19 +375,13 @@ export class ApprovalProvider {
       });
 
       if (!isOtpVerifiedResult) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND,
-        });
+        throw new NotFoundException(DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND);
       }
 
       const isOtpVerified = isOtpVerifiedResult.isOtpVerified;
 
       if (!isOtpVerified) {
-        return this.handler.handleReturn({
-          status: HttpStatus.UNAUTHORIZED,
-          message: AEM.OTP_NOT_VERIFIED,
-        });
+        throw new UnauthorizedException(AEM.OTP_NOT_VERIFIED);
       }
 
       const doctorAddress = await this.getSmartAddress(doctorId);
@@ -410,17 +393,11 @@ export class ApprovalProvider {
       });
 
       if (!approval || typeof approval === undefined) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.APPROVAL_NOT_FOUND,
-        });
+        throw new NotFoundException(AEM.APPROVAL_NOT_FOUND);
       }
 
       if (approval.isRequestAccepted) {
-        return this.handler.handleReturn({
-          status: HttpStatus.CONFLICT,
-          message: AEM.APPROVAL_REQUEST_CONFLICT,
-        });
+        throw new ConflictException(AEM.APPROVAL_REQUEST_CONFLICT);
       }
       const previousDate = approval.updatedAt;
 
@@ -445,10 +422,10 @@ export class ApprovalProvider {
           updatedAt: previousDate,
           status: APPROVAL_STATUS.CREATED,
         });
-        return this.handler.handleReturn({
-          status: approvalContractResult.status,
-          message: approvalContractResult.message,
-        });
+        throw new HttpException(
+          approvalContractResult.message,
+          approvalContractResult.status,
+        );
       }
 
       const taskData = new EUpdateTaskCount(
@@ -468,7 +445,7 @@ export class ApprovalProvider {
         message: ASM.APPROVAL_ACCEPTED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_ACCEPTING_APPROVAL);
+      this.handler.handleError(e, e.message || AEM.ERROR_ACCEPTING_APPROVAL);
     }
   }
 
@@ -477,10 +454,7 @@ export class ApprovalProvider {
     try {
       const isCompliant = await this.practitionerCompliance(doctorId);
       if (!isCompliant) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: AEM.NOT_A_VALID_PRACTITIONER,
-        });
+        throw new UnauthorizedException(AEM.NOT_A_VALID_PRACTITIONER);
       }
 
       const doctorAddress = await this.getSmartAddress(doctorId);
@@ -492,10 +466,7 @@ export class ApprovalProvider {
       });
 
       if (!approval || typeof approval === undefined) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.APPROVAL_NOT_FOUND,
-        });
+        throw new NotFoundException(AEM.APPROVAL_NOT_FOUND);
       }
 
       await this.db
@@ -521,7 +492,7 @@ export class ApprovalProvider {
         message: ASM.APPROVAL_REJECTED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_REJECTING_APPROVAL);
+      this.handler.handleError(e, e.message || AEM.ERROR_REJECTING_APPROVAL);
     }
   }
 
@@ -606,7 +577,7 @@ export class ApprovalProvider {
       };
     } catch (e) {
       throw new HttpException(
-        AEM.ERROR_VALIDATING_APPROVAL_ACCESS,
+        e.message || AEM.ERROR_VALIDATING_APPROVAL_ACCESS,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -643,10 +614,7 @@ export class ApprovalProvider {
         .limit(1);
 
       if (!approvals || approvals.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.APPROVAL_NOT_FOUND,
-        });
+        throw new NotFoundException(AEM.APPROVAL_NOT_FOUND);
       }
 
       const parsedApproval = approvals.map((approval) => {
@@ -667,7 +635,7 @@ export class ApprovalProvider {
         data: parsedApproval[0],
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FINDING_APPROVAL);
+      this.handler.handleError(e, e.message || AEM.ERROR_FINDING_APPROVAL);
     }
   }
 
@@ -675,18 +643,12 @@ export class ApprovalProvider {
     try {
       const isCompliant = await this.practitionerCompliance(userId);
       if (!isCompliant) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: AEM.NOT_A_VALID_PRACTITIONER,
-        });
+        throw new UnauthorizedException(AEM.NOT_A_VALID_PRACTITIONER);
       }
 
       const smartAddressResult = await this.aaService.getSmartAddress(userId);
-      if (!('data' in smartAddressResult && smartAddressResult.data)) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: smartAddressResult.message,
-        });
+      if (!smartAddressResult?.data) {
+        throw new Error('Failed to get smart address');
       }
 
       const smartAddress = smartAddressResult.data.smartAddress;
@@ -723,11 +685,7 @@ export class ApprovalProvider {
         );
 
       if (!approvals || approvals.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: ASM.NO_APPROVALS_FOUND,
-          data: [],
-        });
+        throw new NotFoundException(AEM.APPROVALS_NOT_FOUND);
       }
 
       const parsedApprovals = approvals.map((approval) => {
@@ -748,14 +706,16 @@ export class ApprovalProvider {
         data: parsedApprovals,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVED_APPROVALS);
+      this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_FETCHING_APPROVED_APPROVALS,
+      );
     }
   }
 
   async deleteApproval(approvalId: string) {
     try {
-      const approvalResult = await this.findApprovalById(approvalId);
-      if (approvalResult.status !== HttpStatus.OK) return approvalResult;
+      await this.findApprovalById(approvalId);
 
       await this.db
         .delete(schema.approvals)
@@ -766,7 +726,7 @@ export class ApprovalProvider {
         message: ASM.APPROVAL_DELETED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_DELETING_APPROVAL);
+      this.handler.handleError(e, e.message || AEM.ERROR_DELETING_APPROVAL);
     }
   }
 
@@ -777,10 +737,7 @@ export class ApprovalProvider {
       });
 
       if (!approval || typeof approval === undefined) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.APPROVAL_NOT_FOUND,
-        });
+        throw new NotFoundException(AEM.APPROVAL_NOT_FOUND);
       }
 
       return this.handler.handleReturn({
@@ -789,7 +746,7 @@ export class ApprovalProvider {
         data: approval,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVAL);
+      this.handler.handleError(e, e.message || AEM.ERROR_FETCHING_APPROVAL);
     }
   }
 
@@ -831,7 +788,10 @@ export class ApprovalProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_PATIENT_APPROVALS);
+      this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_FETCHING_PATIENT_APPROVALS,
+      );
     }
   }
 
@@ -839,21 +799,9 @@ export class ApprovalProvider {
     const { approvalId } = ctx;
     try {
       const approvalResult = await this.findApprovalById(approvalId);
-      if (approvalResult.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: approvalResult.status,
-          message: approvalResult.message,
-        });
-      }
 
-      if (
-        !('data' in approvalResult && approvalResult) ||
-        approvalResult.data === null
-      ) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Invalid approval data',
-        });
+      if (!approvalResult?.data) {
+        throw new Error('Invalid approval data');
       }
 
       const approval = approvalResult.data;
@@ -869,9 +817,9 @@ export class ApprovalProvider {
         })
         .where(eq(schema.approvals.id, approvalId));
     } catch (e) {
-      return this.handler.handleError(
+      this.handler.handleError(
         e,
-        AEM.ERROR_RESETTING_APPROVAL_PERMISSIONS,
+        e.messgae || AEM.ERROR_RESETTING_APPROVAL_PERMISSIONS,
       );
     }
   }

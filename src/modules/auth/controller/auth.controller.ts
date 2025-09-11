@@ -247,17 +247,13 @@ export class AuthController {
       scannedLicense?: Express.Multer.File[];
     },
   ) {
-    if (ctx.role === 'DOCTOR') {
-      if (!files.governmentId || files.governmentId.length === 0) {
-        throw new BadRequestException(
-          'Government ID is required. Please ensure the form field name is "governmentId"',
-        );
-      }
-      if (!files.scannedLicense || files.scannedLicense.length === 0) {
-        throw new BadRequestException(
-          'Medical license is required for doctor registration. Please ensure the form field name is "scannedLicense"',
-        );
-      }
+    if (
+      ctx.role === 'DOCTOR' &&
+      (!files.scannedLicense || files.scannedLicense.length === 0)
+    ) {
+      throw new BadRequestException(
+        'Medical license is required for doctor registration. Please ensure the form field name is "scannedLicense"',
+      );
     }
 
     const governmentIdFile = files.governmentId?.[0];

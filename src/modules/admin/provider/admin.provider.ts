@@ -3,11 +3,13 @@ import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
   BadRequestException,
+  ConflictException,
   forwardRef,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import {
@@ -34,7 +36,7 @@ import {
   SUSPENSION_REASON,
 } from '../data/admin.data';
 import { AuthUtils } from '@/shared/utils/auth.utils';
-import { and, asc, desc, eq, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { AuthService } from '@/modules/auth/service/auth.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
@@ -151,14 +153,12 @@ export class AdminProvider {
   private async verifyDoctor(doctorId: string) {
     try {
       const doctor = await this.doctorService.fetchDoctor(doctorId);
-      if (!doctor || doctor.status !== HttpStatus.OK || !('data' in doctor)) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND,
-        });
+
+      if (!doctor?.data) {
+        throw new HttpException('Doctor not found', HttpStatus.NOT_FOUND);
       }
 
-      const isVerified = doctor.data?.isVerified;
+      const isVerified = doctor.data.isVerified;
       if (isVerified) {
         return this.handler.handleReturn({
           status: HttpStatus.OK,
@@ -178,7 +178,10 @@ export class AdminProvider {
         message: ASM.PRACTITIONER_VERIFIED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_VERIFYING_PRACTITIONER);
+      this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_VERIFYING_PRACTITIONER,
+      );
     }
   }
 
@@ -245,7 +248,7 @@ export class AdminProvider {
       this.logger.error(`${AEM.ERROR_FETCHING_ACTIVE_USERS}: ${e}`);
       throw new AdminError(
         AEM.ERROR_FETCHING_ACTIVE_USERS,
-        { cause: e },
+        { cause: e.message },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -299,14 +302,8 @@ export class AdminProvider {
         .limit(1);
 
       if (!patient || patient.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.PATIENT_NOT_FOUND,
-          data: null,
-        });
+        throw new NotFoundException(AEM.PATIENT_NOT_FOUND);
       }
-
-      this.logger.debug(`Patient fetched ${JSON.stringify(patient)}`);
 
       const parsedPatient = patient.map((p) => {
         return {
@@ -338,8 +335,8 @@ export class AdminProvider {
     } catch (e) {
       throw new HttpException(
         new AdminError(
-          AEM.ERROR_FETCHING_PATIENT_DATA,
-          { cause: e },
+          e.message || AEM.ERROR_FETCHING_PATIENT_DATA,
+          { cause: e.message },
           HttpStatus.INTERNAL_SERVER_ERROR,
         ),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -380,11 +377,7 @@ export class AdminProvider {
         .limit(1);
 
       if (!doctor || doctor.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND,
-          data: null,
-        });
+        throw new NotFoundException(DOCTOR_ERROR_MESSGAES.DOCTOR_NOT_FOUND);
       }
 
       const pendingApprovals =
@@ -451,8 +444,8 @@ export class AdminProvider {
       );
       throw new HttpException(
         new AdminError(
-          AEM.ERROR_FETCHING_DOCTOR_DATA,
-          { cause: e },
+          e.message || AEM.ERROR_FETCHING_DOCTOR_DATA,
+          { cause: e.message },
           HttpStatus.INTERNAL_SERVER_ERROR,
         ),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -467,10 +460,7 @@ export class AdminProvider {
       });
 
       if (!admin) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.ADMIN_NOT_FOUND,
-        });
+        throw new NotFoundException(AEM.ADMIN_NOT_FOUND);
       }
 
       const strippedAdmin = {
@@ -486,7 +476,7 @@ export class AdminProvider {
         data: strippedAdmin,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FINDING_ADMIN);
+      this.handler.handleError(e, AEM.ERROR_FINDING_ADMIN);
     }
   }
 
@@ -497,10 +487,7 @@ export class AdminProvider {
       });
 
       if (!admin) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.ADMIN_NOT_FOUND,
-        });
+        throw new NotFoundException(AEM.ADMIN_NOT_FOUND);
       }
 
       return this.handler.handleReturn({
@@ -509,7 +496,7 @@ export class AdminProvider {
         data: admin,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FINDING_ADMIN);
+      this.handler.handleError(e, AEM.ERROR_FINDING_ADMIN);
     }
   }
 
@@ -518,11 +505,8 @@ export class AdminProvider {
     try {
       const admin = await this.findAdminByEmail(email);
 
-      if (admin.status === HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: HttpStatus.CONFLICT,
-          message: AEM.ADMIN_EXISTS,
-        });
+      if (admin?.data) {
+        throw new ConflictException(AEM.ADMIN_EXISTS);
       }
 
       const hashedPassword = await this.authUtils.hash(password);
@@ -539,7 +523,7 @@ export class AdminProvider {
         message: ASM.SUPER_ADMIN_CREATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_CREATING_ADMIN);
+      this.handler.handleError(e, e.message || AEM.ERROR_CREATING_ADMIN);
     }
   }
 
@@ -561,11 +545,8 @@ export class AdminProvider {
         throw new UnauthorizedException('Unauthorized');
       }
 
-      if (isAdminExists.status === HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: HttpStatus.CONFLICT,
-          message: AEM.ADMIN_EXISTS,
-        });
+      if (isAdminExists?.data) {
+        throw new ConflictException(AEM.ADMIN_EXISTS);
       }
 
       const hashedPassword = await this.authUtils.hash(password);
@@ -582,7 +563,7 @@ export class AdminProvider {
         message: ASM.SUCCESS_CREATING_ADMIN,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_CREATING_ADMIN);
+      this.handler.handleError(e, e.message || AEM.ERROR_CREATING_ADMIN);
     }
   }
 
@@ -608,7 +589,10 @@ export class AdminProvider {
         message: ASM.SUCCESS_UPDATING_ADMIN_PERMISSIONS,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_UPDATING_ADMIN_PERMISSIONS);
+      this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_UPDATING_ADMIN_PERMISSIONS,
+      );
     }
   }
 
@@ -617,32 +601,26 @@ export class AdminProvider {
     try {
       const admin = await this.findAdminByEmail(email);
 
-      if (!admin || admin.status !== HttpStatus.OK || !('data' in admin)) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.ADMIN_NOT_FOUND,
-        });
+      if (!admin?.data) {
+        throw new HttpException('Admin not found', HttpStatus.NOT_FOUND);
       }
 
       const isPasswordValid = await this.authUtils.compare({
-        hashedPassword: admin.data?.password!,
+        hashedPassword: admin.data.password!,
         password,
       });
 
       if (!isPasswordValid) {
-        return this.handler.handleReturn({
-          status: HttpStatus.UNAUTHORIZED,
-          message: AEM.INVALID_ADMIN_PASSWORD,
-        });
+        throw new UnauthorizedException(AEM.INVALID_ADMIN_PASSWORD);
       }
 
       const tokens = await this.authService.generateTokens({
         email,
-        userId: admin.data?.id!,
+        userId: admin.data.id!,
         save: false,
       });
 
-      const adminId = admin.data?.id!;
+      const adminId = admin.data.id!;
 
       await this.db
         .update(schema.admin)
@@ -652,9 +630,9 @@ export class AdminProvider {
         .where(eq(schema.admin.id, adminId));
 
       const data = {
-        userId: admin.data?.id!,
-        email: admin.data?.email!,
-        profilePicture: admin.data?.profilePicture!,
+        userId: admin.data.id!,
+        email: admin.data.email!,
+        profilePicture: admin.data.profilePicture!,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         role: USER_ROLE.ADMIN,
@@ -667,7 +645,7 @@ export class AdminProvider {
         data,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_LOGGING_IN_AS_ADMIN);
+      this.handler.handleError(e, e.message || AEM.ERROR_LOGGING_IN_AS_ADMIN);
     }
   }
 
@@ -697,7 +675,7 @@ export class AdminProvider {
         message: ASM.SUCCESS_DELETING_ADMIN,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_DELETING_ADMIN);
+      this.handler.handleError(e, e.message || AEM.ERROR_DELETING_ADMIN);
     }
   }
 
@@ -706,10 +684,7 @@ export class AdminProvider {
     try {
       const userSuspended = await this.isUserSuspended(userId);
       if (userSuspended) {
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: ASM.USER_ALREADY_SUSPENDED,
-        });
+        throw new ConflictException(ASM.USER_ALREADY_SUSPENDED);
       }
 
       await this.db.transaction(async (tx) => {
@@ -730,7 +705,7 @@ export class AdminProvider {
         message: ASM.USER_SUSPENDED_SUCCESSFULLY,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_SUSPENDING_USER);
+      this.handler.handleError(e, e.message || AEM.ERROR_SUSPENDING_USER);
     }
   }
 
@@ -738,10 +713,7 @@ export class AdminProvider {
     try {
       const userSuspended = await this.isUserSuspended(userId);
       if (!userSuspended) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: ASM.USER_NOT_SUSPENDED,
-        });
+        throw new ConflictException(ASM.USER_NOT_SUSPENDED);
       }
 
       await this.db.transaction(async (tx) => {
@@ -761,7 +733,7 @@ export class AdminProvider {
         message: ASM.SUSPENSION_LIFTED_SUCCESSFULLY,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_REVOKING_SUSPENSION);
+      this.handler.handleError(e, e.message || AEM.ERROR_REVOKING_SUSPENSION);
     }
   }
 
@@ -770,18 +742,8 @@ export class AdminProvider {
     try {
       const userResult = await this.userService.findUser(userId);
 
-      if (userResult.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: userResult.status,
-          message: userResult.message,
-        });
-      }
-
-      if (!('data' in userResult && userResult.data)) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
-        });
+      if (!userResult?.data) {
+        throw new NotFoundException(USER_ERROR_MESSAGES.USER_NOT_FOUND);
       }
 
       const user = userResult.data;
@@ -811,7 +773,7 @@ export class AdminProvider {
         message: ASM.USER_REJECTED_SUCCESSFULLY,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_REJECTING_USER);
+      this.handler.handleError(e, e.message || AEM.ERROR_REJECTING_USER);
     }
   }
 
@@ -823,18 +785,8 @@ export class AdminProvider {
       if (userId) {
         const userResult = await this.userService.findUser(userId);
 
-        if (userResult.status !== HttpStatus.OK) {
-          return this.handler.handleReturn({
-            status: userResult.status,
-            message: userResult.message,
-          });
-        }
-
-        if (!('data' in userResult && userResult.data)) {
-          return this.handler.handleReturn({
-            status: HttpStatus.NOT_FOUND,
-            message: USER_ERROR_MESSAGES.USER_NOT_FOUND,
-          });
+        if (!userResult?.data) {
+          throw new NotFoundException(USER_ERROR_MESSAGES.USER_NOT_FOUND);
         }
 
         const user = userResult.data;
@@ -853,8 +805,8 @@ export class AdminProvider {
     } catch (e) {
       throw new HttpException(
         new AdminError(
-          'Error verifying user rejection',
-          { cause: e },
+          e.message || 'Error verifying user rejection',
+          { cause: e.message },
           HttpStatus.INTERNAL_SERVER_ERROR,
         ),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -876,14 +828,11 @@ export class AdminProvider {
         this.fetchSuspendedUsersCount(),
       ]);
 
-      if (
-        !('meta' in doctorResult && doctorResult.meta) ||
-        !('meta' in patientResult && patientResult.meta)
-      ) {
+      if (!doctorResult?.meta || !patientResult?.meta) {
         throw new HttpException(
           new AdminError(
             'Error fetching entities stats',
-            { cause: doctorResult.message },
+            { cause: 'Failed to fetch doctor or patient metadata' },
             HttpStatus.INTERNAL_SERVER_ERROR,
           ),
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -906,51 +855,61 @@ export class AdminProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(
+      this.handler.handleError(
         e,
-        AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
+        e.message || AEM.ERROR_FETCHING_PATIENT_MANAGEMENT_DASHBOARD,
       );
     }
   }
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
-    const allDoctors = await this.doctorService.fetchAllDoctors(ctx);
+    try {
+      const allDoctors = await this.doctorService.fetchAllDoctors(ctx);
 
-    if (
-      !('data' in allDoctors && allDoctors.data) ||
-      typeof allDoctors.data === null
-    ) {
-      throw new HttpException(
+      if (!allDoctors?.data) {
+        throw new HttpException(
+          new AdminError(
+            'Error fetching doctors',
+            { cause: 'Failed to fetch doctors data' },
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          ),
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      const doctorData = allDoctors.data;
+      const parsedDoctorData = doctorData.map((doctor) => {
+        return {
+          email: doctor.email,
+          fullName: doctor.fullName,
+          phoneNumber: doctor.phoneNumber,
+          gender: doctor.gender,
+          profilePicture: doctor.profilePicture || '',
+          role: doctor.role,
+          userId: doctor.userId,
+          status: doctor.status,
+          lastActive: doctor.lastActive!,
+        } as IUserSnippet;
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: allDoctors.message,
+        data: parsedDoctorData,
+        meta: allDoctors.meta,
+      });
+    } catch (e) {
+      this.handler.handleError(
         new AdminError(
-          'Error fetching doctors',
-          { cause: allDoctors.message },
+          e.message || 'Error fetching all doctors',
+          {
+            cause: e.message,
+          },
           HttpStatus.INTERNAL_SERVER_ERROR,
         ),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        e.message,
       );
     }
-
-    const doctorData = allDoctors.data;
-    const parsedDoctorData = doctorData.map((doctor) => {
-      return {
-        email: doctor.email,
-        fullName: doctor.fullName,
-        phoneNumber: doctor.phoneNumber,
-        gender: doctor.gender,
-        profilePicture: doctor.profilePicture || '',
-        role: doctor.role,
-        userId: doctor.userId,
-        status: doctor.status,
-        lastActive: doctor.lastActive!,
-      } as IUserSnippet;
-    });
-
-    return this.handler.handleReturn({
-      status: HttpStatus.OK,
-      message: allDoctors.message,
-      data: parsedDoctorData,
-      meta: allDoctors.meta,
-    });
   }
 
   async fetchAllPatients(ctx: IFetchPatients) {
@@ -963,7 +922,6 @@ export class AdminProvider {
 
   async fetchUserData(userId: string) {
     const role = await this.userService.determineUserRole(userId);
-    this.logger.debug(`User role: ${role}`);
     switch (role) {
       case 'PATIENT':
         return await this.inspectPatientData(userId);
@@ -1040,9 +998,9 @@ export class AdminProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(
+      this.handler.handleError(
         e,
-        AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
+        e.message || AEM.ERROR_FETCHING_APPROVAL_MANAGEMENT_DATA,
       );
     }
   }
@@ -1057,13 +1015,6 @@ export class AdminProvider {
     try {
       const user = await this.userService.findUser(userId);
 
-      if (user.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: user.status,
-          message: user.message,
-        });
-      }
-
       await this.db
         .delete(schema.moodMetrics)
         .where(eq(schema.moodMetrics.userId, userId));
@@ -1073,7 +1024,10 @@ export class AdminProvider {
         message: 'User mood metrics deleted successfully',
       });
     } catch (e) {
-      this.handler.handleError(e, AEM.ERROR_DELETING_USER_MOOD_METRICS);
+      this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_DELETING_USER_MOOD_METRICS,
+      );
     }
   }
 
@@ -1081,12 +1035,6 @@ export class AdminProvider {
     try {
       const user = await this.userService.findUser(userId);
 
-      if (user.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: user.status,
-          message: user.message,
-        });
-      }
       await this.db
         .delete(schema.health_journal)
         .where(eq(schema.health_journal.userId, userId));
@@ -1096,7 +1044,10 @@ export class AdminProvider {
         message: ASM.HEALTH_JOURNAL_CLEARED_SUCCESSFULLY,
       });
     } catch (e) {
-      this.handler.handleError(e, AEM.ERROR_CLEARING_USER_HEALTH_JOURNAL);
+      this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_CLEARING_USER_HEALTH_JOURNAL,
+      );
     }
   }
 
