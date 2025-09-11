@@ -1,4 +1,11 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, asc, desc, eq, ne, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
@@ -42,10 +49,7 @@ export class DoctorProvider {
         .limit(1);
 
       if (!doctor || doctor.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: DEM.DOCTOR_NOT_FOUND,
-        });
+        throw new NotFoundException(DEM.DOCTOR_NOT_FOUND);
       }
 
       let servicesOffered: string[];
@@ -84,14 +88,14 @@ export class DoctorProvider {
         data: parsedDoctor,
       });
     } catch (e) {
-      this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
+      this.handler.handleError(e, e.message || DEM.ERROR_CREATING_DOCTOR);
     }
   }
 
   async validateDoctorExists(userId: string) {
     try {
       const doctor = await this.fetchDoctor(userId);
-      if (!doctor || !('data' in doctor && doctor.data)) {
+      if (!doctor) {
         return false;
       }
       return true;
@@ -104,10 +108,7 @@ export class DoctorProvider {
     try {
       const doctorExists = await this.validateDoctorExists(ctx.userId);
       if (doctorExists) {
-        return this.handler.handleReturn({
-          status: HttpStatus.FOUND,
-          message: DEM.DOCTOR_ALREADY_EXISTS,
-        });
+        throw new ConflictException(DEM.DOCTOR_ALREADY_EXISTS);
       }
 
       const licenseExpirationDateString =
@@ -134,7 +135,7 @@ export class DoctorProvider {
         message: DSM.DOCTOR_CREATED,
       });
     } catch (e) {
-      this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
+      this.handler.handleError(e, e.message || DEM.ERROR_CREATING_DOCTOR);
     }
   }
 
@@ -215,7 +216,7 @@ export class DoctorProvider {
         },
       });
     } catch (e) {
-      this.handler.handleError(e, DEM.ERROR_FETCHING_ALL_DOCTORS);
+      this.handler.handleError(e, e.message || DEM.ERROR_FETCHING_ALL_DOCTORS);
     }
   }
 
