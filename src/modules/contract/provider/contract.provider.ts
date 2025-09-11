@@ -14,6 +14,7 @@ import { ExternalAccountService } from '@/shared/modules/external-account/servic
 import { PaymasterMode } from '@biconomy/account';
 import {
   BadRequestException,
+  ConflictException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
@@ -198,9 +199,9 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
-        CEM.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT,
+        e.message || CEM.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT,
       );
     }
   }
@@ -534,7 +535,10 @@ export class ContractProvider {
         },
       });
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_DOCTOR);
+      return this.handlerService.handleError(
+        e,
+        e.message || CEM.ERROR_REGISTERING_DOCTOR,
+      );
     }
   }
 
@@ -603,7 +607,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_APPROVING_ADD_NEW_RECORD,
+        e.message || CEM.ERROR_APPROVING_ADD_NEW_RECORD,
       );
     }
   }
@@ -662,10 +666,7 @@ export class ContractProvider {
 
       const hasAccess = hasAccessResult.data.hasAccess;
       if (hasAccess) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.OK,
-          message: CSM.VIEW_ACCESS_ALREADY_APPROVED,
-        });
+        throw new ConflictException(CSM.RECORD_ACCESS_APPROVED);
       }
 
       const tx = this.approveRecordAcessTx({
@@ -691,7 +692,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_APPROVING_RECORD_ACCESS,
+        e.message || CEM.ERROR_APPROVING_RECORD_ACCESS,
       );
     }
   }
@@ -710,10 +711,7 @@ export class ContractProvider {
     switch (accessLevel) {
       case 'full':
         if (!recordIds || recordIds.length === 0) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: CEM.RECORD_ID_REQUIRED,
-          });
+          throw new BadRequestException(CEM.RECORD_ID_REQUIRED);
         }
 
         const result = await this.handleApproveToAddNewRecord({
@@ -741,10 +739,7 @@ export class ContractProvider {
 
       case 'read':
         if (!recordIds || recordIds.length === 0) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: CEM.RECORD_ID_REQUIRED,
-          });
+          throw new BadRequestException(CEM.RECORD_ID_REQUIRED);
         }
 
         // Emit events for each record ID
@@ -834,7 +829,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_ADDING_MEDICAL_RECORD,
+        e.message || CEM.ERROR_ADDING_MEDICAL_RECORD,
       );
     }
   }
@@ -858,7 +853,10 @@ export class ContractProvider {
     } catch (e) {
       await this.rewardServicce.updateMintedState(userId, false);
 
-      return this.handlerService.handleError(e, CEM.ERROR_MINTING_TOKEN);
+      return this.handlerService.handleError(
+        e,
+        e.message || CEM.ERROR_MINTING_TOKEN,
+      );
     }
   }
 
@@ -878,7 +876,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_FETCHING_TOKEN_BALANCE,
+        e.message || CEM.ERROR_FETCHING_TOKEN_BALANCE,
       );
     }
   }
@@ -917,7 +915,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_VIEWING_MEDICAL_RECORD,
+        e.message || CEM.ERROR_VIEWING_MEDICAL_RECORD,
       );
     }
   }
@@ -950,7 +948,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS,
+        e.message || CEM.ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS,
       );
     }
   }
