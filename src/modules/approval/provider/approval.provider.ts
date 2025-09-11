@@ -59,8 +59,8 @@ export class ApprovalProvider {
   private async getSmartAddress(practitionerId: string) {
     const result = await this.aaService.getSmartAddress(practitionerId);
 
-    if (!('data' in result && result.data)) {
-      throw new BadRequestException(result.message);
+    if (!result?.data) {
+      throw new BadRequestException('Failed to get smart address');
     }
 
     return result.data.smartAddress;
@@ -268,7 +268,7 @@ export class ApprovalProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_CREATING_APPROVAL);
+      this.handler.handleError(e, AEM.ERROR_CREATING_APPROVAL);
     }
   }
 
@@ -365,7 +365,7 @@ export class ApprovalProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_DOCTOR_APPROVAL);
+      this.handler.handleError(e, AEM.ERROR_FETCHING_DOCTOR_APPROVAL);
     }
   }
 
@@ -468,7 +468,7 @@ export class ApprovalProvider {
         message: ASM.APPROVAL_ACCEPTED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_ACCEPTING_APPROVAL);
+      this.handler.handleError(e, AEM.ERROR_ACCEPTING_APPROVAL);
     }
   }
 
@@ -521,7 +521,7 @@ export class ApprovalProvider {
         message: ASM.APPROVAL_REJECTED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_REJECTING_APPROVAL);
+      this.handler.handleError(e, AEM.ERROR_REJECTING_APPROVAL);
     }
   }
 
@@ -667,7 +667,7 @@ export class ApprovalProvider {
         data: parsedApproval[0],
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FINDING_APPROVAL);
+      this.handler.handleError(e, AEM.ERROR_FINDING_APPROVAL);
     }
   }
 
@@ -682,11 +682,8 @@ export class ApprovalProvider {
       }
 
       const smartAddressResult = await this.aaService.getSmartAddress(userId);
-      if (!('data' in smartAddressResult && smartAddressResult.data)) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: smartAddressResult.message,
-        });
+      if (!smartAddressResult?.data) {
+        throw new Error('Failed to get smart address');
       }
 
       const smartAddress = smartAddressResult.data.smartAddress;
@@ -748,14 +745,13 @@ export class ApprovalProvider {
         data: parsedApprovals,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVED_APPROVALS);
+      this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVED_APPROVALS);
     }
   }
 
   async deleteApproval(approvalId: string) {
     try {
       const approvalResult = await this.findApprovalById(approvalId);
-      if (approvalResult.status !== HttpStatus.OK) return approvalResult;
 
       await this.db
         .delete(schema.approvals)
@@ -766,7 +762,7 @@ export class ApprovalProvider {
         message: ASM.APPROVAL_DELETED,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_DELETING_APPROVAL);
+      this.handler.handleError(e, AEM.ERROR_DELETING_APPROVAL);
     }
   }
 
@@ -789,7 +785,7 @@ export class ApprovalProvider {
         data: approval,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVAL);
+      this.handler.handleError(e, AEM.ERROR_FETCHING_APPROVAL);
     }
   }
 
@@ -831,7 +827,7 @@ export class ApprovalProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_FETCHING_PATIENT_APPROVALS);
+      this.handler.handleError(e, AEM.ERROR_FETCHING_PATIENT_APPROVALS);
     }
   }
 
@@ -839,21 +835,9 @@ export class ApprovalProvider {
     const { approvalId } = ctx;
     try {
       const approvalResult = await this.findApprovalById(approvalId);
-      if (approvalResult.status !== HttpStatus.OK) {
-        return this.handler.handleReturn({
-          status: approvalResult.status,
-          message: approvalResult.message,
-        });
-      }
 
-      if (
-        !('data' in approvalResult && approvalResult) ||
-        approvalResult.data === null
-      ) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: 'Invalid approval data',
-        });
+      if (!approvalResult?.data) {
+        throw new Error('Invalid approval data');
       }
 
       const approval = approvalResult.data;
@@ -869,10 +853,7 @@ export class ApprovalProvider {
         })
         .where(eq(schema.approvals.id, approvalId));
     } catch (e) {
-      return this.handler.handleError(
-        e,
-        AEM.ERROR_RESETTING_APPROVAL_PERMISSIONS,
-      );
+      this.handler.handleError(e, AEM.ERROR_RESETTING_APPROVAL_PERMISSIONS);
     }
   }
 }
