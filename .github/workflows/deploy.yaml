@@ -17,7 +17,8 @@ jobs:
       - name: Create .env file in project root
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
-          echo "${{ secrets.SERVICE_ACC_FILE }}" > ~/src/shared/modules/config/allofhealth-google.config.json
+          mkdir -p src/shared/modules/config
+          echo "${{ secrets.SERVICE_ACC_FILE }}" > src/shared/modules/config/allofhealth-google.config.json
 
       - name: Set Image Tag
         run: echo "IMAGE_TAG=v${{ github.run_number }}" >> $GITHUB_ENV
