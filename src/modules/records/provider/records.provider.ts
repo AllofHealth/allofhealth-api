@@ -394,15 +394,11 @@ export class RecordsProvider {
       });
 
       const recordUris = recordUriResult?.data;
-      this.logger.log(`Record uri is fetched from chain ${recordUris}`);
       if (recordUris && recordUris.length > 0) {
         const decryptedRecords = await Promise.all(
           recordUris.map(async (uri) => {
             const encryptedRecord =
               await this.ipfsService.fetchRecordFromIpfs(uri);
-            this.logger.log(
-              `Ipfs server returns with record ${JSON.stringify(encryptedRecord)}`,
-            );
 
             const isIpfsRecord = (record: any): record is IpfsRecord => {
               return (
@@ -442,10 +438,6 @@ export class RecordsProvider {
                   : [],
               };
 
-              this.logger.log(
-                `Decrypted record data: ${JSON.stringify(recordData)}`,
-              );
-
               return {
                 ...recordData,
                 uploadedAt: formatDateToReadable(encryptedRecord.uploadedAt),
@@ -464,7 +456,6 @@ export class RecordsProvider {
   }
 
   async fetchRecordByChainId(ctx: IFetchRecordById) {
-    this.logger.log(`Provider is hit.`);
     const { patientId, practitionerId, recordChainId } = ctx;
     let viewerAddress: string | undefined = undefined;
     try {
@@ -536,19 +527,12 @@ export class RecordsProvider {
         );
 
       const recordType = patientRecordType[0].recordType;
-      this.logger.log(
-        `Patient record from db ${JSON.stringify(patientRecordType)}`,
-      );
 
       const decryptedRecord = await this.fetchUriAndDecrypt({
         recordIds: [recordChainId],
         userId: patientId,
         viewerAddress,
       });
-
-      this.logger.log(
-        `Decrypted record from db ${JSON.stringify(decryptedRecord)}`,
-      );
 
       if (!decryptedRecord) {
         throw new HttpException(

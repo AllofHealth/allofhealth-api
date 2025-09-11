@@ -38,9 +38,12 @@
 # CMD ["./start-with-ipfs.sh"]
 FROM node:22-slim
 
+<<<<<<< HEAD
+=======
 # Accept Sentry auth token as build argument
 ARG SENTRY_AUTH_TOKEN
 
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 # Install necessary development packages and IPFS dependencies
 RUN apt-get update && apt-get install -y \
     python3 make g++ curl wget tar bash ca-certificates && \
@@ -67,9 +70,12 @@ RUN npm install
 COPY .env .env
 COPY . .
 
+<<<<<<< HEAD
+=======
 # Set Sentry auth token environment variable for build
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 # Build the app
 RUN npm run build
 
@@ -78,9 +84,12 @@ COPY scripts/start-with-ipfs.sh ./start-with-ipfs.sh
 RUN chmod +x start-with-ipfs.sh
 
 EXPOSE 3000
+<<<<<<< HEAD
+=======
 EXPOSE 8080
 EXPOSE 5001
 
 VOLUME /root/.ipfs
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ENTRYPOINT ["./start-with-ipfs.sh"]

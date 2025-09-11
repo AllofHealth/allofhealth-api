@@ -247,6 +247,24 @@ export class AuthController {
       scannedLicense?: Express.Multer.File[];
     },
   ) {
+<<<<<<< HEAD
+    if (!files.governmentId || files.governmentId.length === 0) {
+      throw new BadRequestException(
+        'Government ID is required. Please ensure the form field name is "governmentId"',
+      );
+    }
+
+    if (
+      ctx.role === 'DOCTOR' &&
+      (!files.scannedLicense || files.scannedLicense.length === 0)
+    ) {
+      throw new BadRequestException(
+        'Medical license is required for doctor registration. Please ensure the form field name is "scannedLicense"',
+      );
+    }
+
+    const governmentIdFile = files.governmentId[0];
+=======
     if (ctx.role === 'DOCTOR') {
       if (!files.governmentId || files.governmentId.length === 0) {
         throw new BadRequestException(
@@ -261,13 +279,18 @@ export class AuthController {
     }
 
     const governmentIdFile = files.governmentId?.[0];
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
     const scannedLicenseFile = files.scannedLicense?.[0];
 
     this.logger.log(`Sign up request from ${ip} for role: ${ctx.role}`);
 
     return await this.authService.handleRegister({
       ...ctx,
+<<<<<<< HEAD
+      governmentIdfilePath: governmentIdFile.path,
+=======
       governmentIdfilePath: governmentIdFile?.path,
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
       scannedLicensefilePath: scannedLicenseFile?.path,
     });
   }
