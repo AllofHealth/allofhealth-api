@@ -514,11 +514,8 @@ export class ContractProvider {
     try {
       const smartWallet = await this.aaService.provideSmartWallet(userId);
       const result = await this.aaService.getSmartAddress(userId);
-      if (!('data' in result && result.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: result.message,
-        });
+      if (!result?.data) {
+        throw new Error('Failed to get smart address');
       }
 
       const smartAddress = result.data.smartAddress;
@@ -550,18 +547,12 @@ export class ContractProvider {
       const patientResult = await this.aaService.getSmartAddress(userId);
       const doctorResult = await this.aaService.getSmartAddress(doctorId);
 
-      if (!('data' in patientResult && patientResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientResult.message,
-        });
+      if (!patientResult?.data) {
+        throw new Error('Failed to get patient smart address');
       }
 
-      if (!('data' in doctorResult && doctorResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: doctorResult.message,
-        });
+      if (!doctorResult?.data) {
+        throw new Error('Failed to get doctor smart address');
       }
 
       const patientSmartAddress = patientResult.data.smartAddress;
@@ -569,11 +560,8 @@ export class ContractProvider {
 
       const patientIdResult =
         await this.handleGetPatientId(patientSmartAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -582,11 +570,8 @@ export class ContractProvider {
         patientId,
       });
 
-      if (!('data' in approvalRequest && approvalRequest.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: approvalRequest.message,
-        });
+      if (!approvalRequest?.data) {
+        throw new Error('Failed to check approval status');
       }
 
       const isApproved = approvalRequest.data.isApproved;
@@ -627,8 +612,8 @@ export class ContractProvider {
     const practitionerResult =
       await this.aaService.getSmartAddress(practitionerId);
 
-    if (!('data' in practitionerResult && practitionerResult.data)) {
-      throw new BadRequestException(practitionerResult.message);
+    if (!practitionerResult?.data) {
+      throw new BadRequestException('Failed to get practitioner smart address');
     }
 
     return practitionerResult.data.smartAddress;
@@ -637,8 +622,8 @@ export class ContractProvider {
   async getPatientSmartAddress(patientId: string) {
     const patientResult = await this.aaService.getSmartAddress(patientId);
 
-    if (!('data' in patientResult && patientResult.data)) {
-      throw new BadRequestException(patientResult.message);
+    if (!patientResult?.data) {
+      throw new BadRequestException('Failed to get patient smart address');
     }
 
     return patientResult.data.smartAddress;
@@ -660,11 +645,8 @@ export class ContractProvider {
 
       const patientIdResult =
         await this.handleGetPatientId(patientSmartAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -674,11 +656,8 @@ export class ContractProvider {
         recordId,
       });
 
-      if (!('data' in hasAccessResult && hasAccessResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: hasAccessResult.message,
-        });
+      if (!hasAccessResult?.data) {
+        throw new Error('Failed to check access status');
       }
 
       const hasAccess = hasAccessResult.data.hasAccess;
@@ -741,13 +720,6 @@ export class ContractProvider {
           doctorId: practitionerId,
           userId,
         });
-
-        if (result.status !== HttpStatus.OK) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: result.message,
-          });
-        }
 
         // Emit events for each record ID
         for (const recordId of recordIds) {
@@ -815,18 +787,12 @@ export class ContractProvider {
         this.aaService.getSmartAddress(practitionerId),
       ]);
 
-      if (!('data' in patientResult && patientResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientResult.message,
-        });
+      if (!patientResult?.data) {
+        throw new Error('Failed to get patient smart address');
       }
 
-      if (!('data' in practitionerResult && practitionerResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: practitionerResult.message,
-        });
+      if (!practitionerResult?.data) {
+        throw new Error('Failed to get practitioner smart address');
       }
 
       const patientSmartAddress = patientResult.data.smartAddress;
@@ -834,11 +800,8 @@ export class ContractProvider {
 
       const patientIdResult =
         await this.handleGetPatientId(patientSmartAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -926,11 +889,8 @@ export class ContractProvider {
       let viewer: string = '';
       const patientAddress = await this.getPatientSmartAddress(userId);
       const patientIdResult = await this.handleGetPatientId(patientAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -974,7 +934,7 @@ export class ContractProvider {
           viewerAddress,
         });
 
-        if (!('data' in recordResult && recordResult.data)) {
+        if (!recordResult?.data) {
           this.logger.warn(`can not fetch record for this id`);
           continue;
         }
