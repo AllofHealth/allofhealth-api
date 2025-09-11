@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   forwardRef,
   HttpException,
   HttpStatus,
@@ -177,13 +178,11 @@ export class UserProvider {
   private async handlePatientRegistration(ctx: EHandleRegisterPatient) {
     const { userId, governmentIdFilePath } = ctx;
     try {
-<<<<<<< HEAD
       await this.emitStoreIdentity({
         userId,
         role: 'PATIENT',
         governmentIdFilePath,
       });
-=======
       if (governmentIdFilePath) {
         await this.emitStoreIdentity({
           userId,
@@ -191,7 +190,6 @@ export class UserProvider {
           governmentIdFilePath,
         });
       }
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
       await this.eventEmitter.emitAsync(
         SharedEvents.CREATE_SMART_ACCOUNT,
@@ -577,10 +575,7 @@ export class UserProvider {
       const emailExists = await this.validateEmailAddress(ctx.emailAddress);
 
       if (emailExists) {
-        return this.handler.handleReturn({
-          status: HttpStatus.FOUND,
-          message: UEM.USER_EXISTS,
-        });
+        throw new ConflictException(UEM.EMAIL_EXIST);
       }
 
       const isUserRejected = await this.adminService.verifyRejectionStatus({
@@ -688,11 +683,7 @@ export class UserProvider {
             SharedEvents.DOCTOR_REGISTRATION,
             new EHandleRegisterDoctor(
               insertedUser.id,
-<<<<<<< HEAD
-              ctx.governmentIdfilePath,
-=======
               ctx.governmentIdfilePath!,
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
               ctx.scannedLicensefilePath!,
             ),
           );

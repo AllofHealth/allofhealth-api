@@ -99,24 +99,16 @@ export class ERegisterEntity {
 export class EHandleRegisterPatient {
   constructor(
     readonly userId: string,
-<<<<<<< HEAD
-    readonly governmentIdFilePath: string,
-=======
+
     readonly governmentIdFilePath?: string,
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
   ) {}
 }
 
 export class EHandleRegisterDoctor {
   constructor(
     readonly userId: string,
-<<<<<<< HEAD
-    readonly governmentIdFilePath: string,
-    readonly scannedLicenseFilePath: string,
-=======
     readonly scannedLicenseFilePath: string,
     readonly governmentIdFilePath?: string,
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
   ) {}
 }
 
