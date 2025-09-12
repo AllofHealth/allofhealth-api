@@ -416,15 +416,15 @@ export class ApprovalProvider {
           recordIds: approval.recordId ? [approval.recordId] : undefined,
         });
 
-      if (approvalContractResult.status !== HttpStatus.OK) {
+      if (approvalContractResult?.status !== HttpStatus.OK) {
         await this.db.update(schema.approvals).set({
           isRequestAccepted: false,
           updatedAt: previousDate,
           status: APPROVAL_STATUS.CREATED,
         });
         throw new HttpException(
-          approvalContractResult.message,
-          approvalContractResult.status,
+          approvalContractResult?.message as string,
+          approvalContractResult?.status as number,
         );
       }
 
