@@ -250,10 +250,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(
-        e,
-        CEM.ERROR_PROVIDING_PATIENT_COUNT,
-      );
+      this.handlerService.handleError(e, CEM.ERROR_PROVIDING_PATIENT_COUNT);
     }
   }
 
@@ -314,7 +311,7 @@ export class ContractProvider {
       }
     } catch (e) {
       console.error(e);
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         CEM.ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION,
       );
@@ -378,7 +375,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         CEM.ERROR_VERIFYING_PRACTITIONER_ACCESS,
       );
@@ -431,7 +428,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_FETCHING_PATIENT_ID);
+      this.handlerService.handleError(e, CEM.ERROR_FETCHING_PATIENT_ID);
     }
   }
 
@@ -484,7 +481,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_FETCHING_DOCTOR_ID);
+      this.handlerService.handleError(e, CEM.ERROR_FETCHING_DOCTOR_ID);
     }
   }
 
@@ -507,7 +504,7 @@ export class ContractProvider {
         },
       });
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
+      this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
     }
   }
 
@@ -535,7 +532,7 @@ export class ContractProvider {
         },
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         e.message || CEM.ERROR_REGISTERING_DOCTOR,
       );
@@ -690,7 +687,7 @@ export class ContractProvider {
         },
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         e.message || CEM.ERROR_APPROVING_RECORD_ACCESS,
       );
@@ -714,7 +711,7 @@ export class ContractProvider {
           throw new BadRequestException(CEM.RECORD_ID_REQUIRED);
         }
 
-        const result = await this.handleApproveToAddNewRecord({
+        await this.handleApproveToAddNewRecord({
           doctorId: practitionerId,
           userId,
         });
@@ -764,7 +761,7 @@ export class ContractProvider {
           SharedEvents.APPROVE_WRITE_ACCESS,
           new EApproveWriteRecord(practitionerId, userId),
         );
-        return this.handlerService.handleReturn({
+        this.handlerService.handleReturn({
           status: HttpStatus.OK,
           message: CSM.WRITE_ACCESS_APPROVED,
         });
@@ -827,7 +824,7 @@ export class ContractProvider {
         data: transactionHash,
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         e.message || CEM.ERROR_ADDING_MEDICAL_RECORD,
       );
@@ -853,10 +850,7 @@ export class ContractProvider {
     } catch (e) {
       await this.rewardServicce.updateMintedState(userId, false);
 
-      return this.handlerService.handleError(
-        e,
-        e.message || CEM.ERROR_MINTING_TOKEN,
-      );
+      this.handlerService.handleError(e, e.message || CEM.ERROR_MINTING_TOKEN);
     }
   }
 
@@ -874,7 +868,7 @@ export class ContractProvider {
         data: formattedBalance,
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         e.message || CEM.ERROR_FETCHING_TOKEN_BALANCE,
       );
@@ -913,7 +907,7 @@ export class ContractProvider {
         data: String(recordURI),
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         e.message || CEM.ERROR_VIEWING_MEDICAL_RECORD,
       );
@@ -946,7 +940,7 @@ export class ContractProvider {
         data: recordURIS,
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         e.message || CEM.ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS,
       );
