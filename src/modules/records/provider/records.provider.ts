@@ -92,7 +92,7 @@ export class RecordsProvider {
     );
   }
 
-  @OnEvent(SharedEvents.STORE_RECORD_ON_CHAIN, { async: true })
+  @OnEvent(SharedEvents.STORE_RECORD_ON_CHAIN)
   private async storeRecordOnChain(ctx: EAddMedicalRecordToContract) {
     try {
       const txData = await this.contractService.addMedicalRecordToContract(ctx);
@@ -102,6 +102,8 @@ export class RecordsProvider {
         const parsedData = JSON.parse(
           cachedData as string,
         ) as EAddMedicalRecordToContract;
+
+        this.logger.log(`Data from cache ${cachedData}`);
 
         const retryTxData =
           await this.contractService.addMedicalRecordToContract(parsedData);
@@ -257,7 +259,7 @@ export class RecordsProvider {
           .update(schema.userRecordCounters)
           .set({
             lastRecordChainId: nextChainId,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
           })
           .where(eq(schema.userRecordCounters.userId, patientId));
 
@@ -311,10 +313,7 @@ export class RecordsProvider {
       );
 
       await this.cacheRecord(recordEvent);
-      await this.eventEmitter.emitAsync(
-        SharedEvents.STORE_RECORD_ON_CHAIN,
-        recordEvent,
-      );
+      this.eventEmitter.emit(SharedEvents.STORE_RECORD_ON_CHAIN, recordEvent);
 
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,
@@ -378,7 +377,7 @@ export class RecordsProvider {
             .update(schema.userRecordCounters)
             .set({
               lastRecordChainId: recordChainId - 1,
-              updatedAt: new Date().toISOString(),
+              updatedAt: new Date(),
             })
             .where(eq(schema.userRecordCounters.userId, userId));
           this.eventEmitter.emit(

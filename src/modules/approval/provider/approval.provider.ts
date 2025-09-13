@@ -44,9 +44,11 @@ import {
 import { calculateAge, formatDuration } from '@/shared/utils/date.utils';
 import { UserService } from '@/modules/user/service/user.service';
 import { ApprovalError } from '../error/approval.error';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class ApprovalProvider {
+  private readonly logger = new MyLoggerService(ApprovalProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly handler: ErrorHandler,
@@ -392,20 +394,32 @@ export class ApprovalProvider {
         ),
       });
 
+      this.logger.log(`Approval found`);
+
       if (!approval || typeof approval === undefined) {
         throw new NotFoundException(AEM.APPROVAL_NOT_FOUND);
       }
 
       if (approval.isRequestAccepted) {
+        this.logger.log(`Approval already accepted`);
         throw new ConflictException(AEM.APPROVAL_REQUEST_CONFLICT);
       }
       const previousDate = approval.updatedAt;
 
-      await this.db.update(schema.approvals).set({
-        isRequestAccepted: true,
-        updatedAt: new Date().toISOString(),
-        status: APPROVAL_STATUS.ACCEPTED,
-      });
+      await this.db
+        .update(schema.approvals)
+        .set({
+          isRequestAccepted: true,
+          status: APPROVAL_STATUS.ACCEPTED,
+        })
+        .where(
+          and(
+            eq(schema.approvals.id, approvalId),
+            eq(schema.approvals.practitionerAddress, doctorAddress),
+          ),
+        );
+
+      this.logger.debug(`Approval Updated`);
 
       const approvalContractResult =
         await this.contractService.handleRecordApproval({
@@ -416,23 +430,38 @@ export class ApprovalProvider {
           recordIds: approval.recordId ? [approval.recordId] : undefined,
         });
 
-      if (approvalContractResult?.status !== HttpStatus.OK) {
-        await this.db.update(schema.approvals).set({
-          isRequestAccepted: false,
-          updatedAt: previousDate,
-          status: APPROVAL_STATUS.CREATED,
-        });
+      if (
+        !approvalContractResult ||
+        approvalContractResult?.status !== HttpStatus.OK
+      ) {
+        await this.db
+          .update(schema.approvals)
+          .set({
+            isRequestAccepted: false,
+            status: APPROVAL_STATUS.CREATED,
+          })
+          .where(
+            and(
+              eq(schema.approvals.id, approvalId),
+              eq(schema.approvals.practitionerAddress, doctorAddress),
+            ),
+          );
+
         throw new HttpException(
-          approvalContractResult?.message as string,
-          approvalContractResult?.status as number,
+          'An error occurred while accepting approval via contract',
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
       }
+
+      this.logger.debug(`Approval Updated on contract`);
 
       const taskData = new EUpdateTaskCount(
         doctorId,
         'ACCEPT_APPROVAL',
         approvalId,
       );
+
+      this.logger.log(`Approval ${approvalId} created for doctor ${doctorId}`);
 
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,

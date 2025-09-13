@@ -235,6 +235,21 @@ export class DailyTasksProvider {
     const today = new Date().toISOString().split('T')[0];
 
     try {
+      const existingTasks = await this.db
+        .select({ count: count() })
+        .from(schema.dailyTasks)
+        .where(
+          and(
+            eq(schema.dailyTasks.userId, userId),
+            eq(schema.dailyTasks.taskDate, today),
+          ),
+        );
+
+      // If no tasks exist for today, generate them first
+      if (!existingTasks.length || existingTasks[0].count === 0) {
+        await this.generateDailyTasksForDate(userId, today);
+      }
+
       const incompleteTask = await this.db
         .select({
           dailyTaskId: schema.dailyTasks.id,
@@ -268,7 +283,7 @@ export class DailyTasksProvider {
           .set({
             isCompleted: true,
             completedAt: new Date(),
-            updatedAt: new Date().toISOString().split('T')[0],
+            updatedAt: new Date(),
           })
           .where(eq(schema.dailyTasks.id, task.dailyTaskId));
 
@@ -297,7 +312,7 @@ export class DailyTasksProvider {
             .update(schema.dailyReward)
             .set({
               dailyTaskCount: existingReward[0].dailyTaskCount + 1,
-              updatedAt: today,
+              updatedAt: new Date(),
             })
             .where(eq(schema.dailyReward.id, existingReward[0].id));
         } else {
@@ -305,7 +320,7 @@ export class DailyTasksProvider {
             userId,
             dailyTaskCount: 1,
             createdAt: today,
-            updatedAt: today,
+            updatedAt: new Date(),
           });
         }
       });

@@ -761,7 +761,7 @@ export class ContractProvider {
           SharedEvents.APPROVE_WRITE_ACCESS,
           new EApproveWriteRecord(practitionerId, userId),
         );
-        this.handlerService.handleReturn({
+        return this.handlerService.handleReturn({
           status: HttpStatus.OK,
           message: CSM.WRITE_ACCESS_APPROVED,
         });
