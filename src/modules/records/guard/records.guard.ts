@@ -48,7 +48,7 @@ export class RecordsGuard implements CanActivate {
 
       await this.db.update(schema.doctors).set({
         id: tokenUserId,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       });
 
       return true;

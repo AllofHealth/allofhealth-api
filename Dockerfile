@@ -41,6 +41,7 @@ FROM node:22-slim
 
 # Accept Sentry auth token as build argument
 ARG SENTRY_AUTH_TOKEN
+
 # Install necessary development packages and IPFS dependencies
 RUN apt-get update && apt-get install -y \
     python3 make g++ curl wget tar bash ca-certificates && \
@@ -68,6 +69,7 @@ COPY .env .env
 COPY . .
 
 
+# Set Sentry auth token environment variable for build
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
 # Build the app

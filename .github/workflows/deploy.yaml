@@ -16,7 +16,11 @@ jobs:
 
       - name: Create .env file in project root
         run: |
+          ls src/shared/modules
           echo "${{ secrets.ENV_FILE }}" > .env
+          mkdir -p src/shared/modules/push-notifications/config || true
+          echo "${{ secrets.SERVICE_ACC_FILE }}" > src/shared/modules/push-notifications/config/allofhealth-google.config.json
+          ls src/shared/modules
 
       - name: Set Image Tag
         run: echo "IMAGE_TAG=v${{ github.run_number }}" >> $GITHUB_ENV
@@ -29,6 +33,7 @@ jobs:
 
       - name: Build Docker image
         run: |
+
           docker build --no-cache --build-arg SENTRY_AUTH_TOKEN="${{ secrets.SENTRY_AUTH_TOKEN }}" -t ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:${{ env.IMAGE_TAG }} .
 
       - name: Push Docker image to Docker Hub
@@ -65,6 +70,7 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
             docker stop allofhealthapi || true
             docker rm allofhealthapi || true
+
             docker run -d \
             -p 3003:3000 \
             -v ipfs-data:/root/.ipfs \
