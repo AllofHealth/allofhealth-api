@@ -19,8 +19,8 @@ jobs:
           ls src/shared/modules
           echo "${{ secrets.ENV_FILE }}" > .env
           mkdir -p src/shared/modules/push-notifications/config
-          echo "${{ secrets.SERVICE_ACC_FILE }}" > src/shared/modules/push-notifications/config/allofhealth-google.config.json
-          ls src/shared/modules
+          echo "${{ secrets.SERVICE_ACC_FILE }}" | base64 -d > src/shared/modules/push-notifications/config/allofhealth-google.config.json
+          cat src/shared/modules/push-notifications/config/allofhealth-google.config.json | jq . > /dev/null
 
       - name: Set Image Tag
         run: echo "IMAGE_TAG=v${{ github.run_number }}" >> $GITHUB_ENV
