@@ -196,7 +196,7 @@ export class RewardProvider {
 
       await this.db.update(schema.dailyReward).set({
         dailyTaskCount: sql`${schema.dailyReward.dailyTaskCount} + 1`,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       });
 
       return this.handler.handleReturn({

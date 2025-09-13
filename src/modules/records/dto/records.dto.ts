@@ -99,7 +99,7 @@ export class CreateRecordDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  medicationsPrscribed?: string[];
+  medicationsPrescribed?: string[];
 }
 
 export class FetchRecordsDto {

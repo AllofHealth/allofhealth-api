@@ -49,7 +49,7 @@ export class AdminGuard implements CanActivate {
       await this.db
         .update(schema.admin)
         .set({
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(),
         })
         .where(eq(schema.admin.id, tokenUserId));
 
