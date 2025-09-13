@@ -2,7 +2,10 @@ import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
 import { IPFS_ERROR_MESSAGES } from '@/modules/ipfs/data/ipfs.data';
+import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
 import { IpfsService } from '@/modules/ipfs/service/ipfs.service';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { UserService } from '@/modules/user/service/user.service';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
@@ -14,6 +17,12 @@ import {
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
+import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
+import {
+  formatDateToReadable,
+  formatDateToStandard,
+} from '@/shared/utils/date.utils';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
   ConflictException,
@@ -25,13 +34,14 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { and, eq, sql } from 'drizzle-orm';
 import {
   RECORDS_STATUS,
   RECORDS_ERROR_MESSAGES as REM,
   RECORDS_SUCCESS_MESSAGES as RSM,
 } from '../data/records.data';
+import { RecordsError } from '../error/records.error';
 import {
   ICreateRecord,
   IfetchAndDecrypt,
@@ -39,20 +49,13 @@ import {
   IFetchRecordById,
 } from '../interface/records.interface';
 import { RecordsEncryptionService } from '../service/record-encryption.service';
-import {
-  formatDateToReadable,
-  formatDateToStandard,
-} from '@/shared/utils/date.utils';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
-import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
-import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class RecordsProvider {
   private readonly logger = new MyLoggerService(RecordsProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly handler: ErrorHandler,
     private readonly doctorService: DoctorService,
     private readonly recordEncryptionService: RecordsEncryptionService,
@@ -61,7 +64,7 @@ export class RecordsProvider {
     private readonly eventEmitter: EventEmitter2,
     private readonly approvalService: ApprovalService,
     private readonly contractService: ContractService,
-    private readonly createRecordQueue: CreateRecordQueue,
+    private createRecordQueue: CreateRecordQueue,
   ) {}
 
   private async returnPractitionerName(practitionerId: string) {
@@ -71,6 +74,98 @@ export class RecordsProvider {
     }
 
     return doctor.data?.fullName;
+  }
+
+  private async cacheRecord(ctx: EAddMedicalRecordToContract) {
+    const { approvalId, cid, practitionerId, recordChainId, userId } = ctx;
+    const parsedRecord = {
+      userId,
+      approvalId,
+      cid,
+      practitionerId,
+      recordChainId,
+    };
+
+    await this.cacheManager.set(
+      `${userId}-${approvalId}`,
+      JSON.stringify(parsedRecord),
+    );
+  }
+
+  @OnEvent(SharedEvents.STORE_RECORD_ON_CHAIN, { async: true })
+  private async storeRecordOnChain(ctx: EAddMedicalRecordToContract) {
+    try {
+      const txData = await this.contractService.addMedicalRecordToContract(ctx);
+      if (!txData || !txData.data) {
+        const cacheKey = `${ctx.userId}-${ctx.approvalId}`;
+        const cachedData = await this.cacheManager.get(cacheKey);
+        const parsedData = JSON.parse(
+          cachedData as string,
+        ) as EAddMedicalRecordToContract;
+
+        const retryTxData =
+          await this.contractService.addMedicalRecordToContract(parsedData);
+        if (!retryTxData || !retryTxData.data) {
+          await this.createRecordQueue.createRecordJob(parsedData);
+        }
+
+        await this.cacheManager.del(cacheKey);
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: RSM.ADDED_RECORD_ON_CHAIN_SUCCESSFULLY,
+      });
+    } catch (e) {
+      if (e instanceof InternalServerErrorException) {
+        this.logger.warn(
+          `InternalServerErrorException caught, retrying transaction for user ${ctx.userId}, approval ${ctx.approvalId}`,
+          e.message,
+        );
+        try {
+          const cacheKey = `${ctx.userId}-${ctx.approvalId}`;
+          const cachedData = await this.cacheManager.get(cacheKey);
+          const parsedData = cachedData
+            ? (JSON.parse(cachedData as string) as EAddMedicalRecordToContract)
+            : ctx;
+
+          this.logger.debug(`Attempting retry for medical record transaction`);
+          const retryTxData =
+            await this.contractService.addMedicalRecordToContract(parsedData);
+
+          if (!retryTxData || !retryTxData.data) {
+            this.logger.warn(`Retry failed, queueing job for later processing`);
+            await this.createRecordQueue.createRecordJob(parsedData);
+          } else {
+            this.logger.log(
+              `Retry successful for user ${ctx.userId}, approval ${ctx.approvalId}`,
+            );
+          }
+
+          if (cachedData) {
+            await this.cacheManager.del(cacheKey);
+          }
+
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: RSM.ADDED_RECORD_ON_CHAIN_SUCCESSFULLY,
+          });
+        } catch (retryError) {
+          this.logger.error(
+            `Retry attempt also failed for user ${ctx.userId}, approval ${ctx.approvalId}`,
+            retryError.message,
+          );
+        }
+      }
+
+      throw new RecordsError(
+        REM.FAILED_TO_STORE_RECORDS_ON_CHAIN,
+        {
+          cause: e.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async createRecord(ctx: ICreateRecord) {
@@ -112,7 +207,6 @@ export class RecordsProvider {
         });
       }
 
-      // Process attachments
       const attachments: Express.Multer.File[] = [];
       if (attachment1) attachments.push(attachment1);
       if (attachment2) attachments.push(attachment2);
@@ -216,7 +310,12 @@ export class RecordsProvider {
         dbResult.recordId,
       );
 
-      await this.createRecordQueue.createRecordJob(recordEvent);
+      await this.cacheRecord(recordEvent);
+      await this.eventEmitter.emitAsync(
+        SharedEvents.STORE_RECORD_ON_CHAIN,
+        recordEvent,
+      );
+
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,
         new EOnUserLogin(practitionerId, new Date(), new Date()),
