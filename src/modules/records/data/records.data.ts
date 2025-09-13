@@ -7,6 +7,7 @@ export enum RECORDS_ERROR_MESSAGES {
   PRACTITIONER_NOT_APPROVED_TO_ACCESS_RECORD = 'Practitioner is not approved to access record',
   ERROR_FETCHING_RECORDS = 'Error fetching records',
   RECORD_ACCESS_UNAUTHORIZED = 'Access to record has expired or is unauthorized',
+  FAILED_TO_STORE_RECORDS_ON_CHAIN = 'Failed to store records on blockchain',
 }
 
 export enum RECORDS_SUCCESS_MESSAGES {
@@ -15,6 +16,7 @@ export enum RECORDS_SUCCESS_MESSAGES {
   RECORD_ENCRYPTED_SUCCESSFULLY = 'Record encrypted successfully',
   RECORD_DECRYPTED_SUCCESSFULLY = 'Record decrypted successfully',
   RECORD_FETCHED_SUCCESSFULLY = 'Record fetched successfully',
+  ADDED_RECORD_ON_CHAIN_SUCCESSFULLY = 'Record added on chain successfully',
 }
 
 export enum RECORDS_STATUS {

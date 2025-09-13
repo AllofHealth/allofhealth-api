@@ -22,4 +22,5 @@ export enum SharedEvents {
   RESET_APPROVAL_PERMISSIONS = 'reset.approval.permissions',
   UPDATE_REVIEW_COUNT = 'update.review.count',
   SEND_ONBOARDING = 'send.onboarding',
+  STORE_RECORD_ON_CHAIN = 'store.record.on.chain',
 }

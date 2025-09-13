@@ -38,6 +38,7 @@
 # CMD ["./start-with-ipfs.sh"]
 FROM node:22-slim
 
+
 # Accept Sentry auth token as build argument
 ARG SENTRY_AUTH_TOKEN
 
@@ -67,6 +68,7 @@ RUN npm install
 COPY .env .env
 COPY . .
 
+
 # Set Sentry auth token environment variable for build
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
@@ -78,6 +80,7 @@ COPY scripts/start-with-ipfs.sh ./start-with-ipfs.sh
 RUN chmod +x start-with-ipfs.sh
 
 EXPOSE 3000
+
 EXPOSE 8080
 EXPOSE 5001
 

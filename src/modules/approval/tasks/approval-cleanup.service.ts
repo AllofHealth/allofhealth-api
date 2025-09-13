@@ -84,7 +84,7 @@ export class ApprovalCleanupService {
           .set({
             status: APPROVAL_STATUS.TIMED_OUT,
             isRequestAccepted: false,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
           })
           .where(inArray(schema.approvals.id, approvalIdsToRevoke));
 
@@ -174,7 +174,7 @@ export class ApprovalCleanupService {
           .set({
             status: APPROVAL_STATUS.TIMED_OUT,
             isRequestAccepted: false,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
           })
           .where(inArray(schema.approvals.id, approvalIdsToRevoke));
 
@@ -271,7 +271,7 @@ export class ApprovalCleanupService {
           .set({
             status: APPROVAL_STATUS.TIMED_OUT,
             isRequestAccepted: false,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
           })
           .where(inArray(schema.approvals.id, approvalIdsToComplete));
 

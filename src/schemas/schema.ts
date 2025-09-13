@@ -27,7 +27,9 @@ export const user = pgTable('users', {
   status: text('status').notNull().default('PENDING'),
   authProvider: varchar('auth_provider', { length: 255 }),
   createdAt: date('created_at').notNull().defaultNow(),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   lastLogin: timestamp('last_login', { withTimezone: true }),
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
@@ -45,7 +47,9 @@ export const identity = pgTable('identities', {
   scannedLicenseFileId: varchar('scanned_license_file_id', { length: 255 }),
   scannedLicense: text('scanned_license'),
   createdAt: date('created_at').notNull().defaultNow(),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const doctors = pgTable('doctors', {
@@ -75,7 +79,9 @@ export const doctors = pgTable('doctors', {
   }),
   lastLogin: timestamp('last_login', { withTimezone: true }),
   createdAt: date('created_at').notNull().defaultNow(),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   isFirstTime: boolean('is_first_time').default(true).notNull(),
   lastActivity: timestamp('last_activity', { withTimezone: true }),
   isVerified: boolean('is_verified').default(false).notNull(),
@@ -99,7 +105,9 @@ export const accounts = pgTable('accounts', {
     length: 255,
   }).notNull(),
   createdAt: date('created_at').notNull().defaultNow(),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const refresh_tokens = pgTable('refresh_tokens', {
@@ -115,7 +123,9 @@ export const refresh_tokens = pgTable('refresh_tokens', {
     .defaultNow(),
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
   replacedByToken: text('replaced_by_token'),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const health_journal = pgTable('health_journal', {
@@ -128,7 +138,9 @@ export const health_journal = pgTable('health_journal', {
   activities: jsonb('activities').default('[]'),
   tags: jsonb('tags').default('[]'),
   createdAt: date('created_at').notNull().defaultNow(),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
 });
 
 export const approvals = pgTable('approvals', {
@@ -148,7 +160,9 @@ export const approvals = pgTable('approvals', {
   recordId: integer('recordId').default(0),
   duration: integer('duration').default(0),
   createdAt: date('created_at').notNull().defaultNow(),
-  updatedAt: date('updated_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   accessLevel: text('access_level').notNull().default('read'),
   isRequestAccepted: boolean().notNull().default(false),
   status: text('status').notNull().default('CREATED'),
@@ -162,7 +176,7 @@ export const admin = pgTable('admin', {
   password: varchar('password', { length: 255 }).notNull(),
   permissionLevel: text('permission_level').notNull().default('system'),
   createdAt: date('created_at').defaultNow(),
-  updatedAt: date('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export const records = pgTable('records', {
@@ -176,7 +190,7 @@ export const records = pgTable('records', {
   practitionerName: varchar('practitioner_name', { length: 255 }).notNull(),
   status: text('status').notNull().default('pending'),
   createdAt: date('created_at').defaultNow(),
-  updatedAt: date('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export const userRecordCounters = pgTable('user_record_counters', {
@@ -187,7 +201,7 @@ export const userRecordCounters = pgTable('user_record_counters', {
     .references(() => user.id, { onDelete: 'cascade' }),
   lastRecordChainId: integer('last_record_chain_id').notNull().default(0),
   createdAt: date('created_at').defaultNow(),
-  updatedAt: date('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export const healthInformation = pgTable('health_information', {
@@ -204,7 +218,7 @@ export const healthInformation = pgTable('health_information', {
   attachment: text('attachment').default(''),
   attachmentFileId: text('attachment_file_id').default(''),
   createdAt: date('created_at').defaultNow(),
-  updatedAt: date('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export const dailyReward = pgTable('daily_reward', {
@@ -215,7 +229,7 @@ export const dailyReward = pgTable('daily_reward', {
   dailyTaskCount: integer('daily_task_count').notNull().default(1),
   isTokenMinted: boolean('is_token_minted').notNull().default(false),
   createdAt: date('created_at').defaultNow(),
-  updatedAt: date('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export const otp = pgTable('otp', {
@@ -223,7 +237,7 @@ export const otp = pgTable('otp', {
   emailAddress: varchar('email_address', { length: 255 }).notNull().unique(),
   otpCode: varchar('otp_code', { length: 6 }).notNull().unique(),
   createdAt: date('created_at').defaultNow(),
-  updatedAt: date('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export const moodMetrics = pgTable(
@@ -237,7 +251,7 @@ export const moodMetrics = pgTable(
     year: integer('year').notNull(),
     month: integer('month').notNull(),
     createdAt: date('created_at').defaultNow(),
-    updatedAt: date('updated_at').defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
     userMonthYearUnique: unique().on(table.userId, table.year, table.month),
@@ -256,7 +270,7 @@ export const taskTypes = pgTable('task_types', {
     .default('0.01'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: date('created_at').defaultNow(),
-  updatedAt: date('updated_at').defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });
 
 export const dailyTasks = pgTable(
@@ -276,7 +290,7 @@ export const dailyTasks = pgTable(
       .notNull()
       .default('0.01'),
     createdAt: date('created_at').defaultNow(),
-    updatedAt: date('updated_at').defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
   },
   (table) => ({
     userDateIndex: index().on(table.userId, table.taskDate),
