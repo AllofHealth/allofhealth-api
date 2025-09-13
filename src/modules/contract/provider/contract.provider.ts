@@ -780,11 +780,13 @@ export class ContractProvider {
       ]);
 
       if (!patientResult?.data) {
-        throw new Error('Failed to get patient smart address');
+        throw new BadRequestException('Failed to get patient smart address');
       }
 
       if (!practitionerResult?.data) {
-        throw new Error('Failed to get practitioner smart address');
+        throw new BadRequestException(
+          'Failed to get practitioner smart address',
+        );
       }
 
       const patientSmartAddress = patientResult.data.smartAddress;
@@ -812,6 +814,10 @@ export class ContractProvider {
       });
 
       const { transactionHash } = await opResponse.waitForTxHash();
+
+      if (!transactionHash) {
+        throw new InternalServerErrorException('Failed to add medical record');
+      }
 
       await this.eventEmitter.emitAsync(
         SharedEvents.RESET_APPROVAL_PERMISSIONS,
