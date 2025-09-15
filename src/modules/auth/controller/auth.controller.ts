@@ -263,8 +263,8 @@ export class AuthController {
 
     return await this.authService.handleRegister({
       ...ctx,
-      governmentIdfilePath: governmentIdFile?.path,
-      scannedLicensefilePath: scannedLicenseFile?.path,
+      governmentIdfilePath: governmentIdFile?.path || undefined,
+      scannedLicensefilePath: scannedLicenseFile?.path || undefined,
     });
   }
 
