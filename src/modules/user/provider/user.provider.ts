@@ -624,13 +624,15 @@ export class UserProvider {
 
       switch (ctx.role) {
         case 'PATIENT':
-          await this.eventEmitter.emitAsync(
-            SharedEvents.PATIENT_REGISTRATION,
-            new EHandleRegisterPatient(
-              insertedUser.id,
-              ctx.governmentIdfilePath,
-            ),
-          );
+          if (ctx.governmentIdfilePath) {
+            await this.eventEmitter.emitAsync(
+              SharedEvents.PATIENT_REGISTRATION,
+              new EHandleRegisterPatient(
+                insertedUser.id,
+                ctx.governmentIdfilePath,
+              ),
+            );
+          }
 
           this.eventEmitter.emit(
             SharedEvents.SEND_ONBOARDING,
@@ -679,14 +681,16 @@ export class UserProvider {
             bio: ctx.bio,
           });
 
-          await this.eventEmitter.emitAsync(
-            SharedEvents.DOCTOR_REGISTRATION,
-            new EHandleRegisterDoctor(
-              insertedUser.id,
-              ctx.governmentIdfilePath!,
-              ctx.scannedLicensefilePath!,
-            ),
-          );
+          if (ctx.governmentIdfilePath && ctx.scannedLicensefilePath) {
+            await this.eventEmitter.emitAsync(
+              SharedEvents.DOCTOR_REGISTRATION,
+              new EHandleRegisterDoctor(
+                insertedUser.id,
+                ctx.governmentIdfilePath!,
+                ctx.scannedLicensefilePath!,
+              ),
+            );
+          }
 
           this.eventEmitter.emit(
             SharedEvents.SEND_ONBOARDING,
