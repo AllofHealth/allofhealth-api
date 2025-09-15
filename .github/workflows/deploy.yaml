@@ -18,9 +18,9 @@ jobs:
         run: |
           ls src/shared/modules
           echo "${{ secrets.ENV_FILE }}" > .env
-          mkdir -p src/shared/modules/push-notifications/config || true
-          echo "${{ secrets.SERVICE_ACC_FILE }}" > src/shared/modules/push-notifications/config/allofhealth-google.config.json
-          ls src/shared/modules
+          mkdir -p src/shared/modules/push-notifications/config
+          printf "%s" '${{ secrets.SERVICE_ACC_FILE }}' > src/shared/modules/push-notifications/config/allofhealth-google.config.json
+          cat src/shared/modules/push-notifications/config/allofhealth-google.config.json | jq . > /dev/null
 
       - name: Set Image Tag
         run: echo "IMAGE_TAG=v${{ github.run_number }}" >> $GITHUB_ENV
@@ -76,3 +76,5 @@ jobs:
             -v ipfs-data:/root/.ipfs \
             --name allofhealthapi \
             ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
+            docker run -d -p 3003:3000 --name allofhealthapi ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
+
