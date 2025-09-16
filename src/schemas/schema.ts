@@ -339,3 +339,15 @@ export const rejectionLogs = pgTable('rejection_logs', {
   reason: varchar('reason', { length: 255 }).notNull(),
   createdAt: date('created_at').defaultNow(),
 });
+
+export const contractRegistrationFailures = pgTable(
+  'contract_registration_failures',
+  {
+    id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    reason: varchar('reason', { length: 255 }).notNull(),
+    createdAt: date('created_at').defaultNow(),
+  },
+);
