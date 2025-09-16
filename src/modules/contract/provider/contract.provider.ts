@@ -47,6 +47,7 @@ import { RpcRotationService } from '@/shared/utils/contract/rpc-rotation.contrac
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import * as schema from '@/schemas/schema';
+import { ContractError } from '../error/contract.error';
 
 @Injectable()
 export class ContractProvider {
