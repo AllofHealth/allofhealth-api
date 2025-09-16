@@ -9,7 +9,11 @@ import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { EOnUserLogin, EUpdateTaskCount } from '@/shared/dtos/event.dto';
+import {
+  EOnUserLogin,
+  ERegisterEntity,
+  EUpdateTaskCount,
+} from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
@@ -149,10 +153,27 @@ export class ApprovalProvider {
 
       const isVerified = isVerifiedResult[0].isVerified;
       if (!isVerified) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: AEM.PRACTITIONER_NOT_VERIFIED,
-        });
+        throw new BadRequestException(AEM.PRACTITIONER_NOT_VERIFIED);
+      }
+
+      const patientSmartAddress = await this.getSmartAddress(userId);
+      const patientContractIdResult =
+        await this.contractService.getPatientContractId(patientSmartAddress);
+
+      if (!patientContractIdResult || !patientContractIdResult.data) {
+        throw new InternalServerErrorException(
+          'Failed to retrieve patient contract ID',
+        );
+      }
+
+      if (
+        !patientContractIdResult.data.patientId ||
+        patientContractIdResult.data.patientId === 0
+      ) {
+        this.eventEmitter.emit(
+          SharedEvents.ADD_PATIENT_TO_CONTRACT,
+          new ERegisterEntity(userId),
+        );
       }
 
       if (accessLevel === 'full') {
