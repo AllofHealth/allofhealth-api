@@ -425,7 +425,31 @@ export class ApprovalProvider {
         this.logger.log(`Approval already accepted`);
         throw new ConflictException(AEM.APPROVAL_REQUEST_CONFLICT);
       }
-      const previousDate = approval.updatedAt;
+
+      const patientSmartAddress = await this.getSmartAddress(approval.userId);
+      const patientContractIdResult =
+        await this.contractService.getPatientContractId(patientSmartAddress);
+
+      if (!patientContractIdResult || !patientContractIdResult.data) {
+        throw new InternalServerErrorException(
+          'Failed to retrieve patient contract ID',
+        );
+      }
+
+      if (
+        !patientContractIdResult.data.patientId ||
+        patientContractIdResult.data.patientId === 0
+      ) {
+        this.eventEmitter.emit(
+          SharedEvents.ADD_PATIENT_TO_CONTRACT,
+          new ERegisterEntity(approval.userId),
+        );
+        throw new ApprovalError(
+          'Updating patient contract registration, Please try again',
+          { cause: 'Rpc Error' },
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
 
       await this.db
         .update(schema.approvals)
