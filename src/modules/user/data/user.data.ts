@@ -22,6 +22,7 @@ export enum USER_ERROR_MESSAGES {
   INVALID_EMAIL_ADDRESS = 'Invalid email address',
   ERROR_RESETING_PASSWORD = 'Error resetting password',
   PASSWORD_SAME_AS_OLD = 'Password cannot be the same as the old password',
+  ERROR_REINITIALIZING_WALLET = 'Error reinitializing wallet',
 }
 
 export enum USER_SUCCESS_MESSAGE {
