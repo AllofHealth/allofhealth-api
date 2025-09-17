@@ -13,6 +13,7 @@ import { ContractModule } from '../contract/contract.module';
 import { OtpModule } from '../otp/otp.module';
 import { ResendModule } from '@/shared/modules/resend/resend.module';
 import { AdminModule } from '../admin/admin.module';
+import { AccountAbstractionModule } from '@/shared/modules/account-abstraction/account-abstraction.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AdminModule } from '../admin/admin.module';
     forwardRef(() => OtpModule),
     forwardRef(() => ResendModule),
     forwardRef(() => AdminModule),
+    forwardRef(() => AccountAbstractionModule),
   ],
   providers: [UserProvider, UserService, AuthUtils, ErrorHandler],
   controllers: [UserController],
