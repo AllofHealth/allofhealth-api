@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '@/modules/token/service/token.service';
 import { ICreateUser } from '@/modules/user/interface/user.interface';
 import { UserService } from '@/modules/user/service/user.service';
-import { EOnUserLogin } from '@/shared/dtos/event.dto';
+import { EOnUserLogin, ESendEmail } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { AuthUtils } from '@/shared/utils/auth.utils';
@@ -171,12 +171,26 @@ export class AuthProvider {
       }
 
       const result = await this.findUserByEmail(email);
-
-      const userProfile = result?.data;
-
-      if (!userProfile) {
+      if (!result || !result.data) {
         throw new UnauthorizedException(
           new AuthError(AEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND),
+        );
+      }
+
+      const userProfile = result.data;
+
+      if (userProfile.isFirstimeUser) {
+        this.eventEmitter.emit(
+          SharedEvents.SEND_ONBOARDING,
+          new ESendEmail(
+            email,
+            undefined,
+            undefined,
+            userProfile.fullName,
+            undefined,
+            undefined,
+            'WELCOME',
+          ),
         );
       }
 
