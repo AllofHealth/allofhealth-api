@@ -32,6 +32,7 @@ import {
   USER_SUCCESS_MESSAGE as USM,
 } from '../data/user.data';
 import {
+  EndJoyRideDto,
   ForgotPasswordDto,
   ResendOtpDto,
   ResetPasswordDto,
@@ -411,8 +412,8 @@ export class UserController {
       message: UEM.ERROR_ENDING_JOY_RIDE,
     },
   })
-  async endJoyRide(@Ip() ip: string, @Query('userId') userId: string) {
-    this.logger.log(`Ending joy ride for user ${userId} from ${ip}`);
-    return this.userService.endJoyRide(userId);
+  async endJoyRide(@Ip() ip: string, @Body() ctx: EndJoyRideDto) {
+    this.logger.log(`Ending joy ride for user ${ctx.userId} from ${ip}`);
+    return this.userService.endJoyRide(ctx.userId);
   }
 }
