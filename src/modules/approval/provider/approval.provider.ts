@@ -170,6 +170,7 @@ export class ApprovalProvider {
         !patientContractIdResult.data.patientId ||
         patientContractIdResult.data.patientId === 0
       ) {
+        this.logger.debug(`Contract Id not found, Emitting registration event`);
         this.eventEmitter.emit(
           SharedEvents.ADD_PATIENT_TO_CONTRACT,
           new ERegisterEntity(userId),
@@ -215,7 +216,7 @@ export class ApprovalProvider {
           });
 
           if (!healthInfo) {
-            throw new Error(AEM.HEALTH_INFO_NOT_FOUND);
+            throw new NotFoundException(AEM.HEALTH_INFO_NOT_FOUND);
           }
 
           healthInfoId = healthInfo.id;
@@ -237,7 +238,10 @@ export class ApprovalProvider {
             .returning();
 
           if (!approval || approval.length === 0) {
-            throw new Error(AEM.ERROR_CREATING_APPROVAL);
+            throw new HttpException(
+              AEM.ERROR_CREATING_APPROVAL,
+              HttpStatus.EXPECTATION_FAILED,
+            );
           }
 
           createdApprovals.push(...approval);
@@ -440,6 +444,9 @@ export class ApprovalProvider {
         !patientContractIdResult.data.patientId ||
         patientContractIdResult.data.patientId === 0
       ) {
+        this.logger.debug(
+          'Patient contract id not found, emitting event to perform contract registration',
+        );
         this.eventEmitter.emit(
           SharedEvents.ADD_PATIENT_TO_CONTRACT,
           new ERegisterEntity(approval.userId),
