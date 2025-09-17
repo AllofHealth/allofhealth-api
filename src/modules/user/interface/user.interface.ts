@@ -95,3 +95,9 @@ export interface IPasswordReset {
   emailAddress: string;
   password: string;
 }
+
+export interface IWalletInfoResponse {
+  walletAddress: string;
+  balance: string;
+  lastUpdated: Date;
+}
