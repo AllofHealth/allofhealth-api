@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   NotImplementedException,
   UnauthorizedException,
@@ -48,6 +49,7 @@ import {
   IPasswordReset,
   IUpdateUser,
   IUserSnippet,
+  IWalletInfoResponse,
 } from '../interface/user.interface';
 import { WalletService } from '@/modules/wallet/service/wallet.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
@@ -58,6 +60,7 @@ import { ResendService } from '@/shared/modules/resend/service/resend.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { AdminService } from '@/modules/admin/service/admin.service';
 import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
+import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
 
 @Injectable()
 export class UserProvider {
@@ -76,6 +79,8 @@ export class UserProvider {
     @Inject(forwardRef(() => AdminService))
     private readonly adminService: AdminService,
     private readonly logger: MyLoggerService,
+    @Inject(forwardRef(() => AccountAbstractionService))
+    private readonly aaService: AccountAbstractionService,
   ) {
     this.logger.setContext(UserProvider.name);
   }
@@ -246,6 +251,35 @@ export class UserProvider {
     }
   }
 
+  private async handleReInitializeWallet(userId: string) {
+    try {
+      const userWallet = await this.aaService.createSmartAccount({
+        userId,
+      });
+
+      if (!userWallet || !userWallet.data) {
+        throw new UserError(
+          'Failed to create smart account',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
+
+      const createdWalletInfo =
+        await this.walletService.fetchUserWallet(userId);
+
+      if (!createdWalletInfo?.data) {
+        throw new UserError(
+          'Failed to fetch wallet info',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
+
+      return createdWalletInfo.data;
+    } catch (e) {
+      this.handler.handleError(e, UEM.ERROR_REINITIALIZING_WALLET);
+    }
+  }
+
   async handleSuspensionCheck(userId: string) {
     try {
       const status = await this.db
@@ -324,9 +358,20 @@ export class UserProvider {
         .where(eq(schema.user.id, id))
         .limit(1);
 
+      let userWalletInfo: IWalletInfoResponse | null = null;
+
       const walletInfo = await this.walletService.fetchUserWallet(user[0].id);
       if (!walletInfo?.data) {
-        throw new Error('Failed to fetch wallet data');
+        const createdWallet = await this.handleReInitializeWallet(user[0].id);
+        if (!createdWallet) {
+          throw new InternalServerErrorException(
+            UEM.ERROR_REINITIALIZING_WALLET,
+          );
+        }
+
+        userWalletInfo = createdWallet;
+      } else {
+        userWalletInfo = walletInfo.data;
       }
 
       const updatedParsedUser = {
@@ -342,10 +387,10 @@ export class UserProvider {
         phoneNumber: user[0].phoneNumber,
         status: user[0].status,
         walletData: {
-          walletAddress: walletInfo.data.walletAddress,
-          balance: walletInfo.data.balance,
+          walletAddress: userWalletInfo?.walletAddress,
+          balance: userWalletInfo?.balance,
           lastTransactionDate: formatDateToReadable(
-            walletInfo.data.lastUpdated,
+            userWalletInfo?.lastUpdated!,
           ),
         },
       };
