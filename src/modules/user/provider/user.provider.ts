@@ -690,19 +690,6 @@ export class UserProvider {
             );
           }
 
-          this.eventEmitter.emit(
-            SharedEvents.SEND_ONBOARDING,
-            new ESendEmail(
-              ctx.emailAddress,
-              undefined,
-              undefined,
-              ctx.fullName,
-              undefined,
-              undefined,
-              'WELCOME',
-            ),
-          );
-
           parsedUser = {
             userId: insertedUser.id,
             fullName: ctx.fullName,
@@ -747,19 +734,6 @@ export class UserProvider {
               ),
             );
           }
-
-          this.eventEmitter.emit(
-            SharedEvents.SEND_ONBOARDING,
-            new ESendEmail(
-              ctx.emailAddress,
-              undefined,
-              undefined,
-              ctx.fullName,
-              undefined,
-              undefined,
-              'WELCOME',
-            ),
-          );
 
           parsedUser = {
             userId: insertedUser.id,
@@ -1020,6 +994,29 @@ export class UserProvider {
       });
     } catch (e) {
       this.handler.handleError(e, e.message || UEM.ERROR_RESETING_PASSWORD);
+    }
+  }
+
+  async endjoyRide(userId: string) {
+    try {
+      const user = await this.findUserById(userId);
+      if (!user || !user.data) {
+        throw new NotFoundException(UEM.USER_NOT_FOUND);
+      }
+
+      await this.db
+        .update(schema.user)
+        .set({
+          isFirstTime: false,
+        })
+        .where(eq(schema.user.id, userId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.JOY_RIDE_ENDED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      this.handler.handleError(e, e.message || UEM.ERROR_ENDING_JOY_RIDE);
     }
   }
 }
