@@ -348,3 +348,14 @@ export class ResetPasswordDto {
   })
   password: string;
 }
+
+export class EndJoyRideDto {
+  @ApiProperty({
+    description: 'The users identifier',
+    example: '1234567890',
+    required: true,
+  })
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+}
