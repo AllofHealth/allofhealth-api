@@ -379,4 +379,40 @@ export class UserController {
     );
     return this.userService.resetPassword(ctx);
   }
+
+  @Post('end-joy-ride')
+  @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
+  @ApiOperation({
+    summary: 'End user joy ride',
+    description:
+      'Marks the user as no longer a first-time user, ending their joy ride experience',
+  })
+  @ApiOkResponse({
+    description: 'Joy ride ended successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: 200,
+      message: USM.JOY_RIDE_ENDED_SUCCESSFULLY,
+    },
+  })
+  @ApiBadRequestResponse({
+    description: 'User not found',
+    type: UserError,
+    example: {
+      status: HttpStatus.NOT_FOUND,
+      message: UEM.USER_NOT_FOUND,
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error ending joy ride',
+    type: UserError,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: UEM.ERROR_ENDING_JOY_RIDE,
+    },
+  })
+  async endJoyRide(@Ip() ip: string, @Query('userId') userId: string) {
+    this.logger.log(`Ending joy ride for user ${userId} from ${ip}`);
+    return this.userService.endJoyRide(userId);
+  }
 }
