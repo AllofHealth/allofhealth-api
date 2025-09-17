@@ -359,9 +359,22 @@ export class UserProvider {
         .limit(1);
 
       let userWalletInfo: IWalletInfoResponse | null = null;
+      try {
+        const walletInfo = await this.walletService.fetchUserWallet(user[0].id);
+        if (!walletInfo?.data) {
+          const createdWallet = await this.handleReInitializeWallet(user[0].id);
+          if (!createdWallet) {
+            throw new InternalServerErrorException(
+              UEM.ERROR_REINITIALIZING_WALLET,
+            );
+          }
 
-      const walletInfo = await this.walletService.fetchUserWallet(user[0].id);
-      if (!walletInfo?.data) {
+          userWalletInfo = createdWallet;
+        } else {
+          userWalletInfo = walletInfo.data;
+        }
+      } catch (e) {
+        this.logger.debug(`No wallet found: Reinitiializing Now`);
         const createdWallet = await this.handleReInitializeWallet(user[0].id);
         if (!createdWallet) {
           throw new InternalServerErrorException(
@@ -370,8 +383,6 @@ export class UserProvider {
         }
 
         userWalletInfo = createdWallet;
-      } else {
-        userWalletInfo = walletInfo.data;
       }
 
       const updatedParsedUser = {
