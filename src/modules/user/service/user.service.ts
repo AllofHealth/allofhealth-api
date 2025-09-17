@@ -82,4 +82,8 @@ export class UserService {
   async resetPassword(ctx: IPasswordReset) {
     return await this.userProvider.handleResetPassword(ctx);
   }
+
+  async endJoyRide(userId: string) {
+    return await this.userProvider.endjoyRide(userId);
+  }
 }
