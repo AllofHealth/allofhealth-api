@@ -381,7 +381,7 @@ export class UserController {
     return this.userService.resetPassword(ctx);
   }
 
-  @Post('end-joy-ride')
+  @Post('endJoyRide')
   @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({
     summary: 'End user joy ride',
