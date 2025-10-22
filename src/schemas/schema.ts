@@ -10,7 +10,7 @@ import {
   timestamp,
   unique,
   uuid,
-  varchar,
+  varchar,  
 } from 'drizzle-orm/pg-core';
 import { PLACEHOLDER } from '@/shared/data/constants';
 
@@ -351,3 +351,216 @@ export const contractRegistrationFailures = pgTable(
     createdAt: date('created_at').defaultNow(),
   },
 );
+
+
+// ============================================
+// TELEMEDICINE TABLES
+// ============================================
+
+/**
+ * Doctor Calendar Integration
+ * Stores Cal.com connection details for each doctor
+ */
+export const doctorCalendarIntegrations = pgTable('doctor_calendar_integrations', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  doctorId: uuid('doctor_id')
+    .notNull()
+    .references(() => doctors.id, { onDelete: 'cascade' }),
+  provider: varchar('provider', { length: 50 }).notNull().default('calcom'),
+  accessToken: text('access_token'), // Encrypted in production
+  refreshToken: text('refresh_token'), // Encrypted in production
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  providerUserId: varchar('provider_user_id', { length: 255 }),
+  providerEmail: varchar('provider_email', { length: 255 }),
+  isActive: boolean('is_active').notNull().default(true),
+  lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * Doctor Consultation Types
+ * Different types of consultations a doctor offers (e.g., General, Follow-up)
+ */
+export const doctorConsultationTypes = pgTable('doctor_consultation_types', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  doctorId: uuid('doctor_id')
+    .notNull()
+    .references(() => doctors.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+  description: text('description'),
+  durationMinutes: integer('duration_minutes').notNull().default(30),
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('USD'),
+  calcomEventTypeId: integer('calcom_event_type_id'), // Cal.com event type ID
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (table) => ({
+  doctorSlugUnique: unique().on(table.doctorId, table.slug),
+}));
+
+/**
+ * Consultation Bookings
+ * Core booking records - the heart of telemedicine
+ */
+export const consultationBookings = pgTable('consultation_bookings', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  bookingReference: varchar('booking_reference', { length: 50 }).notNull().unique(), // AOH-TEL-123456
+  patientId: uuid('patient_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  doctorId: uuid('doctor_id')
+    .notNull()
+    .references(() => doctors.id, { onDelete: 'cascade' }),
+  consultationTypeId: uuid('consultation_type_id')
+    .notNull()
+    .references(() => doctorConsultationTypes.id, { onDelete: 'restrict' }),
+
+  // Scheduling Details
+  consultationDate: date('consultation_date').notNull(),
+  startTime: timestamp('start_time', { withTimezone: true }).notNull(),
+  endTime: timestamp('end_time', { withTimezone: true }).notNull(),
+  timezone: varchar('timezone', { length: 50 }).notNull().default('UTC'),
+
+  // Status Management
+  status: varchar('status', { length: 50 })
+    .notNull()
+    .default('pending_payment'), // pending_payment, processing_payment, confirmed, completed, cancelled, no_show
+  paymentStatus: varchar('payment_status', { length: 50 })
+    .notNull()
+    .default('pending'), // pending, processing, paid, failed, refunded
+
+  // Payment Details
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('USD'),
+  paymentIntentId: varchar('payment_intent_id', { length: 255 }),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+
+  // External Provider Integration
+  externalProvider: varchar('external_provider', { length: 50 }).default('calcom'),
+  externalBookingId: varchar('external_booking_id', { length: 255 }).unique(), // Cal.com booking UID
+  externalBookingUrl: text('external_booking_url'),
+
+  // Video Room Details
+  videoRoomId: varchar('video_room_id', { length: 255 }),
+  videoRoomUrl: text('video_room_url'), // Doxy.me link with ?pid=
+  videoPlatform: varchar('video_platform', { length: 50 }).default('doxy'),
+
+  // Notes
+  patientNotes: text('patient_notes'),
+  doctorNotes: text('doctor_notes'),
+
+  // Cancellation
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  cancellationReason: text('cancellation_reason'),
+  cancelledBy: uuid('cancelled_by').references(() => user.id), // User who cancelled
+
+  // Metadata
+  metadata: jsonb('metadata').default('{}'), // For storing additional Cal.com/Doxy.me data
+
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (table) => ({
+  patientIdIndex: index().on(table.patientId),
+  doctorIdIndex: index().on(table.doctorId),
+  statusIndex: index().on(table.status),
+  consultationDateIndex: index().on(table.consultationDate),
+}));
+
+
+/**
+ * Booking Audit Logs
+ * Complete audit trail of all booking state changes
+ */
+export const bookingAuditLogs = pgTable('booking_audit_logs', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  bookingId: uuid('booking_id')
+    .notNull()
+    .references(() => consultationBookings.id, { onDelete: 'cascade' }),
+  action: varchar('action', { length: 100 }).notNull(), // created, payment_initiated, paid, confirmed, cancelled, completed, no_show
+  actorId: uuid('actor_id')
+    .notNull()
+    .references(() => user.id), // Who performed the action
+  actorType: varchar('actor_type', { length: 50 }).notNull(), // patient, doctor, system, admin
+  previousStatus: varchar('previous_status', { length: 50 }),
+  newStatus: varchar('new_status', { length: 50 }),
+  changes: jsonb('changes').default('{}'), // Before/after values
+  ipAddress: varchar('ip_address', { length: 45 }),
+  userAgent: text('user_agent'),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (table) => ({
+  bookingIdIndex: index().on(table.bookingId),
+  createdAtIndex: index().on(table.createdAt),
+}));
+
+/**
+ * Doctor Availability Slots (Optional - for custom availability)
+ * If you want to manage availability independently from Cal.com
+ */
+export const doctorAvailabilitySlots = pgTable('doctor_availability_slots', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  doctorId: uuid('doctor_id')
+    .notNull()
+    .references(() => doctors.id, { onDelete: 'cascade' }),
+  dayOfWeek: integer('day_of_week').notNull(), // 0=Sunday, 1=Monday, etc.
+  startTime: varchar('start_time', { length: 5 }).notNull(), // HH:MM format (e.g., "09:00")
+  endTime: varchar('end_time', { length: 5 }).notNull(), // HH:MM format (e.g., "17:00")
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (table) => ({
+  doctorDayIndex: index().on(table.doctorId, table.dayOfWeek),
+}));
+
+
+/**
+ * Payment Transactions
+ * Detailed payment audit trail
+ */
+export const paymentTransactions = pgTable('payment_transactions', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  bookingId: uuid('booking_id')
+    .notNull()
+    .references(() => consultationBookings.id, { onDelete: 'cascade' }),
+  transactionReference: varchar('transaction_reference', { length: 100 }).notNull().unique(),
+  paymentGateway: varchar('payment_gateway', { length: 50 }).notNull().default('flutterwave'), // or stripe : yet to decide.
+  paymentIntentId: varchar('payment_intent_id', { length: 255 }),
+  chargeId: varchar('charge_id', { length: 255 }),
+
+  // Amount Breakdown
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('USD'), // Dollar, naira 
+  platformFee: decimal('platform_fee', { precision: 10, scale: 2 }).default('0'),
+  doctorPayout: decimal('doctor_payout', { precision: 10, scale: 2 }).notNull(),
+
+  // Status
+  status: varchar('status', { length: 50 }).notNull().default('pending'), // pending, processing, paid, failed, refunded
+
+  // Refund Details
+  refundId: varchar('refund_id', { length: 255 }),
+  refundedAmount: decimal('refunded_amount', { precision: 10, scale: 2 }),
+  refundedAt: timestamp('refunded_at', { withTimezone: true }),
+
+  // Gateway Response (for debugging/audit)
+  gatewayResponse: jsonb('gateway_response').default('{}'),
+
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (table) => ({
+  bookingIdIndex: index().on(table.bookingId),
+  statusIndex: index().on(table.status),
+}));
