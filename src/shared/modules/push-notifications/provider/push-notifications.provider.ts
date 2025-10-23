@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import * as serviceAccount from '../config/allofhealth-google.config.json';
+import * as serviceAccount from './../config/allofhealth-google.config.json';
 import { ISendPushNotification } from '../interface/push-notifications.interface';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { PUSH_NOTIFICATIONS_ERROR_MESSAGES } from '../data/push-notifications.data';
