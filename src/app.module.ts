@@ -38,6 +38,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
 import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
+import { TelemedicineModule } from './modules/telemedicine/telemedicine.module';
 
 @Module({
   imports: [
@@ -118,6 +119,7 @@ import { PushNotificationsModule } from './shared/modules/push-notifications/pus
     BrevoModule,
     NewsletterModule,
     PushNotificationsModule,
+    TelemedicineModule,
   ],
   controllers: [AppController],
   providers: [
