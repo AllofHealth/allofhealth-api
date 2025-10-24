@@ -1,6 +1,6 @@
 import { CalConfig } from '@/shared/config/cal.com/cal.config';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import {
@@ -32,6 +32,10 @@ export class CalComProvider {
     };
   }
 
+  baseUrl() {
+    return this.calConfig.CALCOM_API_URL;
+  }
+
   async handleCalRequests(ctx: IHandleCalRequests) {
     const { src, method, url, data } = ctx;
     const config: AxiosRequestConfig = {
@@ -48,6 +52,10 @@ export class CalComProvider {
     } catch (e) {
       this.logger.error(
         `An error occurred while making request to this resource ${src}: ${e} `,
+      );
+      throw new HttpException(
+        `An error occurred while making request to this resource ${src}: ${e}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
