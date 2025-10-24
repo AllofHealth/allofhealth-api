@@ -37,6 +37,7 @@ export class CalComProvider {
   }
 
   async handleCalRequests(ctx: IHandleCalRequests) {
+    this.logger.log(`Handling request to ${ctx.src}`);
     const { src, method, url, data } = ctx;
     const config: AxiosRequestConfig = {
       ...this.getRequestConfig(method),
