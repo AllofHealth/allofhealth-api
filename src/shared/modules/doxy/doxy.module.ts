@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { Doxy } from './doxy';
-import { DoxyService } from './doxy.service';
+import { DoxyProvider } from './provider/doxy.provider';
+import { DoxyService } from './service/doxy.service';
 
 @Module({
-  providers: [Doxy, DoxyService]
+  providers: [DoxyProvider, DoxyService],
+  exports: [DoxyService],
 })
 export class DoxyModule {}
