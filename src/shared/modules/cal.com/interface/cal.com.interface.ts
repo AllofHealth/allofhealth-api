@@ -62,6 +62,6 @@ export interface IRescheduleBooking {
 export interface IHandleCalRequests {
   method: TCalMethods;
   url: string;
-  data: string;
+  data?: string;
   src: string;
 }
