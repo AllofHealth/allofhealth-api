@@ -9,7 +9,19 @@ export class WebhooksService {
     private readonly doxyConfig: DoxyConfig,
   ) {}
 
-  verifyCalWebhookSignature(payload: string, signature: string): boolean {
+  private extractPatientIdFromUrl(doxyUrl: string): string | null {
+    try {
+      const url = new URL(doxyUrl);
+      return url.searchParams.get('pid');
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private verifyCalWebhookSignature(
+    payload: string,
+    signature: string,
+  ): boolean {
     const crypto = require('crypto');
     const hmac = crypto.createHmac(
       'sha256',
@@ -20,7 +32,10 @@ export class WebhooksService {
     return digest === signature;
   }
 
-  verifyDoxyWebhookSignature(payload: string, signature: string): boolean {
+  private verifyDoxyWebhookSignature(
+    payload: string,
+    signature: string,
+  ): boolean {
     const crypto = require('crypto');
     const hmac = crypto.createHmac(
       'sha256',
