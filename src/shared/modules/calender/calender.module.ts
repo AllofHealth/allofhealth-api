@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { DoxyService } from './service/doxy.service';
-import { CalendarIntegrationService } from './service/calendar-integration.service';
 import { CalComModule } from '../cal.com/cal.com.module';
+import { DoxyModule } from '../doxy/doxy.module';
+import { CalendarService } from './service/calendar.service';
 
 @Module({
-  imports: [CalComModule],
-  providers: [DoxyService, CalendarIntegrationService],
-  exports: [DoxyService, CalendarIntegrationService],
+  imports: [CalComModule, DoxyModule],
+  providers: [CalendarService],
+  exports: [CalendarService],
 })
 export class CalendarModule {}
