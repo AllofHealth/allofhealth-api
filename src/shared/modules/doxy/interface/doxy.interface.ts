@@ -25,3 +25,10 @@ export interface ICreateRoom {
   };
   metadata?: Record<string, any>;
 }
+
+export interface ICreateDoctorRoom {
+  doctorId: string;
+  doctorName: string;
+  patientId: string;
+  bookingId: string;
+}
