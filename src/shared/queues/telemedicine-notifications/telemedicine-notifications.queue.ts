@@ -1,11 +1,11 @@
 import {
+  IHandleBookingCreationJob,
   ISendCancelationEmail,
   ISendConfirmationEmail,
   ISendRequestReview,
   ISendSurveyEmail,
   ISendTelemedicineReminder,
 } from '@/modules/telemedicine/interface/telemedicine.interface';
-import { BookingCreatedEvent } from '@/shared/dtos/event.dto';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
@@ -17,7 +17,7 @@ export class TelemedicineNotificationsQueue {
     private readonly telemedicineRemindersQueue: Queue,
   ) {}
 
-  async handleBookingCreationJob(data: BookingCreatedEvent) {
+  async handleBookingCreationJob(data: IHandleBookingCreationJob) {
     await this.telemedicineNotificationsQueue.add(
       'send-booking-created-email',
       data,
@@ -88,8 +88,23 @@ export class TelemedicineNotificationsQueue {
       attempts: 3,
       backoff: {
         type: 'exponential',
-        delay: 1000,
+        delay: data.delay,
       },
     });
+  }
+
+  async getDelayedReminderJobs() {
+    return await this.telemedicineRemindersQueue.getJobs(['delayed']);
+  }
+
+  async getDelayedReminderJobsByBookingId(bookingId: string) {
+    const delayedJobs = await this.telemedicineRemindersQueue.getJobs([
+      'delayed',
+    ]);
+    return delayedJobs.filter((job) => job.data.bookingId === bookingId);
+  }
+
+  async removeDelayedReminderJob(jobId: string) {
+    await this.telemedicineRemindersQueue.removeJobs(jobId);
   }
 }
