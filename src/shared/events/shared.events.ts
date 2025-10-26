@@ -23,4 +23,8 @@ export enum SharedEvents {
   UPDATE_REVIEW_COUNT = 'update.review.count',
   SEND_ONBOARDING = 'send.onboarding',
   STORE_RECORD_ON_CHAIN = 'store.record.on.chain',
+  BOOKING_CREATED = 'booking.created',
+  BOOKING_CANCELLED = 'booking.cancelled',
+  BOOKING_COMPLETED = 'booking.completed',
+  BOOKING_CONFIRMED = 'booking.confirmed',
 }
