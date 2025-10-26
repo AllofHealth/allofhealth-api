@@ -3,8 +3,8 @@ import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import { NotificationService } from '../../modules/telemedicine/service/notification.service';
 import { BookingProvider } from '../../modules/telemedicine/provider/booking.provider';
-import { DoctorProvider } from '../../modules/telemedicine/provider/doctor.provider';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { DoctorService } from '@/modules/doctor/service/doctor.service';
 
 @Processor('telemedicine-notifications-queue')
 export class TelemedicineNotificationProcessor {
@@ -15,7 +15,7 @@ export class TelemedicineNotificationProcessor {
   constructor(
     private readonly notificationService: NotificationService,
     private readonly bookingProvider: BookingProvider,
-    private readonly doctorProvider: DoctorProvider,
+    private readonly doctorService: DoctorService,
   ) {}
 
   @Process('send-booking-created-email')
@@ -40,36 +40,33 @@ export class TelemedicineNotificationProcessor {
       const { bookingId, patientId, doctorId, type } = job.data;
       this.logger.log(`Processing confirmation email for booking ${bookingId}`);
 
-      // Get booking details
       const booking = await this.bookingProvider.findBookingById(bookingId);
       if (!booking) {
         this.logger.error(`Booking not found: ${bookingId}`);
         return;
       }
 
-      // Get doctor details with user info
-      const doctor = await this.doctorProvider.getDoctorWithUser(doctorId);
-      if (!doctor || !doctor.user) {
-        this.logger.error(`Doctor not found: ${doctorId}`);
+      const doctor = await this.doctorService.fetchDoctor(doctorId);
+
+      if (!doctor || !doctor.data) {
+        this.logger.warn(`Doctor not found: ${doctorId}, skipping reminder`);
         return;
       }
 
       if (type === 'patient_confirmation') {
-        // Send confirmation to patient
         await this.notificationService.sendPatientConfirmationEmail({
           patientEmail: job.data.patientEmail || 'patient@example.com',
           patientName: job.data.patientName || 'Patient',
-          doctorName: doctor.user.fullName,
+          doctorName: doctor.data.fullName,
           startTime: new Date(booking.startTime),
           endTime: new Date(booking.endTime),
           videoRoomUrl: booking.videoRoomUrl || '',
           bookingReference: booking.bookingReference,
         });
       } else if (type === 'doctor_notification') {
-        // Send notification to doctor
         await this.notificationService.sendDoctorNotificationEmail({
-          doctorEmail: doctor.user.emailAddress,
-          doctorName: doctor.user.fullName,
+          doctorEmail: doctor.data.email,
+          doctorName: doctor.data.fullName,
           patientName: job.data.patientName || 'Patient',
           startTime: new Date(booking.startTime),
           endTime: new Date(booking.endTime),
