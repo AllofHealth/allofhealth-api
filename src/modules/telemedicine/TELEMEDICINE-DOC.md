@@ -1,7 +1,7 @@
 # Telemedicine Feature - Frontend Integration Guide
 
 **Version:** 1.0.0  
-**Last Updated:** January 2024  
+**Last Updated:** October 2025  
 **Backend Developer:** Idiege Inah
 **Status:** Telemedicine Implementation.
 

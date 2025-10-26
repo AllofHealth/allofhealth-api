@@ -18,6 +18,7 @@ import {
     ApiQuery,
 } from '@nestjs/swagger';
 import { BookingOrchestrationService } from '../service/booking-orchestration.service';
+import { PaymentService } from '../service/payment.service';
 
 /**
  * Booking Controller
@@ -29,12 +30,10 @@ import { BookingOrchestrationService } from '../service/booking-orchestration.se
 export class BookingController {
     constructor(
         private readonly bookingService: BookingOrchestrationService,
+        private readonly paymentService: PaymentService,
     ) { }
 
-    /**
-     * Initialize payment for a booking
-     * POST /telemedicine/bookings/initialize-payment
-     */
+    //Initialize payment for a booking
     @Post('initialize-payment')
     @ApiOperation({ summary: 'Initialize payment for a Cal.com booking' })
     @ApiBearerAuth()
@@ -46,25 +45,71 @@ export class BookingController {
         @Request() req: any,
         @Body() body: { calcomBookingId: string },
     ) {
-        // Get patient ID from authenticated user
+        // Get patient info from authenticated user
         const patientId = req.user?.id || 'patient-id-from-token';
+        const patientEmail = req.user?.email || 'patient@example.com';
+        const patientName = req.user?.fullName || 'Patient Name';
 
+        // First, initialize booking payment data
         const paymentData = await this.bookingService.initializePayment(
             body.calcomBookingId,
             patientId,
         );
 
+        // Then initialize Flutterwave payment
+        const flutterwavePayment = await this.paymentService.initializePayment(
+            paymentData.bookingId,
+            patientEmail,
+            patientName,
+        );
+
         return {
             success: true,
             message: 'Payment session initialized',
-            data: paymentData,
+            data: {
+                ...paymentData,
+                paymentLink: flutterwavePayment.paymentLink,
+                paymentId: flutterwavePayment.paymentId,
+            },
         };
     }
 
-    /**
-     * Get booking details
-     * GET /telemedicine/bookings/:bookingId
-     */
+    // Get payment configuration
+    @Get('payment-config')
+    @ApiOperation({ summary: 'Get payment configuration for frontend' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Payment config retrieved',
+    })
+    async getPaymentConfig() {
+        const config = this.paymentService.getPaymentConfig();
+
+        return {
+            success: true,
+            data: config,
+        };
+    }
+
+   //Verify payment status
+    @Get('verify-payment/:transactionId')
+    @ApiOperation({ summary: 'Verify payment transaction' })
+    @ApiBearerAuth()
+    @ApiParam({ name: 'transactionId', description: 'Flutterwave transaction ID' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Payment verification result',
+    })
+    async verifyPayment(@Param('transactionId') transactionId: string) {
+        const verification = await this.paymentService.verifyPayment(transactionId);
+
+        return {
+            success: true,
+            data: verification,
+        };
+    }
+
+
+    // Get booking details
     @Get(':bookingId')
     @ApiOperation({ summary: 'Get booking details' })
     @ApiBearerAuth()
@@ -82,10 +127,7 @@ export class BookingController {
         };
     }
 
-    /**
-     * Cancel a booking
-     * POST /telemedicine/bookings/:bookingId/cancel
-     */
+    // Cancel a booking
     @Post(':bookingId/cancel')
     @ApiOperation({ summary: 'Cancel a booking' })
     @ApiBearerAuth()
@@ -114,10 +156,7 @@ export class BookingController {
         };
     }
 
-    /**
-     * Get video room link
-     * GET /telemedicine/bookings/:bookingId/video-link
-     */
+    // Get video room link
     @Get(':bookingId/video-link')
     @ApiOperation({ summary: 'Get video consultation link' })
     @ApiBearerAuth()
@@ -146,10 +185,7 @@ export class BookingController {
         };
     }
 
-    /**
-     * Get my bookings (patient)
-     * GET /telemedicine/bookings/me/list
-     */
+    // Get my bookings (patient)
     @Get('me/list')
     @ApiOperation({ summary: 'Get my bookings as a patient' })
     @ApiBearerAuth()
@@ -180,10 +216,7 @@ export class BookingController {
         };
     }
 
-    /**
-     * Get doctor's bookings
-     * GET /telemedicine/bookings/doctor/list
-     */
+    //Get doctor's bookings
     @Get('doctor/list')
     @ApiOperation({ summary: 'Get my bookings as a doctor' })
     @ApiBearerAuth()

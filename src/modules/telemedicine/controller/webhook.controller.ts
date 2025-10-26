@@ -1,5 +1,3 @@
-// src/modules/telemedicine/controller/webhook.controller.ts
-
 import {
     Controller,
     Post,
@@ -8,15 +6,16 @@ import {
     HttpStatus,
     BadRequestException,
     Logger,
+    Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BookingOrchestrationService } from '../service/booking-orchestration.service';
+import { PaymentService } from '../service/payment.service';
 import { CalendarIntegrationService } from '@/shared/calender/service/calendar-integration.service';
 
-/**
- * Webhook Controller
- * Handles webhooks from Cal.com, Doxy.me and flutterwave (flutter-incomplete)
- */
+type RawBodyRequest<T = Request> = T & { rawBody?: Buffer };
+
 @ApiTags('Telemedicine - Webhooks')
 @Controller('webhooks')
 export class WebhookController {
@@ -24,18 +23,11 @@ export class WebhookController {
 
     constructor(
         private readonly bookingService: BookingOrchestrationService,
+        private readonly paymentService: PaymentService,
         private readonly calendarService: CalendarIntegrationService,
     ) { }
 
-    /**
-     * Cal.com webhook handler
-     * POST /webhooks/calcom
-     * 
-     * Handles events:
-     * - BOOKING_CREATED
-     * - BOOKING_RESCHEDULED
-     * - BOOKING_CANCELLED
-     */
+    //Cal.com webhook handler
     @Post('calcom')
     @ApiOperation({ summary: 'Cal.com webhook endpoint' })
     @ApiResponse({
@@ -49,7 +41,7 @@ export class WebhookController {
         try {
             this.logger.log(`Cal.com webhook received: ${payload.triggerEvent}`);
 
-            // Step 1: Verify webhook signature
+            // Verify webhook signature
             const isValid = this.calendarService.verifyCalcomWebhook(
                 JSON.stringify(payload),
                 signature,
@@ -60,7 +52,7 @@ export class WebhookController {
                 throw new BadRequestException('Invalid webhook signature');
             }
 
-            // Step 2: Handle different event types
+            // Handle different event types
             switch (payload.triggerEvent) {
                 case 'BOOKING_CREATED':
                     await this.handleBookingCreated(payload);
@@ -88,9 +80,62 @@ export class WebhookController {
         }
     }
 
-    /**
-     * Handle BOOKING_CREATED event
-     */
+    //Flutterwave webhook handler
+    @Post('flutterwave')
+    @ApiOperation({ summary: 'Flutterwave webhook endpoint' })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'Webhook processed successfully',
+    })
+    async handleFlutterwaveWebhook(
+        @Headers('verif-hash') verifHash: string,
+        @Body() payload: any,
+        @Req() req: RawBodyRequest<Request>,
+    ) {
+        try {
+            this.logger.log(`Flutterwave webhook received: ${payload.event}`);
+
+            // Verify webhook hash
+            const rawBody = req.rawBody ? req.rawBody.toString() : JSON.stringify(payload);
+            const isValid = this.paymentService['flutterwaveService'].verifyWebhookSignature(
+                rawBody,
+                verifHash,
+            );
+
+            if (!isValid) {
+                this.logger.error('Invalid Flutterwave webhook signature');
+                throw new BadRequestException('Invalid webhook signature');
+            }
+
+            // Handle payment events
+            switch (payload.event) {
+                case 'charge.completed':
+                    await this.handlePaymentSuccess(payload.data);
+                    break;
+
+                case 'charge.failed':
+                    await this.handlePaymentFailed(payload.data);
+                    break;
+
+                case 'transfer.completed':
+                    this.logger.log('Transfer completed (payout to doctor)');
+                    break;
+
+                default:
+                    this.logger.warn(`Unhandled Flutterwave event: ${payload.event}`);
+            }
+
+            return {
+                success: true,
+                message: 'Webhook processed',
+            };
+        } catch (error) {
+            this.logger.error('Flutterwave webhook processing failed', error);
+            throw error;
+        }
+    }
+
+    // Handle BOOKING_CREATED event
     private async handleBookingCreated(payload: any) {
         try {
             const booking = payload.payload;
@@ -112,119 +157,54 @@ export class WebhookController {
         }
     }
 
-    /**
-     * Handle BOOKING_RESCHEDULED event
-     */
+    // Handle BOOKING_RESCHEDULED event
     private async handleBookingRescheduled(payload: any) {
         try {
             const booking = payload.payload;
             this.logger.log(`Booking rescheduled: ${booking.uid}`);
-
-            // Find existing booking and update
-            // Implementation here will be determined by my requirement for reschduling.
-            this.logger.warn('Rescheduling not fully implemented yet');
+            // TODO: Implement rescheduling logic
         } catch (error) {
             this.logger.error('Failed to handle booking rescheduled', error);
             throw error;
         }
     }
 
-    /**
-     * Handle BOOKING_CANCELLED event
-     */
+    // Handle BOOKING_CANCELLED event
     private async handleBookingCancelled(payload: any) {
         try {
             const booking = payload.payload;
             this.logger.log(`Booking cancelled: ${booking.uid}`);
-
-            // Find and cancel booking logc will be here
-            this.logger.warn('Cancellation webhook not fully implemented yet');
+            // TODO: Implement cancellation logic
         } catch (error) {
             this.logger.error('Failed to handle booking cancelled', error);
             throw error;
         }
     }
 
-    /**
-     * Flutterwave webhook handler
-     * POST /webhooks/flutterwave
-     */
-    @Post('flutterwave')
-    @ApiOperation({ summary: 'Flutterwave webhook endpoint' })
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Webhook processed successfully',
-    })
-    async handleFlutterwaveWebhook(
-        @Headers('verif-hash') verifHash: string,
-        @Body() payload: any,
-    ) {
+    // Handle successful payment
+    private async handlePaymentSuccess(data: any) {
         try {
-            this.logger.log(`Flutterwave webhook received: ${payload.event}`);
+            this.logger.log(`Payment succeeded for tx_ref: ${data.tx_ref}`);
 
-            // Verify webhook (Flutterwave sends a hash)
-            const expectedHash = process.env.FLUTTERWAVE_WEBHOOK_HASH;
+            // Use payment service to handle success
+            await this.paymentService.handlePaymentSuccess(data);
 
-            if (verifHash !== expectedHash) {
-                this.logger.error('Invalid Flutterwave webhook hash');
-                throw new BadRequestException('Invalid webhook hash');
-            }
-
-            // Handle payment events
-            switch (payload.event) {
-                case 'charge.completed':
-                    await this.handlePaymentSucceeded(payload.data);
-                    break;
-
-                case 'charge.failed':
-                    await this.handlePaymentFailed(payload.data);
-                    break;
-
-                default:
-                    this.logger.warn(`Unhandled Flutterwave event: ${payload.event}`);
-            }
-
-            return {
-                success: true,
-                message: 'Webhook processed',
-            };
-        } catch (error) {
-            this.logger.error('Flutterwave webhook processing failed', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Handle successful payment
-     */
-    private async handlePaymentSucceeded(data: any) {
-        try {
-            const bookingId = data.meta?.bookingId || data.tx_ref;
-            const paymentIntentId = data.id || data.flw_ref;
-
-            this.logger.log(`Payment succeeded for booking: ${bookingId}`);
-
-            // Confirm the booking
-            await this.bookingService.confirmBooking(bookingId, paymentIntentId);
-
-            this.logger.log(`Booking confirmed: ${bookingId}`);
+            this.logger.log(`Payment processed successfully`);
         } catch (error) {
             this.logger.error('Failed to handle payment success', error);
             throw error;
         }
     }
 
-    /**
-     * Handle failed payment
-     */
+    // Handle failed payment (UPDATED)
     private async handlePaymentFailed(data: any) {
         try {
-            const bookingId = data.meta?.bookingId || data.tx_ref;
+            const txRef = data.tx_ref;
 
-            this.logger.warn(`Payment failed for booking: ${bookingId}`);
+            this.logger.warn(`Payment failed for tx_ref: ${txRef}`);
 
             // Update booking status to payment_failed
-            // Implementation depends on your requirements
+            // TODO: Implement payment failure handling
         } catch (error) {
             this.logger.error('Failed to handle payment failure', error);
             throw error;
@@ -259,7 +239,8 @@ export class WebhookController {
                 throw new BadRequestException('Invalid webhook signature');
             }
 
-            // Handle Doxy events (if available)
+            // Handle Doxy events (if available) will be finfished up during testing
+            //for now, i do not know if this will be possible.
             // - room.joined
             // - room.left
             // - call.completed

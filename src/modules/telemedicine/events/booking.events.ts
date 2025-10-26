@@ -1,5 +1,3 @@
-// src/modules/telemedicine/events/booking.events.ts
-
 /**
  * Booking Domain Events
  * These events are emitted during the booking lifecycle
