@@ -3,8 +3,8 @@ import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import { NotificationService } from '../../modules/telemedicine/service/notification.service';
 import { BookingProvider } from '../../modules/telemedicine/provider/booking.provider';
-import { DoctorProvider } from '../../modules/telemedicine/provider/doctor.provider';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { DoctorService } from '@/modules/doctor/service/doctor.service';
 
 @Processor('telemedicine-reminders-queue')
 export class TelemedicineReminderProcessor {
@@ -15,7 +15,7 @@ export class TelemedicineReminderProcessor {
   constructor(
     private readonly notificationService: NotificationService,
     private readonly bookingProvider: BookingProvider,
-    private readonly doctorProvider: DoctorProvider,
+    private readonly doctorService: DoctorService,
   ) {}
 
   @Process('send-reminder')
@@ -27,7 +27,6 @@ export class TelemedicineReminderProcessor {
         `Processing ${reminderType} reminder for booking ${bookingId}`,
       );
 
-      // Get booking to verify it's still active
       const booking = await this.bookingProvider.findBookingById(bookingId);
 
       if (!booking) {
@@ -35,16 +34,15 @@ export class TelemedicineReminderProcessor {
         return;
       }
 
-      // Don't send reminder if booking is cancelled
       if (booking.status === 'cancelled') {
         this.logger.log(`Booking ${bookingId} is cancelled, skipping reminder`);
         return;
       }
 
-      // Get doctor details
-      const doctor = await this.doctorProvider.getDoctorWithUser(doctorId);
-      if (!doctor || !doctor.user) {
-        this.logger.error(`Doctor not found: ${doctorId}`);
+      const doctor = await this.doctorService.fetchDoctor(doctorId);
+
+      if (!doctor || !doctor.data) {
+        this.logger.warn(`Doctor not found: ${doctorId}, skipping reminder`);
         return;
       }
 
@@ -52,8 +50,7 @@ export class TelemedicineReminderProcessor {
         'job object to confirm that the patience email exist for remider (from line 22 of reminder-processor.ts in telemedicine',
         job.data,
       );
-      // Send reminder to patient (assuming we have patient email from user table)
-      // You'll need to fetch patient email from user table
+
       const patientEmail =
         job.data.patientEmail || 'patient@allofhealth.africa';
       const patientName = job.data.patientName || 'Patient';
@@ -67,11 +64,10 @@ export class TelemedicineReminderProcessor {
         bookingReference: booking.bookingReference,
       });
 
-      // Send reminder to doctor
       await this.notificationService.sendReminderEmail({
-        email: doctor.user.emailAddress,
-        name: doctor.user.fullName,
+        email: doctor.data.email,
         reminderType: reminderType as '24h' | '1h',
+        name: doctor.data.fullName,
         startTime: new Date(booking.startTime),
         videoRoomUrl: booking.videoRoomUrl || '',
         bookingReference: booking.bookingReference,
