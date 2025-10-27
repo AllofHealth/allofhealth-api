@@ -22,4 +22,12 @@ export class FlutterwaveConfig {
   @IsNotEmpty()
   @Value('FLUTTERWAVE_WEBHOOK_SECRET')
   FLUTTERWAVE_WEBHOOK_SECRET: string;
+
+  @IsNotEmpty()
+  @Value('FLUTTERWAVE_SANDBOX_BASE_URL')
+  FLUTTERWAVE_SANDBOX_BASE_URL: string;
+
+  @IsNotEmpty()
+  @Value('FLUTTERWAVE_PROD_BASE_URL')
+  FLUTTERWAVE_PROD_BASE_URL: string;
 }
