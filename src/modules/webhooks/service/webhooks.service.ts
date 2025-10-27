@@ -1,5 +1,6 @@
 import { CalConfig } from '@/shared/config/cal.com/cal.config';
 import { DoxyConfig } from '@/shared/config/doxy/doxy.config';
+import { FlutterwaveConfig } from '@/shared/config/flutterwave/flutterwave.config';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -7,6 +8,7 @@ export class WebhooksService {
   constructor(
     private readonly calConfig: CalConfig,
     private readonly doxyConfig: DoxyConfig,
+    private readonly flutterConfig: FlutterwaveConfig,
   ) {}
 
   private extractPatientIdFromUrl(doxyUrl: string): string | null {
@@ -44,6 +46,10 @@ export class WebhooksService {
     const digest = hmac.update(payload).digest('hex');
 
     return digest === signature;
+  }
+
+  private verifyWebhookSignature(payload: string, signature: string): boolean {
+    return signature === this.flutterConfig.FLUTTERWAVE_WEBHOOK_SECRET;
   }
 
   async procesCalEvents(req: Request) {}
