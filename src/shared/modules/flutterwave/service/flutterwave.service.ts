@@ -1,126 +1,86 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as crypto from 'crypto';
+import { FlutterwaveProvider } from '../provider/flutterwave.provider';
+import {
+  InitializePayment,
+  IProcessRefund,
+  PaymentResponse,
+} from '../interface/flutterwave.interface';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { FlutterwaveError } from '../error/flutterwave.error';
 
 @Injectable()
 export class FlutterwaveService {
-  private readonly logger = new Logger(FlutterwaveService.name);
-  private readonly baseUrl: string;
-  private readonly secretKey: string;
-  private readonly publicKey: string;
-  private readonly encryptionKey: string;
+  private readonly logger = new MyLoggerService(FlutterwaveService.name);
 
-  constructor(private readonly configService: ConfigService) {
-    this.baseUrl = this.getEnvOrThrow('flutterwave.baseUrl');
-    this.secretKey = this.getEnvOrThrow('flutterwave.secretKey');
-    this.publicKey = this.getEnvOrThrow('flutterwave.publicKey');
-    this.encryptionKey = this.getEnvOrThrow('flutterwave.encryptionKey');
-  }
+  constructor(private readonly flutterwaveProvider: FlutterwaveProvider) {}
 
-  // Utility method to safely fetch required env vars.
-  private getEnvOrThrow(key: string): string {
-    const value = this.configService.get<string>(key);
-    if (!value) {
-      throw new Error(`Missing required configuration value: ${key}`);
-    }
-    return value;
-  }
-
-  // Initialize payment with Flutterwave
-  async initializePayment(
-    params: InitializePaymentParams,
-  ): Promise<PaymentResponse> {
+  async initializePayment(ctx: InitializePayment) {
     try {
-      this.logger.log(`Initializing Flutterwave payment for ${params.email}`);
+      this.logger.log(`Initializing Flutterwave payment for ${ctx.email}`);
 
       const payload = {
-        tx_ref: params.txRef,
-        amount: params.amount,
-        currency: params.currency,
-        redirect_url: params.redirectUrl,
+        tx_ref: ctx.txRef,
+        amount: ctx.amount,
+        currency: ctx.currency,
+        redirect_url: ctx.redirectUrl,
         customer: {
-          email: params.email,
-          name: params.name,
-          phonenumber: params.phoneNumber || '',
+          email: ctx.email,
+          name: ctx.name,
+          phonenumber: ctx.phoneNumber || '',
         },
         customizations: {
           title: 'AllOf Health Consultation',
-          description: `Payment for booking ${params.txRef}`,
+          description: `Payment for booking ${ctx.txRef}`,
           logo: 'https://your-logo-url.com/logo.png',
         },
-        meta: params.metadata || {},
+        meta: ctx.metadata || {},
       };
+      const url = `${this.flutterwaveProvider.provideBaseUrl()}/payments`;
 
-      const response = await fetch(`${this.baseUrl}/payments`, {
+      const response = await this.flutterwaveProvider.handleFlutterRequest({
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.secretKey}`,
-        },
-        body: JSON.stringify(payload),
+        url,
+        data: payload,
+        src: 'Initialize Payment',
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        this.logger.error('Flutterwave payment initialization failed', error);
-        throw new HttpException(
-          `Flutterwave API Error: ${error.message || 'Unknown error'}`,
-          response.status,
-        );
-      }
-
-      const data = await response.json();
-      this.logger.log(`Payment initialized: ${data.data.link}`);
-
-      return {
-        status: data.status,
-        message: data.message,
-        data: {
-          link: data.data.link,
-          paymentId: data.data.id,
-        },
-      };
+      return response.data;
     } catch (error) {
       this.logger.error('Failed to initialize Flutterwave payment', error);
       throw error;
     }
   }
 
-  // Verify payment transaction
-  async verifyPayment(transactionId: string): Promise<VerifyPaymentResponse> {
+  async verifyPayment(transactionId: string) {
     try {
       this.logger.log(`Verifying Flutterwave transaction: ${transactionId}`);
+      const url = `${this.flutterwaveProvider.provideBaseUrl()}/transactions/${transactionId}/verify`;
 
-      const response = await fetch(
-        `${this.baseUrl}/transactions/${transactionId}/verify`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${this.secretKey}`,
-          },
-        },
-      );
+      const response = await this.flutterwaveProvider.handleFlutterRequest({
+        method: 'GET',
+        url,
+        src: 'Verify Payment',
+      });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new HttpException(
-          `Flutterwave API Error: ${error.message}`,
-          response.status,
-        );
-      }
-
-      const data = await response.json();
-      this.logger.log(`Transaction verified: ${data.data.status}`);
-
-      return data;
+      return response.data;
     } catch (error) {
       this.logger.error('Failed to verify payment', error);
-      throw error;
+      throw new InternalServerErrorException(
+        new FlutterwaveError('An error occurred while verifying the payment', {
+          cause: error,
+        }),
+      );
     }
   }
 
-  // Process refund
-  async processRefund(transactionId: string, amount?: number): Promise<any> {
+  async processRefund(ctx: IProcessRefund) {
+    const { transactionId, amount } = ctx;
     try {
       this.logger.log(`Processing refund for transaction: ${transactionId}`);
 
@@ -129,57 +89,27 @@ export class FlutterwaveService {
         ...(amount && { amount }),
       };
 
-      const response = await fetch(
-        `${this.baseUrl}/transactions/${transactionId}/refund`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.secretKey}`,
-          },
-          body: JSON.stringify(payload),
-        },
-      );
+      const url = `${this.flutterwaveProvider.provideBaseUrl()}/transactions/${transactionId}/refund`;
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new HttpException(
-          `Flutterwave Refund Error: ${error.message}`,
-          response.status,
-        );
-      }
+      const response = await this.flutterwaveProvider.handleFlutterRequest({
+        method: 'POST',
+        url,
+        data: payload,
+        src: 'Process Refund',
+      });
 
-      const data = await response.json();
-      this.logger.log(`Refund processed: ${data.data.id}`);
-
-      return data;
+      return response.data;
     } catch (error) {
       this.logger.error('Failed to process refund', error);
-      throw error;
+      throw new InternalServerErrorException(
+        new FlutterwaveError('An error occurred while processing the refund', {
+          cause: error,
+        }),
+      );
     }
   }
 
-  // Verify webhook signature
-  verifyWebhookSignature(payload: string, signature: string): boolean {
-    const secretHash = this.configService.get<string>(
-      'flutterwave.webhookSecretKey',
-    );
-
-    if (!secretHash) {
-      this.logger.warn('Webhook secret key not configured');
-      return false;
-    }
-
-    // Flutterwave sends signature in verif-hash header
-    return signature === secretHash;
-  }
-
-  // Get payment configuration for frontend
   getPaymentConfig() {
-    return {
-      publicKey: this.publicKey,
-      currency: 'USD',
-      country: 'US',
-    };
+    return this.flutterwaveProvider.getPaymentConfig();
   }
 }

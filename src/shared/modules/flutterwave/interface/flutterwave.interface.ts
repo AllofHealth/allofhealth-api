@@ -1,3 +1,5 @@
+export type TFlutterMethods = 'POST' | 'GET';
+
 export interface InitializePayment {
   amount: number;
   currency: string;
@@ -43,4 +45,16 @@ export interface VerifyPaymentResponse {
 export interface IEncryptCardData {
   iv: string;
   data: Record<string, any>;
+}
+
+export interface IHandleFlutterRequest {
+  method: TFlutterMethods;
+  url: string;
+  data?: object;
+  src: string;
+}
+
+export interface IProcessRefund {
+  transactionId: string;
+  amount?: number;
 }
