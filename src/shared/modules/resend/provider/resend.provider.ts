@@ -18,7 +18,6 @@ import {
   RESEND_EMAIL_CONFIG as REC,
   RESEND_SUCCESS_MESSAGE as RSM,
 } from '../data/resend.data';
-import { ResendError } from '../error/resend.error';
 import OnboardingEmail from '@/shared/templates/welcome.template';
 import VerificationEmail from '@/shared/templates/otp.template';
 
@@ -64,12 +63,6 @@ export class ResendProvider {
       }),
     };
   }
-
-  /**
-   * @todo Handle email templates
-   * @param ctx
-   * @returns
-   */
 
   async sendEmail(ctx: ISendEmail) {
     const { to, body, context, name } = ctx;
