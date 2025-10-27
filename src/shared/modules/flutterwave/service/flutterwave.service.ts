@@ -2,48 +2,6 @@ import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 
-export interface InitializePaymentParams {
-  amount: number;
-  currency: string;
-  email: string;
-  name: string;
-  phoneNumber?: string;
-  txRef: string;
-  redirectUrl: string;
-  metadata?: Record<string, any>;
-}
-
-export interface PaymentResponse {
-  status: string;
-  message: string;
-  data: {
-    link: string;
-    paymentId: string;
-  };
-}
-
-export interface VerifyPaymentResponse {
-  status: string;
-  message: string;
-  data: {
-    id: number;
-    tx_ref: string;
-    amount: number;
-    currency: string;
-    charged_amount: number;
-    status: string;
-    payment_type: string;
-    created_at: string;
-    customer: {
-      id: number;
-      name: string;
-      email: string;
-      phone_number: string;
-    };
-    meta?: Record<string, any>;
-  };
-}
-
 @Injectable()
 export class FlutterwaveService {
   private readonly logger = new Logger(FlutterwaveService.name);
@@ -214,25 +172,6 @@ export class FlutterwaveService {
 
     // Flutterwave sends signature in verif-hash header
     return signature === secretHash;
-  }
-
-  // Encrypt payment data (for card payments)
-  encryptPaymentData(data: Record<string, any>): string {
-    const text = JSON.stringify(data);
-    const iv = this.configService.get<string>('flutterwave.iv');
-    if (!iv) {
-      throw new Error('Missing Flutterwave IV');
-    }
-    const cipher = crypto.createCipheriv(
-      'aes-256-cbc',
-      Buffer.from(this.encryptionKey, 'utf8'),
-      Buffer.from(iv, 'utf8'),
-    );
-
-    let encrypted = cipher.update(text, 'utf8', 'base64');
-    encrypted += cipher.final('base64');
-
-    return encrypted;
   }
 
   // Get payment configuration for frontend
