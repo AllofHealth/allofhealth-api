@@ -55,3 +55,5 @@ export const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
 // Brevo
 export const BREVO_API_KEY = process.env.BREVO_API_KEY;
+
+export const APP_ENV = process.env.NODE_ENV || 'STAGING';
