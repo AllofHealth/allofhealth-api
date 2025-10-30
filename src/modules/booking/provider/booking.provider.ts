@@ -10,6 +10,7 @@ import {
 import {
   ICancelBooking,
   ICreateBooking,
+  IFindBooking,
   IGetDoctorBookings,
   IGetPatientBookings,
   IUpdateBookingStatus,
@@ -22,9 +23,11 @@ import {
 } from '../data/booking.data';
 import * as schema from '@/schemas/schema';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class BookingProvider {
+  private readonly logger = new MyLoggerService(BookingProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly _db: Database,
     private readonly handler: ErrorHandler,
@@ -97,7 +100,8 @@ export class BookingProvider {
         data: booking,
       });
     } catch (e) {
-      this.handler.handleError(e, e.message || BEM.ERROR_FINDING_BOOKING);
+      this.logger.log(`${e.message || BEM.ERROR_FINDING_BOOKING}`);
+      throw e;
     }
   }
 
@@ -121,7 +125,8 @@ export class BookingProvider {
         data: booking,
       });
     } catch (e) {
-      this.handler.handleError(e, e.message || BEM.ERROR_FINDING_BOOKING);
+      this.logger.log(`${e.message || BEM.ERROR_FINDING_BOOKING}`);
+      throw e;
     }
   }
 
@@ -143,7 +148,8 @@ export class BookingProvider {
         data: booking,
       });
     } catch (e) {
-      this.handler.handleError(e, e.message || BEM.ERROR_FINDING_BOOKING);
+      this.logger.log(`${e.message || BEM.ERROR_FINDING_BOOKING}`);
+      throw e;
     }
   }
 
@@ -404,6 +410,24 @@ export class BookingProvider {
       this.handler.handleError(
         e,
         e.message || BEM.ERROR_GETTING_DOCTOR_BOOKINGS,
+      );
+    }
+  }
+
+  async findBooking(ctx: IFindBooking) {
+    try {
+      switch (ctx.opts) {
+        case 'ext_id':
+          return this.findBookingByExternalId(ctx.extId!);
+        case 'id':
+          return this.findBookingById(ctx.id!);
+        case 'ref':
+          return this.findBookingByReference(ctx.refId!);
+      }
+    } catch (e) {
+      this.handler.handleError(
+        e,
+        `An error occurred while finding booking for ${ctx.opts}: ${ctx.extId ? ctx.extId : ctx.refId ? ctx.refId : ctx.id}`,
       );
     }
   }
