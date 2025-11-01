@@ -1,34 +1,31 @@
-import { Injectable, Logger } from '@nestjs/common';
-import {
-  BookingResponse,
-  CreateBookingParams,
-  VideoRoomResponse,
-} from '../interface/calendar-provider.interface';
-import { CalComService } from '../../cal.com/service/cal.com.service';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { Injectable } from '@nestjs/common';
 import {
   ICancelBooking,
   IRescheduleBooking,
 } from '../../cal.com/interface/cal.com.interface';
+import { CalComService } from '../../cal.com/service/cal.com.service';
 import { DoxyService } from '../../doxy/service/doxy.service';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import {
+  CreateBookingParams,
+  ICreateBookingWithVideoRoom,
+  IGetAvailability,
+  IUpsertCalendarIntegration,
+} from '../interface/calendar.interface';
+import { CalendarProvider } from '../provider/calendar.provider';
 
 @Injectable()
 export class CalendarService {
   private readonly logger = new MyLoggerService(CalendarService.name);
 
   constructor(
+    private readonly calendarProvider: CalendarProvider,
     private readonly calcomService: CalComService,
     private readonly doxyService: DoxyService,
   ) {}
 
-  async createBookingWithVideoRoom(
-    params: CreateBookingParams,
-    doctorInfo: { id: string; name: string },
-    patientId: string,
-  ): Promise<{
-    booking: BookingResponse;
-    videoRoom: VideoRoomResponse;
-  }> {
+  async createBookingWithVideoRoom(ctx: ICreateBookingWithVideoRoom) {
+    const { patientId, doctorInfo, params } = ctx;
     try {
       this.logger.log(
         `Creating booking with video room for patient ${patientId}`,
@@ -69,12 +66,8 @@ export class CalendarService {
     }
   }
 
-  async getAvailability(
-    eventTypeId: number,
-    startDate: Date,
-    endDate: Date,
-    lengthInMinutes: number = 30,
-  ) {
+  async getAvailability(ctx: IGetAvailability) {
+    const { endDate, eventTypeId, lengthInMinutes, startDate } = ctx;
     return (
       this.calcomService.getAvailability({
         eventTypeId,
@@ -96,5 +89,26 @@ export class CalendarService {
 
   async getBooking(calcomBookingId: string) {
     return this.calcomService.getBooking(calcomBookingId);
+  }
+  async upsertCalendarIntegration(ctx: IUpsertCalendarIntegration) {
+    return await this.calendarProvider.upsertCalendarIntegration(ctx);
+  }
+
+  async findIntegrationByDoctorId(doctorId: string) {
+    return await this.calendarProvider.findIntegrationByDoctorId({
+      doctorId,
+    });
+  }
+
+  async hasActiveIntegration(doctorId: string) {
+    return await this.calendarProvider.hasActiveIntegration(doctorId);
+  }
+
+  async deactivateIntegration(integrationId: string) {
+    return await this.calendarProvider.deactivateIntegration(integrationId);
+  }
+
+  async updateLastSyncedAt(integrationId: string) {
+    return await this.calendarProvider.updateLastSync(integrationId);
   }
 }
