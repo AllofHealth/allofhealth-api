@@ -82,7 +82,7 @@ export class BookingProvider {
     }
   }
 
-  async findBookingById(bookingId: string) {
+  private async findBookingById(bookingId: string) {
     try {
       const [booking] = await this._db
         .select()
@@ -105,7 +105,7 @@ export class BookingProvider {
     }
   }
 
-  async findBookingByExternalId(externalBookingId: string) {
+  private async findBookingByExternalId(externalBookingId: string) {
     try {
       const [booking] = await this._db
         .select()
@@ -130,7 +130,7 @@ export class BookingProvider {
     }
   }
 
-  async findBookingByReference(reference: string) {
+  private async findBookingByReference(reference: string) {
     try {
       const [booking] = await this._db
         .select()

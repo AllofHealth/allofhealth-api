@@ -53,3 +53,48 @@ export interface IGetDoctorBookings {
   startDate?: Date;
   endDate?: Date;
 }
+
+interface IAttendee {
+  name: string;
+  email: string;
+  timeZone: string;
+}
+
+export interface IHandleCalComBookingCreated {
+  uid: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  attendees: Array<IAttendee>;
+  metadata: Record<string, any>;
+  eventTypeId: number;
+}
+
+export type TOpts = 'ref' | 'ext_id' | 'id';
+export interface IFindBooking {
+  opts: TOpts;
+  refId?: string;
+  extId?: string;
+  id?: string;
+}
+
+export interface IInititalizeBookingPayment {
+  calcomBookingId: string;
+  patientId: string;
+}
+
+export interface IConfirmBooking {
+  bookingId: string;
+  paymentIntentId: string;
+}
+
+export interface ICancelBooking {
+  bookingId: string;
+  cancelledBy: string;
+  reason: string;
+}
+
+export interface IProcessBookingRefund {
+  bookingId: string;
+  reason?: string;
+}
