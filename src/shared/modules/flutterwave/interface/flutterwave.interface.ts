@@ -7,7 +7,7 @@ export interface InitializePayment {
   name: string;
   phoneNumber?: string;
   txRef: string;
-  redirectUrl: string;
+  redirectUrl?: string;
   metadata?: Record<string, any>;
 }
 

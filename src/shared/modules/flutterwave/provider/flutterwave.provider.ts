@@ -63,6 +63,7 @@ export class FlutterwaveProvider {
 
   getPaymentConfig() {
     return {
+      webhookUrl: this.flutterwaveConfig.FLUTTERWAVE_WEBHOOK_URL,
       publicKey: this.flutterwaveConfig.FLUTTERWAVE_CLIENT_ID,
       currency: 'USD',
       country: 'US',

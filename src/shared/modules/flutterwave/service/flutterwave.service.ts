@@ -29,7 +29,9 @@ export class FlutterwaveService {
         tx_ref: ctx.txRef,
         amount: ctx.amount,
         currency: ctx.currency,
-        redirect_url: ctx.redirectUrl,
+        redirect_url:
+          ctx.redirectUrl ||
+          this.flutterwaveProvider.getPaymentConfig().webhookUrl,
         customer: {
           email: ctx.email,
           name: ctx.name,
