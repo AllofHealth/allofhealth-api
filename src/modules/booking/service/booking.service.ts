@@ -9,6 +9,7 @@ import { BookingProvider } from '../provider/booking.provider';
 import {
   ICancelBooking,
   IConfirmBooking,
+  ICreateVideoRoomForBooking,
   IGetDoctorBookings,
   IGetPatientBookings,
   IHandleCalComBookingCreated,
@@ -29,11 +30,13 @@ import { CalendarService } from '@/shared/modules/calender/service/calendar.serv
 import { FlutterwaveService } from '@/shared/modules/flutterwave/service/flutterwave.service';
 import { UserService } from '@/modules/user/service/user.service';
 import { DoxyService } from '@/shared/modules/doxy/service/doxy.service';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
 
 @Injectable()
 export class BookingService {
   private readonly logger = new MyLoggerService(BookingService.name);
   constructor(
+    private readonly handler: ErrorHandler,
     private readonly bookingProvider: BookingProvider,
     private readonly consultationService: ConsultationService,
     private readonly calendarService: CalendarService,
@@ -424,6 +427,86 @@ export class BookingService {
       this.logger.error(`Error processing booking refund: ${e.message}`);
       throw new InternalServerErrorException(
         e || 'An error occurred while processing booking refund',
+      );
+    }
+  }
+
+  async createVideoRoomForBooking(ctx: ICreateVideoRoomForBooking) {
+    const { bookingId } = ctx;
+    try {
+      const videoRoom = await this.doxyService.createDoctorRoom(ctx);
+
+      await this.bookingProvider.updateVideoRoom({
+        bookingId,
+        videoRoomId: videoRoom.id,
+        videoRoomUrl: videoRoom.url,
+      });
+
+      return videoRoom;
+    } catch (e) {
+      this.logger.error(`Error creating video room for booking: ${e.message}`);
+      throw new InternalServerErrorException(
+        e || 'An error occurred while creating video room for booking',
+      );
+    }
+  }
+
+  async getVideoRoomUrl(bookingId: string) {
+    try {
+      const booking = await this.bookingProvider.findBooking({
+        opts: 'id',
+        id: bookingId,
+      });
+
+      if (!booking || !booking.data) {
+        throw new NotFoundException('Booking not found');
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: 'Video room URL retrieved successfully',
+        data: {
+          videoRoomUrl: booking.data.videoRoomUrl,
+        },
+      });
+    } catch (e) {
+      this.logger.error(
+        `Error getting video room URL for booking: ${e.message}`,
+      );
+
+      throw new InternalServerErrorException(
+        e || 'An error occurred while getting video room URL for booking',
+      );
+    }
+  }
+
+  async isVideoRoomActive(bookingId: string) {
+    try {
+      const booking = await this.bookingProvider.findBooking({
+        opts: 'id',
+        id: bookingId,
+      });
+
+      if (!booking || !booking.data) {
+        throw new NotFoundException('Booking not found');
+      }
+
+      const isVideoRoomActive =
+        booking.data.status === 'confirmed' &&
+        booking.paymentStatus === 'paid' &&
+        !!booking.data.videoRoomUrl;
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: 'Video room status checked successfully',
+        data: {
+          isVideoRoomActive,
+        },
+      });
+    } catch (e) {
+      this.logger.error(`Error checking video room status: ${e.message}`);
+      throw new InternalServerErrorException(
+        e || 'An error occurred while checking video room status',
       );
     }
   }
