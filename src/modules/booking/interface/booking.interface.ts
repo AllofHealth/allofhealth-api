@@ -98,3 +98,10 @@ export interface IProcessBookingRefund {
   bookingId: string;
   reason?: string;
 }
+
+export interface ICreateVideoRoomForBooking {
+  bookingId: string;
+  doctorId: string;
+  doctorName: string;
+  patientId: string;
+}
