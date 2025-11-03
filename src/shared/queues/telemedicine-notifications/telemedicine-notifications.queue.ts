@@ -59,7 +59,7 @@ export class TelemedicineNotificationsQueue {
     );
   }
 
-  async handleSendFollowupSurveryJob(data: ISendSurveyEmail) {
+  async handleSendFollowupSurveyJob(data: ISendSurveyEmail) {
     await this.telemedicineNotificationsQueue.add(
       'send-followup-survey',
       data,
