@@ -28,6 +28,30 @@ export interface ISendTelemedicineReminder {
   bookingId: string;
   patientId: string;
   doctorId: string;
-  reminderType: '24h';
+  reminderType: string;
   videoRoomUrl: string;
+  delay: number;
+}
+
+export interface ILogAuditTrail {
+  bookingId: string;
+  action: string;
+  actorId: string;
+  actorType: string;
+  previousStatus?: string;
+  newStatus?: string;
+  changes?: Record<string, any>;
+}
+
+export interface IHandleBookingCreationJob {
+  bookingId: string;
+  patientId: string;
+  type: string;
+}
+
+export interface IGetDoctorAvailability {
+  doctorId: string;
+  consultationTypeId: string;
+  startDate: Date;
+  endDate: Date;
 }
