@@ -11,7 +11,20 @@ export class ConsultationService {
   constructor(private readonly consultationProvider: ConsultationProvider) {}
 
   async createConsultationType(ctx: ICreateConsultationType) {
-    return await this.consultationProvider.createConsultationType(ctx);
+    const slug = ctx.name
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    return await this.consultationProvider.createConsultationType({
+      slug,
+      doctorId: ctx.doctorId,
+      name: ctx.name,
+      description: ctx.description,
+      durationMinutes: ctx.durationMinutes,
+      price: ctx.price,
+      currency: ctx.currency,
+      calcomEventTypeId: ctx.calcomEventTypeId,
+    });
   }
 
   async getDoctorConsultationTypes(ctx: IGetDoctorConsultationTypes) {
