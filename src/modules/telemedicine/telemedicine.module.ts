@@ -4,7 +4,6 @@ import { WebhookController } from './controller/webhook.controller';
 
 import { DoctorAvailabilityService } from './service/doctor-availability.service';
 import { NotificationService } from './service/notification.service';
-import { VideoRoomService } from './service/video-room.service';
 
 import { CalendarModule } from '@/shared/modules/calender/calender.module';
 import { FlutterwaveModule } from '@/shared/modules/flutterwave/flutterwave.module';
@@ -28,7 +27,6 @@ import { TelemedicineService } from './service/telemedicine.service';
   providers: [
     DoctorAvailabilityService,
     NotificationService,
-    VideoRoomService,
     TelemedicineService,
   ],
 })
