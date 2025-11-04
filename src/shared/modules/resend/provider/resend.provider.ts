@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { CreateEmailResponse, Resend } from 'resend';
 import {
+  IHandleBooking,
   IHandleOnboarding,
   IHandleOtp,
   ISendEmail,
@@ -62,6 +63,20 @@ export class ResendProvider {
         code: code,
       }),
     };
+  }
+
+  private handleBookingEmailTemplate(ctx: IHandleBooking) {
+    const { context } = ctx;
+    switch (context) {
+      case 'PATIENT_CONFIRMATION':
+        break;
+      case 'DOCTOR_NOTIFICATION':
+        break;
+      case 'REMINDER':
+        break;
+      case 'CANCELATION':
+        break;
+    }
   }
 
   async sendEmail(ctx: ISendEmail) {
