@@ -41,6 +41,7 @@ import { PushNotificationsModule } from './shared/modules/push-notifications/pus
 import { TelemedicineModule } from './modules/telemedicine/telemedicine.module';
 import { BookingModule } from './modules/booking/booking.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -124,6 +125,7 @@ import { PaymentModule } from './modules/payment/payment.module';
     TelemedicineModule,
     BookingModule,
     PaymentModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [
