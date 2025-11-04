@@ -1,10 +1,9 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Logger } from '@nestjs/common';
-import { NotificationService } from '../../modules/telemedicine/service/notification.service';
-import { BookingProvider } from '../../modules/telemedicine/provider/booking.provider';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
+import { BookingService } from '@/modules/booking/service/booking.service';
+import { ResendService } from '../modules/resend/service/resend.service';
 
 @Processor('telemedicine-notifications-queue')
 export class TelemedicineNotificationProcessor {
@@ -13,8 +12,8 @@ export class TelemedicineNotificationProcessor {
   );
 
   constructor(
-    private readonly notificationService: NotificationService,
-    private readonly bookingProvider: BookingProvider,
+    private readonly resendService: ResendService,
+    private readonly bookingService: BookingService,
     private readonly doctorService: DoctorService,
   ) {}
 
@@ -40,8 +39,8 @@ export class TelemedicineNotificationProcessor {
       const { bookingId, patientId, doctorId, type } = job.data;
       this.logger.log(`Processing confirmation email for booking ${bookingId}`);
 
-      const booking = await this.bookingProvider.findBookingById(bookingId);
-      if (!booking) {
+      const booking = await this.bookingService.getBooking(bookingId);
+      if (!booking || !booking.data) {
         this.logger.error(`Booking not found: ${bookingId}`);
         return;
       }
@@ -54,24 +53,26 @@ export class TelemedicineNotificationProcessor {
       }
 
       if (type === 'patient_confirmation') {
-        await this.notificationService.sendPatientConfirmationEmail({
-          patientEmail: job.data.patientEmail || 'patient@example.com',
+        await this.resendService.sendBookingEmail({
+          to: job.data.patientEmail || 'patient@example.com',
           patientName: job.data.patientName || 'Patient',
           doctorName: doctor.data.fullName,
-          startTime: new Date(booking.startTime),
-          endTime: new Date(booking.endTime),
-          videoRoomUrl: booking.videoRoomUrl || '',
-          bookingReference: booking.bookingReference,
+          startTime: new Date(booking.data.startTime),
+          endTime: new Date(booking.data.endTime),
+          videoRoomUrl: booking.data.videoRoomUrl || '',
+          bookingReference: booking.data.bookingReference,
+          context: 'PATIENT_CONFIRMATION',
         });
       } else if (type === 'doctor_notification') {
-        await this.notificationService.sendDoctorNotificationEmail({
-          doctorEmail: doctor.data.email,
+        await this.resendService.sendBookingEmail({
+          to: doctor.data.email,
           doctorName: doctor.data.fullName,
           patientName: job.data.patientName || 'Patient',
-          startTime: new Date(booking.startTime),
-          endTime: new Date(booking.endTime),
-          videoRoomUrl: booking.videoRoomUrl || '',
-          bookingReference: booking.bookingReference,
+          startTime: new Date(booking.data.startTime),
+          endTime: new Date(booking.data.endTime),
+          videoRoomUrl: booking.data.videoRoomUrl || '',
+          bookingReference: booking.data.bookingReference,
+          context: 'DOCTOR_NOTIFICATION',
         });
       }
 
@@ -96,27 +97,31 @@ export class TelemedicineNotificationProcessor {
       } = job.data;
       this.logger.log(`Processing cancellation email for booking ${bookingId}`);
 
-      const booking = await this.bookingProvider.findBookingById(bookingId);
-      if (!booking) {
+      const bookingResult = await this.bookingService.getBooking(bookingId);
+      if (!bookingResult || !bookingResult.data) {
         this.logger.error(`Booking not found: ${bookingId}`);
         return;
       }
 
+      const booking = bookingResult.data;
+
       // Determine recipient based on type
       if (type === 'patient_cancellation' && patientEmail) {
-        await this.notificationService.sendCancellationEmail({
-          email: patientEmail,
-          name: patientName || 'Patient',
+        await this.resendService.sendBookingEmail({
+          to: patientEmail,
+          patientName: patientName || 'Patient',
           bookingReference: booking.bookingReference,
           refundAmount,
+          context: 'CANCELATION',
         });
       }
 
       if (type === 'doctor_cancellation' && doctorEmail) {
-        await this.notificationService.sendCancellationEmail({
-          email: doctorEmail,
-          name: doctorName || 'Doctor',
+        await this.resendService.sendBookingEmail({
+          to: doctorEmail,
+          doctorName: doctorName || 'Doctor',
           bookingReference: booking.bookingReference,
+          context: 'CANCELATION',
         });
       }
 
