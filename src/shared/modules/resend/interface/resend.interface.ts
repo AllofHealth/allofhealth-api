@@ -1,4 +1,9 @@
 export type TEmailContext = 'WELCOME' | 'OTP' | 'APPROVAL';
+export type TBookingEmailContext =
+  | 'PATIENT_CONFIRMATION'
+  | 'DOCTOR_NOTIFICATION'
+  | 'REMINDER'
+  | 'CANCELATION';
 
 export interface ISendEmail {
   name?: string;
@@ -25,4 +30,19 @@ export interface IHandleOtp {
   subject?: string;
   verifyUrl?: string;
   code: string;
+}
+
+export interface IHandleBooking {
+  from?: string;
+  to?: string;
+  subject?: string;
+  patientName?: string;
+  doctorName?: string;
+  startTime?: Date;
+  endTime?: Date;
+  videoRoomUrl?: string;
+  bookingReference: string;
+  refundAmount?: number;
+  context?: TBookingEmailContext;
+  reminderType?: string;
 }
