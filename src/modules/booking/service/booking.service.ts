@@ -493,7 +493,7 @@ export class BookingService {
 
       const isVideoRoomActive =
         booking.data.status === 'confirmed' &&
-        booking.paymentStatus === 'paid' &&
+        booking.data.paymentStatus === 'paid' &&
         !!booking.data.videoRoomUrl;
 
       return this.handler.handleReturn({
