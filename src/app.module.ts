@@ -39,6 +39,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
 import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
 import { TelemedicineModule } from './modules/telemedicine/telemedicine.module';
+import { BookingModule } from './modules/booking/booking.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -120,6 +122,8 @@ import { TelemedicineModule } from './modules/telemedicine/telemedicine.module';
     NewsletterModule,
     PushNotificationsModule,
     TelemedicineModule,
+    BookingModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [
