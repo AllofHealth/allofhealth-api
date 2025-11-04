@@ -254,7 +254,11 @@ export class BookingProvider {
   }
 
   async cancelBooking(ctx: ICancelBooking) {
-    const { bookingId, cancelledBy, reason } = ctx;
+    const { bookingId, uid, cancelledBy, reason } = ctx;
+    const id = bookingId ? bookingId : uid;
+    const whereClause = bookingId
+      ? eq(schema.consultationBookings.id, bookingId)
+      : eq(schema.consultationBookings.externalBookingId, uid!);
     try {
       const [booking] = await this._db
         .update(schema.consultationBookings)
@@ -264,7 +268,7 @@ export class BookingProvider {
           cancelledBy,
           cancellationReason: reason,
         })
-        .where(eq(schema.consultationBookings.id, bookingId))
+        .where(whereClause)
         .returning({
           bookingId: schema.consultationBookings.id,
           bookingReference: schema.consultationBookings.bookingReference,
