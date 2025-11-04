@@ -13,6 +13,7 @@ import { BookingModule } from '../booking/booking.module';
 import { ConsultationModule } from '../consultation/consultation.module';
 import { DoctorModule } from '../doctor/doctor.module';
 import { TelemedicineService } from './service/telemedicine.service';
+import { ErrorHandler } from '@/shared/error-handler/error.handler';
 
 @Module({
   imports: [
@@ -23,11 +24,12 @@ import { TelemedicineService } from './service/telemedicine.service';
     FlutterwaveModule,
     ConsultationModule,
   ],
-  controllers: [BookingController, DoctorScheduleController, WebhookController],
   providers: [
     DoctorAvailabilityService,
     NotificationService,
     TelemedicineService,
+    ErrorHandler,
   ],
+  controllers: [BookingController, DoctorScheduleController, WebhookController],
 })
 export class TelemedicineModule {}
