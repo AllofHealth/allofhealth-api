@@ -55,3 +55,14 @@ export interface IGetDoctorAvailability {
   startDate: Date;
   endDate: Date;
 }
+
+export interface ICheckSlotAvailability {
+  doctorId: string;
+  consultationTypeId: string;
+  startTime: Date;
+}
+
+export interface IGetCalComEmbedConfig {
+  consultationTypeId: string;
+  doctorId?: string;
+}
