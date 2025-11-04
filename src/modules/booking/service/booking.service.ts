@@ -262,11 +262,11 @@ export class BookingService {
   }
 
   async cancelBooking(ctx: ICancelBooking) {
-    const { bookingId, cancelledBy, reason } = ctx;
+    const { bookingId, uid, cancelledBy, reason } = ctx;
     try {
       const booking = await this.bookingProvider.findBooking({
-        opts: 'id',
-        id: bookingId,
+        opts: bookingId ? 'id' : 'ext_id',
+        id: bookingId ? bookingId : uid,
       });
 
       if (!booking || !booking.data) {
@@ -289,7 +289,7 @@ export class BookingService {
       this.eventEmitter.emit(
         SharedEvents.BOOKING_CANCELLED,
         new BookingCancelledEvent(
-          bookingId,
+          booking.data.id,
           booking.data.patientId,
           booking.data.doctorId,
           booking.data.paymentStatus,
