@@ -1,6 +1,7 @@
 export interface ICreateConsultationType {
   doctorId: string;
   name: string;
+  slug: string;
   description?: string;
   durationMinutes: number;
   price: number;
