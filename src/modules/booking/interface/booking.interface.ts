@@ -32,12 +32,6 @@ export interface IUpdatePaymentDetails {
   paidAt?: Date;
 }
 
-export interface ICancelBooking {
-  bookingId: string;
-  cancelledBy: string;
-  reason: string;
-}
-
 export interface IGetPatientBookings {
   patientId: string;
   status?: string;
@@ -89,7 +83,8 @@ export interface IConfirmBooking {
 }
 
 export interface ICancelBooking {
-  bookingId: string;
+  uid?: string;
+  bookingId?: string;
   cancelledBy: string;
   reason: string;
 }
