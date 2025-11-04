@@ -1,10 +1,9 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Logger } from '@nestjs/common';
-import { NotificationService } from '../../modules/telemedicine/service/notification.service';
-import { BookingProvider } from '../../modules/telemedicine/provider/booking.provider';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
+import { BookingService } from '@/modules/booking/service/booking.service';
+import { ResendService } from '../modules/resend/service/resend.service';
 
 @Processor('telemedicine-reminders-queue')
 export class TelemedicineReminderProcessor {
@@ -13,8 +12,8 @@ export class TelemedicineReminderProcessor {
   );
 
   constructor(
-    private readonly notificationService: NotificationService,
-    private readonly bookingProvider: BookingProvider,
+    private readonly resendService: ResendService,
+    private readonly bookingService: BookingService,
     private readonly doctorService: DoctorService,
   ) {}
 
@@ -27,12 +26,13 @@ export class TelemedicineReminderProcessor {
         `Processing ${reminderType} reminder for booking ${bookingId}`,
       );
 
-      const booking = await this.bookingProvider.findBookingById(bookingId);
-
-      if (!booking) {
-        this.logger.warn(`Booking not found: ${bookingId}, skipping reminder`);
+      const bookingResult = await this.bookingService.getBooking(bookingId);
+      if (!bookingResult || !bookingResult.data) {
+        this.logger.error(`Booking not found: ${bookingId}`);
         return;
       }
+
+      const booking = bookingResult.data;
 
       if (booking.status === 'cancelled') {
         this.logger.log(`Booking ${bookingId} is cancelled, skipping reminder`);
@@ -55,22 +55,24 @@ export class TelemedicineReminderProcessor {
         job.data.patientEmail || 'patient@allofhealth.africa';
       const patientName = job.data.patientName || 'Patient';
 
-      await this.notificationService.sendReminderEmail({
-        email: patientEmail,
-        name: patientName,
+      await this.resendService.sendBookingEmail({
+        to: patientEmail,
+        patientName: patientName,
         reminderType: reminderType as '24h' | '1h',
         startTime: new Date(booking.startTime),
         videoRoomUrl: booking.videoRoomUrl || '',
         bookingReference: booking.bookingReference,
+        context: 'REMINDER',
       });
 
-      await this.notificationService.sendReminderEmail({
-        email: doctor.data.email,
+      await this.resendService.sendBookingEmail({
+        to: doctor.data.email,
         reminderType: reminderType as '24h' | '1h',
-        name: doctor.data.fullName,
+        doctorName: doctor.data.fullName,
         startTime: new Date(booking.startTime),
         videoRoomUrl: booking.videoRoomUrl || '',
         bookingReference: booking.bookingReference,
+        context: 'REMINDER',
       });
 
       this.logger.log(`${reminderType} reminder sent successfully`);
