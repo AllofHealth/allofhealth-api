@@ -20,7 +20,7 @@ export class FlutterwaveConfig {
   FLUTTERWAVE_WEBHOOK_URL: string;
 
   @IsNotEmpty()
-  @Value('FLUTTERWAVE_WEBHOOK_SECRET')
+  @Value('FLUTTERWAVE_WEBHOOK_SECRET_KEY')
   FLUTTERWAVE_WEBHOOK_SECRET: string;
 
   @IsNotEmpty()
