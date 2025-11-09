@@ -42,7 +42,6 @@ export class FlutterwaveService {
           description: `Payment for booking ${ctx.txRef}`,
           logo: 'https://your-logo-url.com/logo.png',
         },
-        meta: ctx.metadata || {},
       };
       const url = `${this.flutterwaveProvider.provideBaseUrl()}/payments`;
 
@@ -54,6 +53,7 @@ export class FlutterwaveService {
       });
       return response.data;
     } catch (error) {
+      console.error(error);
       this.logger.error('Failed to initialize Flutterwave payment', error);
       throw error;
     }
