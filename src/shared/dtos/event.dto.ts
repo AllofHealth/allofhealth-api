@@ -37,7 +37,10 @@ export class StoreId {
 }
 
 export class CreateSmartAccount {
-  constructor(readonly userId: string) {}
+  constructor(
+    readonly userId: string,
+    readonly rpc?: string,
+  ) {}
 }
 
 export class MintHealthToken {
