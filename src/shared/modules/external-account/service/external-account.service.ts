@@ -11,7 +11,7 @@ export class ExternalAccountService {
     return this.externalAccountProvider.handleCreateWallet();
   }
 
-  createNewSigner() {
+  createNewSigner(rpc?: string) {
     return this.externalAccountProvider.createSigner();
   }
   async provideSigner(userId: string) {
