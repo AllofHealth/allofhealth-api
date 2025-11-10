@@ -9,10 +9,12 @@ import { TelemedicineService } from './service/telemedicine.service';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { UserModule } from '../user/user.module';
 import { TelemedicineController } from './controller/telemedicine.controller';
+import { TokenModule } from '../token/token.module';
 
 @Module({
   imports: [
     forwardRef(() => UserModule),
+    forwardRef(() => TokenModule),
     DoctorModule,
     CalendarModule,
     BookingModule,
