@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@biconomy/account": "^4.5.7",
+    "@electric-sql/pglite": "^0.3.14",
     "@itgorillaz/configify": "^4.0.0",
     "@keyv/redis": "^5.1.1",
     "@neondatabase/serverless": "^1.0.1",
@@ -66,6 +67,7 @@
     "neverthrow": "^8.2.0",
     "otpauth": "^9.4.0",
     "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.16.3",
     "postmark": "^4.0.5",
     "redis": "^5.5.6",
     "reflect-metadata": "^0.2.2",
