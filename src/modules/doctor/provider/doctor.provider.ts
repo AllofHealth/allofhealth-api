@@ -6,7 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, desc, eq, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, ne, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
@@ -84,7 +84,7 @@ export class DoctorProvider {
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
-        message: DSM.DOCTOR_CREATED,
+        message: DSM.DOCTOR_FETCHED,
         data: parsedDoctor,
       });
     } catch (e) {
@@ -145,19 +145,17 @@ export class DoctorProvider {
     const sortFn = sort === 'desc' ? desc : asc;
     const sortColumn = schema.user.createdAt;
     try {
-      const constantQuery = [
+      const whereClauses = [
         eq(schema.user.role, USER_ROLE.DOCTOR),
         ne(schema.user.status, USER_STATUS.SUSPENDED),
       ];
-      let whereConditions: any;
 
       if (query && query.trim()) {
         const searchQuery = `%${query.trim()}%`;
-        whereConditions = and(
-          ...constantQuery,
-          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery}`,
-        );
+        whereClauses.push(ilike(schema.user.fullName, searchQuery));
       }
+
+      const whereConditions = and(...whereClauses);
 
       const totalDoctorsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })

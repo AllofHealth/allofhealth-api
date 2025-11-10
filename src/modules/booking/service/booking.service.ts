@@ -13,6 +13,7 @@ import {
   IGetDoctorBookings,
   IGetPatientBookings,
   IHandleCalComBookingCreated,
+  IHandlePaymentSuccess,
   IInititalizeBookingPayment,
   IProcessBookingRefund,
 } from '../interface/booking.interface';
@@ -329,12 +330,12 @@ export class BookingService {
     return await this.bookingProvider.getDoctorBookings(ctx);
   }
 
-  async handlePaymentSuccess(ctx: any) {
-    const { tx_ref, id, amount, status, meta } = ctx;
+  async handlePaymentSuccess(ctx: IHandlePaymentSuccess) {
+    const { txRef, id, amount, status, meta } = ctx;
     try {
       const booking = await this.bookingProvider.findBooking({
         opts: 'ref',
-        refId: tx_ref,
+        refId: txRef,
       });
 
       if (!booking || !booking.data) {
@@ -346,7 +347,7 @@ export class BookingService {
         return;
       }
 
-      if (parseFloat(amount) !== parseFloat(booking.data.amount)) {
+      if (parseFloat(String(amount)) !== parseFloat(booking.data.amount)) {
         this.logger.error(
           `Amount mismatch: expected ${booking.data.amount}, got ${amount}`,
         );

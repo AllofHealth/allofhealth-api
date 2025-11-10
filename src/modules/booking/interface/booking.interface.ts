@@ -1,3 +1,5 @@
+export type TPaymentStatus = 'successful' | 'failed' | 'pending';
+
 export interface ICreateBooking {
   bookingReference: string;
   patientId: string;
@@ -99,4 +101,12 @@ export interface ICreateVideoRoomForBooking {
   doctorId: string;
   doctorName: string;
   patientId: string;
+}
+
+export interface IHandlePaymentSuccess {
+  txRef: string;
+  id: number;
+  amount: number;
+  status: TPaymentStatus;
+  meta?: Record<string, any>;
 }
