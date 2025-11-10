@@ -1,4 +1,3 @@
-import config from '@/shared/config/config';
 import * as dotenv from 'dotenv';
 import { defineConfig } from 'drizzle-kit';
 

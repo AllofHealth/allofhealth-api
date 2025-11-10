@@ -38,6 +38,10 @@ import { APP_FILTER } from '@nestjs/core';
 import { CacheModule } from '@nestjs/cache-manager';
 import KeyvRedis from '@keyv/redis';
 import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
+import { TelemedicineModule } from './modules/telemedicine/telemedicine.module';
+import { BookingModule } from './modules/booking/booking.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -118,6 +122,10 @@ import { PushNotificationsModule } from './shared/modules/push-notifications/pus
     BrevoModule,
     NewsletterModule,
     PushNotificationsModule,
+    TelemedicineModule,
+    BookingModule,
+    PaymentModule,
+    WebhooksModule,
   ],
   controllers: [AppController],
   providers: [

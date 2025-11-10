@@ -90,8 +90,6 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - ✅ Patient-owned health data tracking
 - ✅ Secure journal storage
 
-<<<<<<< HEAD
-=======
 #### Error Monitoring & Observability
 - ✅ Sentry integration for error tracking and monitoring
 - ✅ Custom logger service with Sentry integration
@@ -184,16 +182,13 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - 🔄 Digital prescription writing tools
 - 🔄 Telemedicine consultation platform
 - 🔄 Enhanced security features and audit logging
-<<<<<<< HEAD
 - 🔄 Real-time notifications system
 - 🔄 Medical records retrieval interface
 - 🔄 Achievement badges and milestone rewards
-=======
 - 🔄 Medical records retrieval interface
 - 🔄 Achievement badges and milestone rewards
 - 🔄 Push notification automation for task reminders
 - 🔄 Advanced Sentry performance monitoring and alerting
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ### 🔮 Advanced Features (Planned)
 
@@ -216,8 +211,6 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - **Authentication**: JWT, 2FA support
 - **File Storage**: Local disk storage (development), IPFS (production)
 - **API**: RESTful APIs with comprehensive OpenAPI documentation
-<<<<<<< HEAD
-=======
 - **Error Monitoring**: Sentry for real-time error tracking and performance monitoring
 - **Push Notifications**: Firebase Admin SDK for cross-platform notifications
 >>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
@@ -235,18 +228,11 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 
 ### DevOps & Infrastructure
 - **Containerization**: Docker with IPFS integration
-<<<<<<< HEAD
-- **CI/CD**: GitHub Actions
-- **Cloud**: AWS/GCP (planned)
-- **Monitoring**: Prometheus + Grafana (planned)
-- **Security**: SSL/TLS, rate limiting, DDoS protection
-=======
 - **CI/CD**: GitHub Actions with Sentry source map uploads
 - **Cloud**: AWS/GCP (planned)
 - **Monitoring**: Sentry (error tracking), Prometheus + Grafana (planned)
 - **Security**: SSL/TLS, rate limiting, DDoS protection
 - **Process Management**: PM2 for production deployment
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ## 🚀 Getting Started
 
@@ -436,8 +422,6 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 ### Newsletter Management
 - `POST /newsletter/subscribe` - Subscribe to newsletter
 
-<<<<<<< HEAD
-=======
 ### Push Notifications
 - **Internal Service**: `PushNotificationsService` - Firebase-based notification delivery
 - **Cross-Platform Support**: iOS and Android push notification support
@@ -515,11 +499,8 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **📋 Audit Trails**: Comprehensive logging for compliance
 - **🔒 Record Encryption Service**: Dedicated service for encrypting/decrypting medical records
 - **🛡️ Batch Processing**: Secure batch encryption for multiple data components
-<<<<<<< HEAD
-=======
 - **📊 Error Monitoring**: Real-time error tracking and alerting with Sentry
 - **🔔 Secure Notifications**: Firebase-based push notifications with proper error handling
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ## 🔧 Development Status
 
@@ -558,13 +539,10 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [x] **Comprehensive admin dashboard with user management**
 - [x] **User suspension, rejection, and account management**
 - [x] **Task statistics and historical reward data**
-<<<<<<< HEAD
-=======
 - [x] **Sentry integration for comprehensive error monitoring and performance tracking**
 - [x] **Firebase push notifications system with cross-platform support**
 - [x] **Custom logger service with Sentry breadcrumbs and error capture**
 - [x] **Automated source map uploads for enhanced debugging**
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ### 🔄 In Progress
 - [ ] Frontend web application development
@@ -593,12 +571,9 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [ ] Health token marketplace and exchange
 - [ ] Streak bonuses and tiered rewards
 - [ ] Social features and health challenges
-<<<<<<< HEAD
-=======
 - [ ] Automated push notification triggers for health reminders
 - [ ] Advanced Sentry dashboards and custom alerts
 - [ ] Real-time notification delivery status tracking
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ## 📊 Success Metrics
 
@@ -629,7 +604,6 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **Access Control**: Granular permission system
 - **Record Encryption**: AES-256-CBC encryption for all sensitive medical data
 - **Decentralized Storage**: IPFS for tamper-proof data integrity
-<<<<<<< HEAD
 
 ### Audit & Monitoring
 - Comprehensive audit trails
@@ -637,7 +611,6 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - IPFS content verification
 - Regular security assessments
 - Penetration testing (planned)
-=======
 - **Error Privacy**: Sentry configured with privacy controls for sensitive data
 
 ### Audit & Monitoring
@@ -708,8 +681,7 @@ RECORD_ENCRYPTION_KEY= # Base64 encoded 32-byte key for AES-256-CBC encryption
 DAILY_TARGET=5         # Number of daily tasks required for token reward
 REWARD_AMOUNT=0.01     # Amount of tokens minted per daily target completion (in ETH)
 
-<<<<<<< HEAD
-=======
+
 # Sentry Configuration
 SENTRY_DSN=            # Sentry DSN for error tracking
 NODE_ENV=STAGING       # Environment (STAGING, PRODUCTION, DEVELOPMENT)
@@ -718,7 +690,7 @@ NODE_ENV=STAGING       # Environment (STAGING, PRODUCTION, DEVELOPMENT)
 # Place your Firebase service account JSON file at:
 # src/shared/modules/push-notifications/config/allofhealth-google.config.json
 
->>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
+
 # Database
 DATABASE_URL=postgresql://...
 

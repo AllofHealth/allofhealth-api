@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { CreateEmailResponse, Resend } from 'resend';
 import {
+  IHandleBooking,
   IHandleOnboarding,
   IHandleOtp,
   ISendEmail,
@@ -18,7 +19,6 @@ import {
   RESEND_EMAIL_CONFIG as REC,
   RESEND_SUCCESS_MESSAGE as RSM,
 } from '../data/resend.data';
-import { ResendError } from '../error/resend.error';
 import OnboardingEmail from '@/shared/templates/welcome.template';
 import VerificationEmail from '@/shared/templates/otp.template';
 
@@ -65,11 +65,19 @@ export class ResendProvider {
     };
   }
 
-  /**
-   * @todo Handle email templates
-   * @param ctx
-   * @returns
-   */
+  private handleBookingEmailTemplate(ctx: IHandleBooking) {
+    const { context } = ctx;
+    switch (context) {
+      case 'PATIENT_CONFIRMATION':
+        break;
+      case 'DOCTOR_NOTIFICATION':
+        break;
+      case 'REMINDER':
+        break;
+      case 'CANCELATION':
+        break;
+    }
+  }
 
   async sendEmail(ctx: ISendEmail) {
     const { to, body, context, name } = ctx;
