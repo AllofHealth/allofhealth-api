@@ -12,7 +12,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, sql } from 'drizzle-orm';
 import { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
@@ -459,15 +459,14 @@ export class UserProvider {
     const sortColumn = schema.user.createdAt;
 
     try {
-      let whereConditions: any = eq(schema.user.role, USER_ROLE.PATIENT);
+      const whereClauses = [eq(schema.user.role, USER_ROLE.PATIENT)];
 
       if (query && query.trim()) {
         const searchQuery = `%${query.trim()}%`;
-        whereConditions = and(
-          whereConditions,
-          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery})`,
-        );
+        whereClauses.push(ilike(schema.user.fullName, searchQuery));
       }
+
+      const whereConditions = and(...whereClauses);
 
       const totalPatientResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
