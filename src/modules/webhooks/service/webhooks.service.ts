@@ -1,3 +1,4 @@
+import { TPaymentStatus } from '@/modules/booking/interface/booking.interface';
 import { BookingService } from '@/modules/booking/service/booking.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { CalConfig } from '@/shared/config/cal.com/cal.config';
@@ -51,8 +52,18 @@ export class WebhooksService {
     return digest === signature;
   }
 
-  private verifyWebhookSignature(payload: string, signature: string): boolean {
-    return signature === this.flutterConfig.FLUTTERWAVE_WEBHOOK_SECRET;
+  private verifyFlutterWebhookSignature(req: any) {
+    const hash = crypto
+      .createHmac('sha256', this.flutterConfig.FLUTTERWAVE_WEBHOOK_SECRET)
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (hash !== req.headers['verif-hash']) {
+      this.logger.error('Invalid signature');
+      return;
+    }
+
+    return req;
   }
 
   async procesCalEvents(req: any) {
@@ -82,5 +93,18 @@ export class WebhooksService {
 
   async processDoxyEvents(req: Request) {}
 
-  async processFlutterEvents(req: Request) {}
+  async processFlutterEvents(req: Request) {
+    const verifiedReq = this.verifyFlutterWebhookSignature(req);
+    const payload = verifiedReq.data;
+
+    switch (verifiedReq.event) {
+      case 'charge.complete':
+        return await this.bookingService.handlePaymentSuccess({
+          txRef: payload.tx_ref,
+          id: payload.id,
+          amount: payload.amount,
+          status: payload.status as TPaymentStatus,
+        });
+    }
+  }
 }
