@@ -68,3 +68,8 @@ export const FLUTTERWAVE_WEBHOOK_SECRET =
 export const FLUTTERWAVE_SANDBOX_BASE_URL =
   process.env.FLUTTERWAVE_SANDBOX_BASE_URL;
 export const FLUTTERWAVE_PROD_BASE_URL = process.env.FLUTTERWAVE_PROD_BASE_URL;
+
+export const IS_PRODUCTION =
+  process.env.NODE_ENV === 'PRODUCTION' ? true : false;
+export const PROD_URL = process.env.DATABASE_URL;
+export const STAGING_URL = process.env.DATABASE_URL_STAGING;
