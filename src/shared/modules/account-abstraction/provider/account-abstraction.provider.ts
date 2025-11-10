@@ -1,5 +1,11 @@
 import { createSmartAccountClient } from '@biconomy/account';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { BiconomyConfig } from '@/shared/config/biconomy/biconomy.config';
@@ -81,11 +87,7 @@ export class AccountAbstractionProvider {
     try {
       const client = await createSmartAccountClient(accountConfig);
       if (!client) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: AEM.ERROR_CREATING_SMART_ACCOUNT_CLIENT,
-          data: null,
-        });
+        throw new BadRequestException(AEM.ERROR_CREATING_SMART_ACCOUNT_CLIENT);
       }
       const smartAddress = await client.getAddress();
       const account = await this.db
@@ -110,7 +112,7 @@ export class AccountAbstractionProvider {
         data,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_CREATING_SMART_ACCOUNT);
+      this.handler.handleError(e, AEM.ERROR_CREATING_SMART_ACCOUNT);
     }
   }
 
@@ -121,10 +123,7 @@ export class AccountAbstractionProvider {
       });
 
       if (!(result && result.smartWalletAddress)) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.ERROR_SMART_ADDRESS_NOT_FOUND,
-        });
+        throw new NotFoundException(AEM.ERROR_SMART_ADDRESS_NOT_FOUND);
       }
 
       return this.handler.handleReturn({
@@ -135,7 +134,7 @@ export class AccountAbstractionProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_GETTING_SMART_ADDRESS);
+      this.handler.handleError(e, AEM.ERROR_GETTING_SMART_ADDRESS);
     }
   }
 

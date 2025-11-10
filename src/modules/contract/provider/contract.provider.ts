@@ -16,6 +16,7 @@ import {
   BadRequestException,
   ConflictException,
   HttpStatus,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -37,16 +38,22 @@ import {
   IApproveRecordAccessTx,
   IHandleAddMedicalRecord,
   IHandleApproval,
+  ILogRegistrationFailure,
   IProcessBatchViewMedicalRecord,
   IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
 import { RpcRotationService } from '@/shared/utils/contract/rpc-rotation.contract';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import { Database } from '@/shared/drizzle/drizzle.types';
+import * as schema from '@/schemas/schema';
+import { ContractError } from '../error/contract.error';
 
 @Injectable()
 export class ContractProvider {
   private readonly logger = new MyLoggerService(ContractProvider.name);
   constructor(
+    @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly contractConfig: ContractConfig,
     private readonly eoaService: ExternalAccountService,
     private readonly handlerService: ErrorHandler,
@@ -127,6 +134,20 @@ export class ContractProvider {
         args: [smartAddress, patientChainId, recordChainId, duration],
       }),
     };
+  }
+
+  private async logContractFailure(ctx: ILogRegistrationFailure) {
+    const { userId, reason = 'RPC ERROR' } = ctx;
+    try {
+      await this.db.insert(schema.contractRegistrationFailures).values({
+        userId,
+        reason,
+      });
+
+      return true;
+    } catch (e) {
+      this.handlerService.handleError(e, CEM.ERROR_LOGGING_CONTRACT_FAILURE);
+    }
   }
 
   provideAdminContractInstance(rpc?: string) {
@@ -496,6 +517,16 @@ export class ContractProvider {
 
       const { transactionHash } = await opResponse.waitForTxHash();
 
+      if (!transactionHash) {
+        await this.logContractFailure({
+          userId,
+        });
+
+        throw new ContractError('Failed to register patient', {
+          cause: 'Possibly rpc error',
+        });
+      }
+
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.PATIENT_REGISTERED_SUCCESSFULLY,
@@ -504,6 +535,10 @@ export class ContractProvider {
         },
       });
     } catch (e) {
+      await this.logContractFailure({
+        userId,
+        reason: e.message,
+      });
       this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
     }
   }
@@ -524,6 +559,16 @@ export class ContractProvider {
       });
 
       const { transactionHash } = await opResponse.waitForTxHash();
+      if (!transactionHash) {
+        await this.logContractFailure({
+          userId,
+        });
+
+        throw new ContractError('Failed to register doctor', {
+          cause: 'Possibly rpc error',
+        });
+      }
+
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.DOCTOR_REGISTERED_SUCCESSFULLY,
@@ -532,6 +577,10 @@ export class ContractProvider {
         },
       });
     } catch (e) {
+      await this.logContractFailure({
+        userId,
+        reason: e.message,
+      });
       this.handlerService.handleError(
         e,
         e.message || CEM.ERROR_REGISTERING_DOCTOR,

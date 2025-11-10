@@ -9,7 +9,11 @@ import { USER_ERROR_MESSAGES } from '@/modules/user/data/user.data';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
-import { EOnUserLogin, EUpdateTaskCount } from '@/shared/dtos/event.dto';
+import {
+  EOnUserLogin,
+  ERegisterEntity,
+  EUpdateTaskCount,
+} from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
@@ -149,10 +153,28 @@ export class ApprovalProvider {
 
       const isVerified = isVerifiedResult[0].isVerified;
       if (!isVerified) {
-        return this.handler.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: AEM.PRACTITIONER_NOT_VERIFIED,
-        });
+        throw new BadRequestException(AEM.PRACTITIONER_NOT_VERIFIED);
+      }
+
+      const patientSmartAddress = await this.getSmartAddress(userId);
+      const patientContractIdResult =
+        await this.contractService.getPatientContractId(patientSmartAddress);
+
+      if (!patientContractIdResult || !patientContractIdResult.data) {
+        throw new InternalServerErrorException(
+          'Failed to retrieve patient contract ID',
+        );
+      }
+
+      if (
+        !patientContractIdResult.data.patientId ||
+        patientContractIdResult.data.patientId === 0
+      ) {
+        this.logger.debug(`Contract Id not found, Emitting registration event`);
+        this.eventEmitter.emit(
+          SharedEvents.ADD_PATIENT_TO_CONTRACT,
+          new ERegisterEntity(userId),
+        );
       }
 
       if (accessLevel === 'full') {
@@ -194,7 +216,7 @@ export class ApprovalProvider {
           });
 
           if (!healthInfo) {
-            throw new Error(AEM.HEALTH_INFO_NOT_FOUND);
+            throw new NotFoundException(AEM.HEALTH_INFO_NOT_FOUND);
           }
 
           healthInfoId = healthInfo.id;
@@ -216,7 +238,10 @@ export class ApprovalProvider {
             .returning();
 
           if (!approval || approval.length === 0) {
-            throw new Error(AEM.ERROR_CREATING_APPROVAL);
+            throw new HttpException(
+              AEM.ERROR_CREATING_APPROVAL,
+              HttpStatus.EXPECTATION_FAILED,
+            );
           }
 
           createdApprovals.push(...approval);
@@ -404,7 +429,34 @@ export class ApprovalProvider {
         this.logger.log(`Approval already accepted`);
         throw new ConflictException(AEM.APPROVAL_REQUEST_CONFLICT);
       }
-      const previousDate = approval.updatedAt;
+
+      const patientSmartAddress = await this.getSmartAddress(approval.userId);
+      const patientContractIdResult =
+        await this.contractService.getPatientContractId(patientSmartAddress);
+
+      if (!patientContractIdResult || !patientContractIdResult.data) {
+        throw new InternalServerErrorException(
+          'Failed to retrieve patient contract ID',
+        );
+      }
+
+      if (
+        !patientContractIdResult.data.patientId ||
+        patientContractIdResult.data.patientId === 0
+      ) {
+        this.logger.debug(
+          'Patient contract id not found, emitting event to perform contract registration',
+        );
+        this.eventEmitter.emit(
+          SharedEvents.ADD_PATIENT_TO_CONTRACT,
+          new ERegisterEntity(approval.userId),
+        );
+        throw new ApprovalError(
+          'Updating patient contract registration, Please try again',
+          { cause: 'Rpc Error' },
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
 
       await this.db
         .update(schema.approvals)
