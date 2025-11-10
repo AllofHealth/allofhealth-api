@@ -9,4 +9,9 @@ export class WebhooksController {
   async processCalWebhook(@Request() req: any) {
     return await this.webhooksService.procesCalEvents(req);
   }
+
+  @Post('flutter')
+  async processFlutterWebhook(@Request() req: any) {
+    return await this.webhooksService.processFlutterEvents(req);
+  }
 }
