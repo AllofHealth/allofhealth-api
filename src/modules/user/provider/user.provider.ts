@@ -61,6 +61,7 @@ import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { AdminService } from '@/modules/admin/service/admin.service';
 import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
 import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
+import { RpcRotationService } from '@/shared/utils/contract/rpc-rotation.contract';
 
 @Injectable()
 export class UserProvider {
@@ -253,13 +254,40 @@ export class UserProvider {
 
   private async handleReInitializeWallet(userId: string) {
     try {
-      const userWallet = await this.aaService.createSmartAccount({
-        userId,
-      });
+      let userWallet;
+      try {
+        userWallet = await this.aaService.createSmartAccount({ userId });
+      } catch (initialError) {
+        this.logger.warn(
+          `Initial smart account creation failed. Starting RPC rotation. Error: ${initialError.message}`,
+        );
+
+        const rpcRotationService = new RpcRotationService();
+        const unusedRpcs = rpcRotationService.returnUnused();
+
+        for (const rpc of unusedRpcs) {
+          try {
+            userWallet = await this.aaService.createSmartAccount({
+              userId,
+              rpc,
+            });
+            if (userWallet?.data) {
+              this.logger.log(
+                `Smart account created successfully with RPC: ${rpc}`,
+              );
+              break;
+            }
+          } catch (rpcError) {
+            this.logger.warn(
+              `Failed to create smart account with RPC: ${rpc}. Error: ${rpcError.message}`,
+            );
+          }
+        }
+      }
 
       if (!userWallet || !userWallet.data) {
         throw new UserError(
-          'Failed to create smart account',
+          'Failed to create smart account after trying all available RPCs',
           HttpStatus.EXPECTATION_FAILED,
         );
       }
@@ -269,7 +297,7 @@ export class UserProvider {
 
       if (!createdWalletInfo?.data) {
         throw new UserError(
-          'Failed to fetch wallet info',
+          'Failed to fetch wallet info after creating smart account',
           HttpStatus.EXPECTATION_FAILED,
         );
       }
