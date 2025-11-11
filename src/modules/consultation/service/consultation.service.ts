@@ -23,7 +23,6 @@ export class ConsultationService {
       durationMinutes: ctx.durationMinutes,
       price: ctx.price,
       currency: ctx.currency,
-      calcomEventTypeId: ctx.calcomEventTypeId,
     });
   }
 

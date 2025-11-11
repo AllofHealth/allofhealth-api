@@ -29,7 +29,6 @@ export class ConsultationProvider {
       name,
       price,
       slug,
-      calcomEventTypeId,
       description,
     } = ctx;
     try {
@@ -43,7 +42,6 @@ export class ConsultationProvider {
           durationMinutes: durationMinutes,
           price: price.toString(),
           currency: currency,
-          calcomEventTypeId: calcomEventTypeId,
           isActive: true,
         })
         .returning({

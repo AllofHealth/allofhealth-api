@@ -6,7 +6,6 @@ export interface ICreateConsultationType {
   durationMinutes: number;
   price: number;
   currency: string;
-  calcomEventTypeId?: number;
 }
 
 export interface IGetDoctorConsultationTypes {
