@@ -10,15 +10,10 @@ import {
 export class ConsultationService {
   constructor(private readonly consultationProvider: ConsultationProvider) {}
 
-  async createConsultationType(ctx: ICreateConsultationType) {
-    const slug = ctx.name
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '');
-    return await this.consultationProvider.createConsultationType({
-      slug,
+  async createDoctorConsultationType(ctx: ICreateConsultationType) {
+    return await this.consultationProvider.createDoctorConsultationType({
       doctorId: ctx.doctorId,
-      name: ctx.name,
+      consultationTypeId: ctx.consultationTypeId,
       description: ctx.description,
       durationMinutes: ctx.durationMinutes,
       price: ctx.price,
@@ -30,8 +25,8 @@ export class ConsultationService {
     return await this.consultationProvider.getDoctorConsultationTypes(ctx);
   }
 
-  async updateConsultationType(ctx: IUpdateConsultationType) {
-    return await this.consultationProvider.updateConsultationType(ctx);
+  async updateDoctorConsultationType(ctx: IUpdateConsultationType) {
+    return await this.consultationProvider.updateDoctorConsultationType(ctx);
   }
 
   async findById(id: string) {
@@ -42,7 +37,15 @@ export class ConsultationService {
     return await this.consultationProvider.findByCalcomEventTypeId(id);
   }
 
-  async deleteConsultationType(id: string) {
+  async deleteDoctorConsultationType(id: string) {
     return await this.consultationProvider.deleteConsultationType(id);
+  }
+
+  async addNewConsultationType(name: string) {
+    return await this.consultationProvider.addConsultationType(name);
+  }
+
+  async fetchAllConsultationTypes() {
+    return await this.consultationProvider.fetchAllConsultationTypes();
   }
 }
