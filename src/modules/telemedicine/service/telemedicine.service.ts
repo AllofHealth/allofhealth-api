@@ -317,17 +317,19 @@ export class TelemedicineService {
         throw new NotFoundException('Consultation type not found');
       }
 
-      if (!consultationType.data.calcomEventTypeId) {
+      const consultationData = consultationType.data.doctor_consultation_types
+
+      if (!consultationData.calcomEventTypeId) {
         throw new BadRequestException(
           'Consultation type not linked to Cal.com event',
         );
       }
 
       const availability = await this.calendarService.getAvailability({
-        eventTypeId: consultationType.data.calcomEventTypeId,
+        eventTypeId: consultationData.calcomEventTypeId,
         startDate,
         endDate,
-        lengthInMinutes: consultationType.data.durationMinutes,
+        lengthInMinutes: consultationData.durationMinutes,
       });
 
       return this.handler.handleReturn({
@@ -335,11 +337,11 @@ export class TelemedicineService {
         message: 'Doctor availability retrieved successfully',
         data: {
           consultationType: {
-            id: consultationType.data.id,
-            name: consultationType.data.name,
-            duration: consultationType.data.durationMinutes,
-            price: parseFloat(consultationType.data.price),
-            currency: consultationType.data.currency,
+            id: consultationData.id,
+            name: consultationType.data.consultation_type.name,
+            duration: consultationData.durationMinutes,
+            price: parseFloat(consultationData.price),
+            currency: consultationData.currency,
           },
           slots: availability.slots.map(
             (slot: { start: string; end: string; available: boolean }) => ({
@@ -401,8 +403,9 @@ export class TelemedicineService {
       if (!consultationType || !consultationType.data) {
         throw new NotFoundException('Consultation type not found');
       }
+      const consultationData = consultationType.data.doctor_consultation_types
 
-      if (!consultationType.data.calcomEventTypeId) {
+      if (!consultationData.calcomEventTypeId) {
         throw new BadRequestException(
           'Consultation type not configured for bookings',
         );
@@ -412,14 +415,14 @@ export class TelemedicineService {
         status: HttpStatus.OK,
         message: 'Cal.com embed config retrieved successfully',
         data: {
-          eventTypeId: consultationType.data.calcomEventTypeId,
+          eventTypeId: consultationData.calcomEventTypeId,
           consultationType: {
-            id: consultationType.data.id,
-            name: consultationType.data.name,
-            description: consultationType.data.description,
-            duration: consultationType.data.durationMinutes,
-            price: parseFloat(consultationType.data.price),
-            currency: consultationType.data.currency,
+            id: consultationData.id,
+            name: consultationType.data.consultation_type.name,
+            description: consultationData.description,
+            duration: consultationData.durationMinutes,
+            price: parseFloat(consultationData.price),
+            currency: consultationData.currency,
           },
           embedConfig: {
             theme: 'light',
