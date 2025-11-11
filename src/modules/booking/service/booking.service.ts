@@ -65,8 +65,9 @@ export class BookingService {
         return existingBooking;
       }
 
-      const consultationType =
-        await this.consultationService.findCalcomEventId(eventTypeId);
+      const consultationType = await this.consultationService.findById(
+        metadata.consultationId,
+      );
 
       if (!consultationType || !consultationType.data) {
         throw new NotFoundException(
@@ -89,7 +90,7 @@ export class BookingService {
         bookingReference,
         patientId,
         doctorId,
-        consultationTypeId: consultationType.data.id,
+        consultationId: consultationType.data.id,
         consultationDate: new Date(startTime),
         startTime: new Date(startTime),
         endTime: new Date(endTime),
