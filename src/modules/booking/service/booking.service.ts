@@ -71,12 +71,13 @@ export class BookingService {
 
       if (!consultationType || !consultationType.data) {
         throw new NotFoundException(
-          `Consultation type not found for event type ${eventTypeId}`,
+          `Consultation type not found for event type ${metadata.consultationId}`,
         );
       }
+      const consultationData = consultationType.data.doctor_consultation_types
 
       const patientId = metadata.patientId;
-      const doctorId = consultationType.data.doctorId;
+      const doctorId = consultationData.doctorId;
 
       if (!patientId) {
         throw new BadRequestException(
@@ -84,19 +85,26 @@ export class BookingService {
         );
       }
 
+      await this.consultationService.updateDoctorConsultationType({
+        id: consultationData.id,
+        data: {
+          eventTypeId
+        }
+      })
+
       const bookingReference = this.bookingProvider.generateBookingReference();
 
       const booking = await this.bookingProvider.createBooking({
         bookingReference,
         patientId,
         doctorId,
-        consultationId: consultationType.data.id,
+        consultationId: consultationData.id,
         consultationDate: new Date(startTime),
         startTime: new Date(startTime),
         endTime: new Date(endTime),
         timezone: attendees[0]?.timeZone || 'UTC',
-        amount: parseFloat(consultationType.data.price),
-        currency: consultationType.data.currency,
+        amount: parseFloat(consultationData.price),
+        currency: consultationData.currency,
         externalBookingId: uid,
         externalBookingUrl: `https://cal.com/booking/${uid}`,
         metadata: metadata,
@@ -114,7 +122,7 @@ export class BookingService {
           booking.data.bookingId,
           patientId,
           doctorId,
-          parseFloat(consultationType.data.price),
+          parseFloat(consultationData.price),
         ),
       );
 
