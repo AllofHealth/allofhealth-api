@@ -21,23 +21,58 @@ export class ConsultationProvider {
     private readonly handler: ErrorHandler,
   ) {}
 
-  async createConsultationType(ctx: ICreateConsultationType) {
-    const {
-      currency,
-      doctorId,
-      durationMinutes,
-      name,
-      price,
-      slug,
-      description,
-    } = ctx;
+  async addConsultationType(name: string) {
+    try {
+      await this._db
+        .insert(schema.consultationTypes)
+        .values({
+          name,
+        })
+        .onConflictDoNothing()
+        .execute();
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.SUCCESS_ADDING_CONSULTATION_TYPE,
+      });
+    } catch (e) {
+      this.handler.handleError(
+        e,
+        e.message || CEM.ERROR_ADDING_CONSULTATION_TYPE,
+      );
+    }
+  }
+
+  async fetchAllConsultationTypes() {
+    try {
+      const consultationTypes = await this._db
+        .select({
+          id: schema.consultationTypes.id,
+          name: schema.consultationTypes.name,
+        })
+        .from(schema.consultationTypes);
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.SUCCESS_FETCHING_CONSULTATION_TYPES,
+        data: consultationTypes,
+      });
+    } catch (e) {
+      this.handler.handleError(
+        e,
+        e.message || CEM.ERROR_FETCHING_ALL_CONSULTATION_TYPES,
+      );
+    }
+  }
+
+  async createDoctorConsultationType(ctx: ICreateConsultationType) {
+    const { currency, doctorId, durationMinutes, price, description } = ctx;
     try {
       const [consultationType] = await this._db
         .insert(schema.doctorConsultationTypes)
         .values({
           doctorId: doctorId,
-          name: name,
-          slug: slug,
+          consultationType: ctx.consultationTypeId,
           description: description,
           durationMinutes: durationMinutes,
           price: price.toString(),
@@ -47,12 +82,10 @@ export class ConsultationProvider {
         .returning({
           id: schema.doctorConsultationTypes.id,
           doctorId: schema.doctorConsultationTypes.doctorId,
-          name: schema.doctorConsultationTypes.name,
           description: schema.doctorConsultationTypes.description,
           durationMinutes: schema.doctorConsultationTypes.durationMinutes,
           price: schema.doctorConsultationTypes.price,
           currency: schema.doctorConsultationTypes.currency,
-          calcomEventTypeId: schema.doctorConsultationTypes.calcomEventTypeId,
           isActive: schema.doctorConsultationTypes.isActive,
         });
 
@@ -98,15 +131,14 @@ export class ConsultationProvider {
     }
   }
 
-  async updateConsultationType(ctx: IUpdateConsultationType) {
+  async updateDoctorConsultationType(ctx: IUpdateConsultationType) {
     const {
       id,
-      data: { description, durationMinutes, isActive, name, price },
+      data: { description, durationMinutes, isActive, price },
     } = ctx;
     try {
       const updateData: any = {};
 
-      if (name) updateData.name = name;
       if (description !== undefined) updateData.description = description;
       if (durationMinutes) updateData.durationMinutes = durationMinutes;
       if (price) updateData.price = price.toString();
@@ -118,7 +150,7 @@ export class ConsultationProvider {
         .where(eq(schema.doctorConsultationTypes.id, id))
         .returning({
           id: schema.doctorConsultationTypes.id,
-          name: schema.doctorConsultationTypes.name,
+
           description: schema.doctorConsultationTypes.description,
           durationMinutes: schema.doctorConsultationTypes.durationMinutes,
           price: schema.doctorConsultationTypes.price,
