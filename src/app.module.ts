@@ -42,6 +42,7 @@ import { TelemedicineModule } from './modules/telemedicine/telemedicine.module';
 import { BookingModule } from './modules/booking/booking.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { ConsultationModule } from './modules/consultation/consultation.module';
 
 @Module({
   imports: [
@@ -126,6 +127,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     BookingModule,
     PaymentModule,
     WebhooksModule,
+    ConsultationModule,
   ],
   controllers: [AppController],
   providers: [
