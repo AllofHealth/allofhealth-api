@@ -104,11 +104,40 @@ export class ConsultationController {
   }
 
   @Get('allDoctorConsultationTypes')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: "Get a doctor's consultation types" })
   @ApiOkResponse({
     description: 'Successfully retrieved consultation types.',
     type: SuccessResponseDto,
+    example: [
+      {
+        id: '123456',
+        doctorId: '',
+        consultationType: '',
+        description: '',
+        durationMinutes: '30',
+        price: '50000',
+        currency: 'NGN',
+        calcomEventTypeId: 302,
+        isActive: true,
+        createdAt: Date.now().toString(),
+        updatedAt: Date.now(),
+      },
+
+      {
+        id: '123456',
+        doctorId: '',
+        consultationType: '',
+        description: '',
+        durationMinutes: '30',
+        price: '50000',
+        currency: 'NGN',
+        calcomEventTypeId: 302,
+        isActive: true,
+        createdAt: Date.now().toString(),
+        updatedAt: Date.now(),
+      },
+    ],
   })
   @ApiInternalServerErrorResponse({
     description: 'Internal server error',
@@ -133,6 +162,19 @@ export class ConsultationController {
   @ApiOkResponse({
     description: 'Successfully retrieved consultation type.',
     type: SuccessResponseDto,
+    example: {
+      id: '123456',
+      doctorId: '',
+      consultationType: '',
+      description: '',
+      durationMinutes: '30',
+      price: '50000',
+      currency: 'NGN',
+      calcomEventTypeId: 302,
+      isActive: true,
+      createdAt: Date.now().toString(),
+      updatedAt: Date.now(),
+    },
   })
   @ApiNotFoundResponse({
     description: 'Consultation type not found.',
@@ -157,6 +199,13 @@ export class ConsultationController {
   @ApiOkResponse({
     description: 'Successfully updated consultation type.',
     type: SuccessResponseDto,
+    example: {
+      id: '',
+      description: '',
+      durationMinutes: 30,
+      price: '5000',
+      isActive: true,
+    },
   })
   @ApiNotFoundResponse({
     description: 'Consultation type not found.',
