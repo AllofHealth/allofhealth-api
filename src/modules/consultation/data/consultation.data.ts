@@ -15,3 +15,21 @@ export enum CONSULTATION_SUCCESS_MESSAGES {
   SUCCESS_FINDING_CALCOM_EVENT_TYPE = 'Calcom event type found successfully',
   SUCCESS_FINDING_CONSULTATION_TYPE = 'Consultation type found successfully',
 }
+
+export const CONSULTATION_TYPES_SEED_DATA = [
+  { name: 'General Consultation' },
+  { name: 'Follow-up Consultation' },
+  { name: 'Specialist Consultation' },
+  { name: 'Emergency Consultation' },
+  { name: 'Online Consultation' },
+  { name: 'In-person Consultation' },
+  { name: 'Pediatric Consultation' },
+  { name: 'Geriatric Consultation' },
+  { name: 'Dermatology Consultation' },
+  { name: 'Cardiology Consultation' },
+  { name: 'Neurology Consultation' },
+  { name: 'Psychiatry Consultation' },
+  { name: 'Nutrition Consultation' },
+  { name: 'Physiotherapy Consultation' },
+  { name: 'Dental Consultation' },
+];
