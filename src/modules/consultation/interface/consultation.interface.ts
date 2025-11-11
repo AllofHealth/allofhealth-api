@@ -19,5 +19,6 @@ export interface IUpdateConsultationType {
     durationMinutes: number;
     price: number;
     isActive: boolean;
+    eventTypeId: number
   }>;
 }
