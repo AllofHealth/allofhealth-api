@@ -374,6 +374,15 @@ export const doctorCalendarIntegrations = pgTable(
   },
 );
 
+export const consulationTypes = pgTable('consultation_type', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const doctorConsultationTypes = pgTable(
   'doctor_consultation_types',
   {
