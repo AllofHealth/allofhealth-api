@@ -134,12 +134,13 @@ export class ConsultationProvider {
   async updateDoctorConsultationType(ctx: IUpdateConsultationType) {
     const {
       id,
-      data: { description, durationMinutes, isActive, price },
+      data: { description, durationMinutes, isActive, price, eventTypeId },
     } = ctx;
     try {
       const updateData: any = {};
 
       if (description !== undefined) updateData.description = description;
+      if (eventTypeId !== undefined) updateData.calcomEventTypeId = eventTypeId
       if (durationMinutes) updateData.durationMinutes = durationMinutes;
       if (price) updateData.price = price.toString();
       if (isActive !== undefined) updateData.isActive = isActive;
@@ -150,7 +151,6 @@ export class ConsultationProvider {
         .where(eq(schema.doctorConsultationTypes.id, id))
         .returning({
           id: schema.doctorConsultationTypes.id,
-
           description: schema.doctorConsultationTypes.description,
           durationMinutes: schema.doctorConsultationTypes.durationMinutes,
           price: schema.doctorConsultationTypes.price,
@@ -176,6 +176,7 @@ export class ConsultationProvider {
         .select()
         .from(schema.doctorConsultationTypes)
         .where(eq(schema.doctorConsultationTypes.id, id))
+        .innerJoin(schema.consultationTypes, eq(schema.doctorConsultationTypes.consultationType, schema.consultationTypes.id))
         .limit(1);
 
       return this.handler.handleReturn({
