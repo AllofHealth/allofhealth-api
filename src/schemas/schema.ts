@@ -374,7 +374,7 @@ export const doctorCalendarIntegrations = pgTable(
   },
 );
 
-export const consulationTypes = pgTable('consultation_type', {
+export const consultationTypes = pgTable('consultation_type', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   name: varchar('name', { length: 255 }).notNull(),
   createdAt: date('created_at').notNull().defaultNow(),
@@ -383,30 +383,26 @@ export const consulationTypes = pgTable('consultation_type', {
     .defaultNow(),
 });
 
-export const doctorConsultationTypes = pgTable(
-  'doctor_consultation_types',
-  {
-    id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
-    doctorId: uuid('doctor_id')
-      .notNull()
-      .references(() => doctors.id, { onDelete: 'cascade' }),
-    name: varchar('name', { length: 255 }).notNull(),
-    slug: varchar('slug', { length: 255 }).notNull(),
-    description: text('description'),
-    durationMinutes: integer('duration_minutes').notNull().default(30),
-    price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-    currency: varchar('currency', { length: 3 }).notNull().default('USD'),
-    calcomEventTypeId: integer('calcom_event_type_id'), // Cal.com event type ID
-    isActive: boolean('is_active').notNull().default(true),
-    createdAt: date('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-  },
-  (table) => ({
-    doctorSlugUnique: unique().on(table.doctorId, table.slug),
-  }),
-);
+export const doctorConsultationTypes = pgTable('doctor_consultation_types', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  doctorId: uuid('doctor_id')
+    .notNull()
+    .references(() => doctors.id, { onDelete: 'cascade' }),
+  consultationType: uuid('consultation_type')
+    .notNull()
+    .references(() => consultationTypes.id, { onDelete: 'cascade' }),
+
+  description: text('description'),
+  durationMinutes: integer('duration_minutes').notNull().default(30),
+  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  currency: varchar('currency', { length: 3 }).notNull().default('NGN'),
+  calcomEventTypeId: integer('calcom_event_type_id'), // Cal.com event type ID
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
 
 export const consultationBookings = pgTable(
   'consultation_bookings',
@@ -421,7 +417,7 @@ export const consultationBookings = pgTable(
     doctorId: uuid('doctor_id')
       .notNull()
       .references(() => doctors.id, { onDelete: 'cascade' }),
-    consultationTypeId: uuid('consultation_type_id')
+    consultationId: uuid('consultation_type_id')
       .notNull()
       .references(() => doctorConsultationTypes.id, { onDelete: 'restrict' }),
 
