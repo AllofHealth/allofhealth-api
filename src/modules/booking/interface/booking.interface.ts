@@ -4,7 +4,7 @@ export interface ICreateBooking {
   bookingReference: string;
   patientId: string;
   doctorId: string;
-  consultationTypeId: string;
+  consultationId: string;
   consultationDate: Date;
   startTime: Date;
   endTime: Date;
