@@ -1,11 +1,10 @@
 export interface ICreateConsultationType {
   doctorId: string;
-  name: string;
-  slug: string;
   description?: string;
-  durationMinutes: number;
+  durationMinutes?: number;
   price: number;
-  currency: string;
+  currency?: string;
+  consultationTypeId: string;
 }
 
 export interface IGetDoctorConsultationTypes {
@@ -16,7 +15,6 @@ export interface IGetDoctorConsultationTypes {
 export interface IUpdateConsultationType {
   id: string;
   data: Partial<{
-    name: string;
     description: string;
     durationMinutes: number;
     price: number;
