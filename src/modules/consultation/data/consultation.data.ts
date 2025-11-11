@@ -5,6 +5,8 @@ export enum CONSULTATION_ERROR_MESSAGES {
   ERROR_FINDING_CALCOM_EVENT_TYPE = 'Error finding Calcom event type',
   ERROR_FINDING_CONSULTATION_TYPE = 'Error finding consultation type',
   ERROR_DELETING_CONSULTATION_TYPE = 'Error deleting consultation type',
+  ERROR_ADDING_CONSULTATION_TYPE = 'Error adding consultation type',
+  ERROR_FETCHING_ALL_CONSULTATION_TYPES = 'Error fetching all consultation types',
 }
 
 export enum CONSULTATION_SUCCESS_MESSAGES {
@@ -14,6 +16,8 @@ export enum CONSULTATION_SUCCESS_MESSAGES {
   SUCCESS_DELETING_CONSULTATION_TYPE = 'Consultation type deleted successfully',
   SUCCESS_FINDING_CALCOM_EVENT_TYPE = 'Calcom event type found successfully',
   SUCCESS_FINDING_CONSULTATION_TYPE = 'Consultation type found successfully',
+  SUCCESS_ADDING_CONSULTATION_TYPE = 'Consultation type added successfully',
+  SUCCESS_FETCHING_CONSULTATION_TYPES = 'Consultation types fetched successfully',
 }
 
 export const CONSULTATION_TYPES_SEED_DATA = [
