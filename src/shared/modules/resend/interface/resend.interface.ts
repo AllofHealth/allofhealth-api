@@ -32,9 +32,9 @@ export interface IHandleOtp {
   code: string;
 }
 
-export interface IHandleBooking {
+export interface IHandlePatientConfirmationEmail {
   from?: string;
-  to?: string;
+  to: string;
   subject?: string;
   patientName?: string;
   doctorName?: string;
@@ -42,7 +42,33 @@ export interface IHandleBooking {
   endTime?: Date;
   videoRoomUrl?: string;
   bookingReference: string;
+}
+
+export interface IHandleSendDoctorNotificationEmail
+  extends IHandlePatientConfirmationEmail {}
+
+export interface IHandleSendReminderEmail {
+  from?: string;
+  to: string;
+  subject?: string;
+  reminderType: string;
+  startTime: Date;
+  videoRoomUrl: string;
+  bookingReference: string;
+}
+
+export interface IHandleSendCancellationEmail {
+  from?: string;
+  to: string;
+  patientName: string;
+  subject?: string;
   refundAmount?: number;
+  bookingReference: string;
+}
+
+export interface IHandleBooking {
+  from?: string;
+  to?: string;
+  subject?: string;
   context?: TBookingEmailContext;
-  reminderType?: string;
 }
