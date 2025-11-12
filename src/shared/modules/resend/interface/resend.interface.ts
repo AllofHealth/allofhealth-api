@@ -70,5 +70,12 @@ export interface IHandleBooking {
   from?: string;
   to?: string;
   subject?: string;
+  patientName?: string;
+  doctorName?: string;
+  startTime?: Date;
+  endTime?: Date;
+  videoRoomUrl?: string;
+  bookingReference: string;
+  refundAmount?: number;
   context?: TBookingEmailContext;
 }
