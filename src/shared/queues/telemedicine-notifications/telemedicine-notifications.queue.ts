@@ -1,11 +1,11 @@
 import {
-  IHandleBookingCreationJob,
   ISendCancelationEmail,
   ISendConfirmationEmail,
   ISendRequestReview,
   ISendSurveyEmail,
   ISendTelemedicineReminder,
 } from '@/modules/telemedicine/interface/telemedicine.interface';
+import { IHandleBookingRequest } from '@/shared/modules/resend/interface/resend.interface';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
@@ -17,7 +17,7 @@ export class TelemedicineNotificationsQueue {
     private readonly telemedicineRemindersQueue: Queue,
   ) {}
 
-  async handleBookingCreationJob(data: IHandleBookingCreationJob) {
+  async handleBookingCreationJob(data: IHandleBookingRequest) {
     await this.telemedicineNotificationsQueue.add(
       'send-booking-created-email',
       data,
