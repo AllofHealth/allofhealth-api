@@ -190,7 +190,7 @@ export class ResendProvider {
           const paymentConfirmationConfig =
             this.handlePatientConfirmationTemplate({
               to: ctx.to!,
-              bookingReference: ctx.bookingReference,
+              bookingReference: ctx.bookingReference!,
               calendarUrl: ctx.calendarUrl,
               consultationType: ctx.consultationType,
               date: ctx.date,
