@@ -196,10 +196,12 @@ export class ESendEmail {
 
 export class BookingCreatedEvent {
   constructor(
-    public readonly bookingId: string,
-    public readonly patientId: string,
-    public readonly doctorId: string,
-    public readonly amount: number,
+    readonly to: string,
+    readonly patientName: string,
+    readonly doctorName: string,
+    readonly date: string,
+    readonly time: string,
+    readonly consultationType: string,
   ) {}
 }
 
