@@ -46,6 +46,7 @@ export interface IHandlePatientConfirmationEmail {
   videoRoomUrl?: string;
   bookingReference: string;
   calendarUrl?: string;
+  context?: TBookingEmailContext;
 }
 
 export interface IHandleSendDoctorNotificationEmail
@@ -81,7 +82,7 @@ export interface IHandleBooking {
   startTime?: string;
   endTime?: string;
   videoRoomUrl?: string;
-  bookingReference: string;
+  bookingReference?: string;
   refundAmount?: number;
   context?: TBookingEmailContext;
   consultationType?: string;
