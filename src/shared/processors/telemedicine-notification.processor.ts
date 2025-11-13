@@ -1,9 +1,12 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { DoctorService } from '@/modules/doctor/service/doctor.service';
 import { BookingService } from '@/modules/booking/service/booking.service';
 import { ResendService } from '../modules/resend/service/resend.service';
+import {
+  IHandleBookingRequest,
+  IHandlePatientConfirmationEmail,
+} from '../modules/resend/interface/resend.interface';
 
 @Processor('telemedicine-notifications-queue')
 export class TelemedicineNotificationProcessor {
@@ -14,17 +17,14 @@ export class TelemedicineNotificationProcessor {
   constructor(
     private readonly resendService: ResendService,
     private readonly bookingService: BookingService,
-    private readonly doctorService: DoctorService,
   ) {}
 
   @Process('send-booking-created-email')
-  async handleBookingCreatedEmail(job: Job) {
+  async handleBookingCreatedEmail(job: Job<IHandleBookingRequest>) {
     try {
-      const { bookingId, patientId } = job.data;
-      this.logger.log(`Processing booking created email for ${bookingId}`);
+      this.logger.log(`Processing booking created email for`);
 
-      // TODO: Send initial "pending payment" email to patient
-      // This will notify them that their slot is reserved pending payment
+      await this.resendService.sendBookingEmail(job.data);
 
       this.logger.log('Booking created email sent successfully');
     } catch (error) {
@@ -34,44 +34,32 @@ export class TelemedicineNotificationProcessor {
   }
 
   @Process('send-confirmation-email')
-  async handleConfirmationEmail(job: Job) {
+  async handleConfirmationEmail(job: Job<IHandlePatientConfirmationEmail>) {
+    const { context } = job.data;
+
     try {
-      const { bookingId, patientId, doctorId, type } = job.data;
-      this.logger.log(`Processing confirmation email for booking ${bookingId}`);
-
-      const booking = await this.bookingService.getBooking(bookingId);
-      if (!booking || !booking.data) {
-        this.logger.error(`Booking not found: ${bookingId}`);
-        return;
-      }
-
-      const doctor = await this.doctorService.fetchDoctor(doctorId);
-
-      if (!doctor || !doctor.data) {
-        this.logger.warn(`Doctor not found: ${doctorId}, skipping reminder`);
-        return;
-      }
-
-      if (type === 'patient_confirmation') {
+      if (context === 'PATIENT_CONFIRMATION') {
         await this.resendService.sendBookingEmail({
-          to: job.data.patientEmail || 'patient@example.com',
-          patientName: job.data.patientName || 'Patient',
-          doctorName: doctor.data.fullName,
-          startTime: new Date(booking.data.startTime).toISOString(),
-          endTime: new Date(booking.data.endTime).toISOString(),
-          videoRoomUrl: booking.data.videoRoomUrl || '',
-          bookingReference: booking.data.bookingReference,
+          to: job.data.to,
+          patientName: job.data.patientName,
+          doctorName: job.data.doctorName,
+          startTime: job.data.startTime,
+          endTime: job.data.endTime,
+          date: job.data.date,
+          videoRoomUrl: job.data.videoRoomUrl,
+          bookingReference: job.data.bookingReference,
           context: 'PATIENT_CONFIRMATION',
         });
-      } else if (type === 'doctor_notification') {
+      } else if (context === 'DOCTOR_NOTIFICATION') {
         await this.resendService.sendBookingEmail({
-          to: doctor.data.email,
-          doctorName: doctor.data.fullName,
-          patientName: job.data.patientName || 'Patient',
-          startTime: new Date(booking.data.startTime).toISOString(),
-          endTime: new Date(booking.data.endTime).toISOString(),
-          videoRoomUrl: booking.data.videoRoomUrl || '',
-          bookingReference: booking.data.bookingReference,
+          to: job.data.to,
+          patientName: job.data.patientName,
+          doctorName: job.data.doctorName,
+          startTime: job.data.startTime,
+          endTime: job.data.endTime,
+          date: job.data.date,
+          videoRoomUrl: job.data.videoRoomUrl,
+          bookingReference: job.data.bookingReference,
           context: 'DOCTOR_NOTIFICATION',
         });
       }
