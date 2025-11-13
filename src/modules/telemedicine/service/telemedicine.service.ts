@@ -67,25 +67,7 @@ export class TelemedicineService {
   @OnEvent(SharedEvents.BOOKING_CREATED)
   async handleBookingCreated(event: BookingCreatedEvent) {
     try {
-      this.logger.log(`Booking created: ${event.bookingId}`);
-
-      await this.telemedicineNotificationsQueue.handleBookingCreationJob({
-        bookingId: event.bookingId,
-        patientId: event.patientId,
-        type: 'booking_created',
-      });
-
-      await this.logAuditTrail({
-        bookingId: event.bookingId,
-        action: 'booking_created',
-        actorId: event.patientId,
-        actorType: 'patient',
-        newStatus: 'pending_payment',
-        changes: {
-          amount: event.amount,
-          status: 'pending_payment',
-        },
-      });
+      await this.telemedicineNotificationsQueue.handleBookingCreationJob(event);
 
       this.logger.log('Booking created event processed successfully');
     } catch (error) {
@@ -317,7 +299,7 @@ export class TelemedicineService {
         throw new NotFoundException('Consultation type not found');
       }
 
-      const consultationData = consultationType.data.doctor_consultation_types
+      const consultationData = consultationType.data.doctor_consultation_types;
 
       if (!consultationData.calcomEventTypeId) {
         throw new BadRequestException(
@@ -403,7 +385,7 @@ export class TelemedicineService {
       if (!consultationType || !consultationType.data) {
         throw new NotFoundException('Consultation type not found');
       }
-      const consultationData = consultationType.data.doctor_consultation_types
+      const consultationData = consultationType.data.doctor_consultation_types;
 
       if (!consultationData.calcomEventTypeId) {
         throw new BadRequestException(
