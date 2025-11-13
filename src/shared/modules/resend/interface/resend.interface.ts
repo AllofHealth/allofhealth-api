@@ -1,5 +1,6 @@
 export type TEmailContext = 'WELCOME' | 'OTP' | 'APPROVAL';
 export type TBookingEmailContext =
+  | 'BOOKING_CREATED'
   | 'PATIENT_CONFIRMATION'
   | 'DOCTOR_NOTIFICATION'
   | 'REMINDER'
@@ -38,23 +39,28 @@ export interface IHandlePatientConfirmationEmail {
   subject?: string;
   patientName?: string;
   doctorName?: string;
-  startTime?: Date;
-  endTime?: Date;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  consultationType?: string;
   videoRoomUrl?: string;
   bookingReference: string;
+  calendarUrl?: string;
 }
 
 export interface IHandleSendDoctorNotificationEmail
   extends IHandlePatientConfirmationEmail {}
 
 export interface IHandleSendReminderEmail {
+  doctorName: string;
+  patientName: string;
   from?: string;
   to: string;
   subject?: string;
-  reminderType: string;
-  startTime: Date;
-  videoRoomUrl: string;
-  bookingReference: string;
+  consultationType: string;
+  paymentUrl: string;
+  date: string;
+  time: string;
 }
 
 export interface IHandleSendCancellationEmail {
@@ -72,10 +78,27 @@ export interface IHandleBooking {
   subject?: string;
   patientName?: string;
   doctorName?: string;
-  startTime?: Date;
-  endTime?: Date;
+  startTime?: string;
+  endTime?: string;
   videoRoomUrl?: string;
   bookingReference: string;
   refundAmount?: number;
   context?: TBookingEmailContext;
+  consultationType?: string;
+  paymentUrl?: string;
+  time?: string;
+  date?: string;
+  calendarUrl?: string;
+}
+
+export interface IHandleBookingRequest {
+  from?: string;
+  subject?: string;
+  to: string;
+  patientName: string;
+  doctorName: string;
+  date: string;
+  time: string;
+  consultationType: string;
+  paymentUrl?: string;
 }
