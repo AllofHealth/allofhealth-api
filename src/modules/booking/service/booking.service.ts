@@ -32,6 +32,10 @@ import { FlutterwaveService } from '@/shared/modules/flutterwave/service/flutter
 import { UserService } from '@/modules/user/service/user.service';
 import { DoxyService } from '@/shared/modules/doxy/service/doxy.service';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
+import {
+  formatDateToReadable,
+  formatTimeReadable,
+} from '@/shared/utils/date.utils';
 
 @Injectable()
 export class BookingService {
@@ -74,7 +78,7 @@ export class BookingService {
           `Consultation type not found for event type ${metadata.consultationId}`,
         );
       }
-      const consultationData = consultationType.data.doctor_consultation_types
+      const consultationData = consultationType.data.doctor_consultation_types;
 
       const patientId = metadata.patientId;
       const doctorId = consultationData.doctorId;
@@ -85,12 +89,26 @@ export class BookingService {
         );
       }
 
+      const [patientData, doctorData] = await Promise.all([
+        this.userService.findUser(patientId),
+        this.userService.findUser(doctorId),
+      ]);
+
+      if (
+        !patientData ||
+        !doctorData ||
+        !patientData.data ||
+        !doctorData.data
+      ) {
+        throw new NotFoundException('Patient or Doctor data not found');
+      }
+
       await this.consultationService.updateDoctorConsultationType({
         id: consultationData.id,
         data: {
-          eventTypeId
-        }
-      })
+          eventTypeId,
+        },
+      });
 
       const bookingReference = this.bookingProvider.generateBookingReference();
 
@@ -116,13 +134,20 @@ export class BookingService {
         );
       }
 
+      const patient = patientData.data;
+      const doctor = doctorData.data;
+      const date = new Date(Date.now());
+      const time = date.getTime();
+
       this.eventEmitter.emit(
         SharedEvents.BOOKING_CREATED,
         new BookingCreatedEvent(
-          booking.data.bookingId,
-          patientId,
-          doctorId,
-          parseFloat(consultationData.price),
+          patient.email,
+          patient.fullName,
+          doctor.fullName,
+          formatDateToReadable(date),
+          formatTimeReadable(time),
+          consultationData.consultationType,
         ),
       );
 
