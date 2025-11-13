@@ -179,25 +179,11 @@ export class ResendProvider {
             to: ctx.to!,
           });
 
-          const bookingAttachments = this.icsService.generateIcsFile({
-            description: bookingConfig.subject,
-            endTime: new Date(ctx.endTime!),
-            startTime: new Date(ctx.startTime!),
-            title: ctx.consultationType!,
-            url: ctx.paymentUrl!,
-          });
-
           response = await resend.emails.send({
             from: bookingConfig.from,
             subject: bookingConfig.subject,
             to: bookingConfig.to,
             react: bookingConfig.react,
-            attachments: [
-              {
-                filename: 'booking_created.ics',
-                content: Buffer.from(bookingAttachments as string),
-              },
-            ],
           });
           break;
         case 'PATIENT_CONFIRMATION':
@@ -240,6 +226,22 @@ export class ResendProvider {
         case 'DOCTOR_NOTIFICATION':
           break;
         case 'REMINDER':
+          const paymentReminderConfig = this.handlePaymentReminderTemplate({
+            to: ctx.to!,
+            consultationType: ctx.consultationType!,
+            date: ctx.date!,
+            doctorName: ctx.doctorName!,
+            patientName: ctx.patientName!,
+            paymentUrl: ctx.paymentUrl!,
+            time: ctx.time!,
+          });
+
+          response = await resend.emails.send({
+            from: paymentReminderConfig.from,
+            to: paymentReminderConfig.to,
+            subject: paymentReminderConfig.subject,
+            react: paymentReminderConfig.react,
+          });
           break;
         case 'CANCELATION':
           break;
