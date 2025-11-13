@@ -14,5 +14,7 @@ export class ResendService {
     return await this.resendProvider.sendEmail(ctx);
   }
 
-  async sendBookingEmail(ctx: IHandleBooking) {}
+  async sendBookingEmail(ctx: IHandleBooking) {
+    return await this.resendProvider.sendBookingEmail(ctx);
+  }
 }
