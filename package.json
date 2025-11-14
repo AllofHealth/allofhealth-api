@@ -44,6 +44,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/swagger": "^11.2.0",
+    "@react-email/render": "^2.0.0",
     "@sentry/cli": "^2.53.0",
     "@sentry/nestjs": "^10.10.0",
     "@types/bcrypt": "^5.0.2",
@@ -69,6 +70,8 @@
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.16.3",
     "postmark": "^4.0.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "redis": "^5.5.6",
     "reflect-metadata": "^0.2.2",
     "resend": "^4.8.0",
@@ -110,27 +113,38 @@
     "ultracite": "5.0.29"
   },
   "jest": {
+    "preset": "ts-jest",
     "moduleFileExtensions": [
       "js",
       "json",
-      "ts"
+      "ts",
+      "tsx"
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)sx?$": "ts-jest"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!uuid)"
+      "node_modules/(?!(uuid|@react-email))"
     ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
+    "globals": {
+      "ts-jest": {
+        "useESM": true
+      }
+    },
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1"
-    }
+    },
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ]
   },
   "config": {
     "commitizen": {
