@@ -2,7 +2,13 @@ import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as OTPAuth from 'otpauth';
 import {
@@ -82,7 +88,7 @@ export class OtpProvider {
       console.log(otpResult);
 
       if (!otpResult || otpResult.length === 0) {
-        isValid = false;
+        throw new NotFoundException('Otp not found, send a new otp request');
       }
 
       isValid = true;
@@ -93,7 +99,9 @@ export class OtpProvider {
         new EValidateOtp(emailAddress),
       );
     }
-    return isValid;
+    if (!isValid) {
+      throw new BadRequestException('Otp validation failed');
+    }
   }
 
   generateOtpWithSecret(secret: OTPAuth.Secret | string) {
