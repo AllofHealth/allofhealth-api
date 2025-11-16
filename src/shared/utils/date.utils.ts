@@ -225,6 +225,24 @@ export function monthNumberToName(
 }
 
 /**
+ * Returns the current time formatted as a readable string "H:MM.SS".
+ * @returns Current time as a readable string.
+ */
+export function getFormattedStartTime(): string {
+  return formatTimeReadable(Date.now());
+}
+
+/**
+ * Returns a time `minutesToAdd` from now, formatted as a readable string "H:MM.SS".
+ * @param minutesToAdd - The number of minutes to add to the current time.
+ * @returns End time as a readable string.
+ */
+export function getFormattedEndTime(minutesToAdd: number): string {
+  const endTime = Date.now() + minutesToAdd * 60 * 1000;
+  return formatTimeReadable(endTime);
+}
+
+/**
  * Formats a timestamp (milliseconds since epoch) to a readable time string "H:MM.SS"
  * Example: 2:05.30 for 2 hours, 5 minutes, and 30 seconds
  * @param ms - Timestamp in milliseconds
