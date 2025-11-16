@@ -78,75 +78,34 @@ export class TelemedicineService {
   @OnEvent(SharedEvents.BOOKING_CONFIRMED)
   async handleBookingConfirmed(event: BookingConfirmedEvent) {
     try {
-      this.logger.log(`Booking confirmed: ${event.bookingId}`);
-
-      const bookingResult = await this.bookingService.getBooking(
-        event.bookingId,
-      );
-      if (!bookingResult || !bookingResult.data) {
-        this.logger.error(`Booking not found: ${event.bookingId}`);
-        return;
-      }
-
-      const booking = bookingResult.data;
+      this.logger.log(`Booking confirmed}`);
 
       await this.telemedicineNotificationsQueue.handleSendConfirmationEmailJob({
-        bookingId: event.bookingId,
-        patientId: event.patientId,
-        doctorId: event.doctorId,
+        bookingReference: event.bookingReference,
+        to: event.to,
+        calendarUrl: event.calendarUrl,
+        consultationType: event.consultationType,
+        date: event.date,
+        doctorName: event.doctorName,
+        patientName: event.patientName,
+        startTime: event.startTime,
+        endTime: event.endTime,
         videoRoomUrl: event.videoRoomUrl,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        type: 'patient_confirmation',
+        context: 'PATIENT_CONFIRMATION',
       });
 
       await this.telemedicineNotificationsQueue.handleSendConfirmationEmailJob({
-        bookingId: event.bookingId,
-        patientId: event.patientId,
-        doctorId: event.doctorId,
+        bookingReference: event.bookingReference,
+        to: event.to,
+        calendarUrl: event.calendarUrl,
+        consultationType: event.consultationType,
+        date: event.date,
+        doctorName: event.doctorName,
+        patientName: event.patientName,
+        startTime: event.startTime,
+        endTime: event.endTime,
         videoRoomUrl: event.videoRoomUrl,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        type: 'doctor_confirmation',
-      });
-
-      const startTime = new Date(booking.startTime);
-
-      const reminder24h = new Date(startTime.getTime() - 24 * 60 * 60 * 1000);
-      if (reminder24h > new Date()) {
-        await this.telemedicineNotificationsQueue.handleSendReminderJob({
-          bookingId: event.bookingId,
-          patientId: event.patientId,
-          doctorId: event.doctorId,
-          reminderType: '24h',
-          videoRoomUrl: event.videoRoomUrl,
-          delay: reminder24h.getTime() - Date.now(),
-        });
-      }
-
-      const reminder1h = new Date(startTime.getTime() - 60 * 60 * 1000);
-      if (reminder1h > new Date()) {
-        await this.telemedicineNotificationsQueue.handleSendReminderJob({
-          bookingId: event.bookingId,
-          patientId: event.patientId,
-          doctorId: event.doctorId,
-          reminderType: '1h',
-          videoRoomUrl: event.videoRoomUrl,
-          delay: reminder24h.getTime() - Date.now(),
-        });
-      }
-
-      await this.logAuditTrail({
-        bookingId: event.bookingId,
-        action: 'booking_confirmed',
-        actorId: 'system',
-        actorType: 'system',
-        previousStatus: 'processing_payment',
-        newStatus: 'confirmed',
-        changes: {
-          paymentStatus: 'paid',
-          videoRoomUrl: event.videoRoomUrl,
-        },
+        context: 'DOCTOR_NOTIFICATION',
       });
 
       this.logger.log('Booking confirmed event processed successfully');
