@@ -21,3 +21,5 @@ export enum BOOKING_SUCCESS_MESSAGES {
   SUCCESS_GETTING_BOOKING = 'Booking retrieved successfully',
   SUCCESS_GETTING_DOCTOR_BOOKINGS = 'Doctor bookings retrieved successfully',
 }
+
+export const BOOKING_DURATION = 45;
