@@ -36,6 +36,7 @@ import {
   formatDateToReadable,
   formatTimeReadable,
 } from '@/shared/utils/date.utils';
+import { BOOKING_DURATION } from '../data/booking.data';
 
 @Injectable()
 export class BookingService {
@@ -231,71 +232,6 @@ export class BookingService {
     }
   }
 
-  async confrimBooking(ctx: IConfirmBooking) {
-    const { bookingId, paymentIntentId } = ctx;
-    try {
-      const bookingResult = await this.bookingProvider.findBooking({
-        opts: 'id',
-        id: bookingId,
-      });
-
-      if (!bookingResult || !bookingResult.data) {
-        throw new NotFoundException('Booking not found');
-      }
-
-      const booking = bookingResult.data;
-
-      await this.bookingProvider.updatePaymentDetails({
-        bookingId,
-        paymentIntentId,
-        paidAt: new Date(),
-      });
-
-      await this.bookingProvider.updateBookingStatus({
-        bookingId,
-        status: 'confirmed',
-        paymentStatus: 'paid',
-      });
-
-      const user = await this.userService.findUser(booking.doctorId);
-      if (!user || !user.data) {
-        throw new NotFoundException('User not found');
-      }
-
-      const videoRoom = await this.doxyService.createDoctorRoom({
-        bookingId,
-        doctorId: booking.doctorId,
-        doctorName: user.data.fullName,
-        patientId: booking.patientId,
-      });
-
-      await this.bookingProvider.updateVideoRoom({
-        bookingId,
-        videoRoomId: videoRoom.id,
-        videoRoomUrl: videoRoom.url,
-      });
-
-      this.eventEmitter.emit(
-        SharedEvents.BOOKING_CONFIRMED,
-        new BookingConfirmedEvent(
-          bookingId,
-          booking.patientId,
-          booking.doctorId,
-          videoRoom.url,
-        ),
-      );
-
-      return await this.bookingProvider.findBooking({
-        opts: 'id',
-        id: bookingId,
-      });
-    } catch (e) {
-      throw new InternalServerErrorException(
-        e || 'An error occurred while confirming booking',
-      );
-    }
-  }
-
   async cancelBooking(ctx: ICancelBooking) {
     const { bookingId, uid, cancelledBy, reason } = ctx;
     try {
@@ -365,53 +301,138 @@ export class BookingService {
   }
 
   async handlePaymentSuccess(ctx: IHandlePaymentSuccess) {
-    const { txRef, id, amount, status, meta } = ctx;
+    const { txRef, id, amount, status } = ctx;
     try {
-      const booking = await this.bookingProvider.findBooking({
+      const bookingResult = await this.bookingProvider.findBooking({
         opts: 'ref',
         refId: txRef,
       });
 
-      if (!booking || !booking.data) {
-        throw new NotFoundException('Booking not found');
+      if (!bookingResult || !bookingResult.data) {
+        throw new NotFoundException(
+          `Booking with reference ${txRef} not found`,
+        );
       }
 
-      if (status !== 'successful') {
-        this.logger.warn(`Payment status is ${status}, not successful`);
-        return;
-      }
+      const booking = bookingResult.data;
 
-      if (parseFloat(String(amount)) !== parseFloat(booking.data.amount)) {
-        this.logger.error(
-          `Amount mismatch: expected ${booking.data.amount}, got ${amount}`,
+      if (booking.paymentStatus === 'paid') {
+        this.logger.log(
+          `Payment for booking ${booking.id} has already been processed.`,
         );
         return;
       }
 
-      await this.bookingProvider.updatePaymentDetails({
-        bookingId: booking.data.id,
-        paymentIntentId: id.toString(),
-        paidAt: new Date(),
+      if (status !== 'successful') {
+        this.logger.warn(
+          `Payment for booking ${booking.id} was not successful. Status: ${status}`,
+        );
+        await this.bookingProvider.updateBookingStatus({
+          bookingId: booking.id,
+          status: 'payment_failed',
+          paymentStatus: 'failed',
+        });
+        return;
+      }
+
+      if (parseFloat(String(amount)) < parseFloat(booking.amount)) {
+        this.logger.error(
+          `Amount mismatch for booking ${booking.id}: expected at least ${booking.amount}, got ${amount}`,
+        );
+        await this.bookingProvider.updateBookingStatus({
+          bookingId: booking.id,
+          status: 'payment_failed',
+          paymentStatus: 'failed',
+        });
+
+        throw new BadRequestException(
+          `Amount mismatch for booking ${booking.id}`,
+        );
+      }
+
+      const [patientResult, doctorResult] = await Promise.all([
+        this.userService.findUser(booking.patientId),
+        this.userService.findUser(booking.doctorId),
+      ]);
+
+      if (
+        !patientResult ||
+        !doctorResult ||
+        !patientResult.data ||
+        !doctorResult.data
+      ) {
+        throw new NotFoundException(
+          'Patient or Doctor data not found for booking',
+        );
+      }
+
+      const patientData = patientResult.data;
+      const doctorData = doctorResult.data;
+
+      const videoRoom = await this.doxyService.createDoctorRoom({
+        bookingId: booking.id,
+        doctorId: booking.doctorId,
+        doctorName: doctorData.fullName,
+        patientId: booking.patientId,
+      });
+
+      await this.bookingProvider.updateVideoRoom({
+        bookingId: booking.id,
+        videoRoomId: videoRoom.id,
+        videoRoomUrl: videoRoom.url,
       });
 
       await this.bookingProvider.updateBookingStatus({
-        bookingId: booking.data.id,
+        bookingId: booking.id,
         status: 'confirmed',
         paymentStatus: 'paid',
       });
 
+      await this.bookingProvider.updatePaymentDetails({
+        bookingId: booking.id,
+        paymentIntentId: id.toString(),
+        paidAt: new Date(),
+      });
+
+      const consultationType = await this.consultationService.findById(
+        booking.consultationId,
+      );
+
+      if (!consultationType || !consultationType.data) {
+        throw new NotFoundException(
+          `Consultation type not found for booking ${booking.id}`,
+        );
+      }
+      const consultationData = consultationType.data.doctor_consultation_types;
+
       this.eventEmitter.emit(
         SharedEvents.BOOKING_CONFIRMED,
         new BookingConfirmedEvent(
-          booking.data.id,
-          booking.data.patientId,
-          booking.data.doctorId,
-          booking.data.videoRoomUrl!,
+          patientData.email,
+          booking.bookingReference,
+          undefined,
+          doctorData.fullName,
+          undefined,
+          patientData.fullName,
+          new Date().toISOString(),
+          booking.startTime.toISOString(),
+          booking.endTime.toISOString(),
+          consultationData.consultationType,
+          '',
+          videoRoom.url,
+          'PATIENT_CONFIRMATION',
         ),
       );
     } catch (e) {
+      this.logger.error(
+        `Failed to handle payment success for txRef ${txRef}: ${e.message}`,
+        e.stack,
+      );
+      if (e instanceof BadRequestException || e instanceof NotFoundException) {
+        throw e;
+      }
       throw new InternalServerErrorException(
-        e || 'An error occurred while handling payment success',
+        e.message || 'An error occurred while handling payment success',
       );
     }
   }
