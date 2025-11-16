@@ -30,6 +30,10 @@ import BookingRequestEmail from '@/shared/templates/booking-request.template';
 import PaymentConfirmationEmail from '@/shared/templates/payment-confirmation.template';
 import PaymentReminderEmail from '@/shared/templates/payment-reminder.template';
 import { IcsService } from '../../ics/service/ics.service';
+import {
+  formatDateToReadable,
+  formatTimeReadable,
+} from '@/shared/utils/date.utils';
 
 @Injectable()
 export class ResendProvider {
@@ -126,10 +130,10 @@ export class ResendProvider {
       react: PaymentConfirmationEmail({
         calendarUrl: calendarUrl!,
         consultationType: consultationType!,
-        date: date!,
+        date: formatDateToReadable(date!),
         doctorName: doctorName!,
         patientName: patientName!,
-        time: startTime!,
+        time: formatTimeReadable(Number(startTime!)),
         videoRoomUrl: videoRoomUrl!,
       }),
     };
