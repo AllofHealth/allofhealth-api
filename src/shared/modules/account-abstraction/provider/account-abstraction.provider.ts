@@ -98,6 +98,7 @@ export class AccountAbstractionProvider {
           smartWalletAddress: smartAddress,
           userId,
         })
+        .onConflictDoNothing()
         .returning();
 
       const data = {
