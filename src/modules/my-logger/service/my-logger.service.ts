@@ -25,7 +25,7 @@ export class MyLoggerService extends ConsoleLogger {
 
       // Writing to the log file
       const logFilePath = path.join(logsDir, 'myLogFile.log');
-      await fsPromises.appendFile(logFilePath, formattedEntry);
+      // await fsPromises.appendFile(logFilePath, formattedEntry);
     } catch (e) {
       console.error('Error writing to the log file:', e);
     }
