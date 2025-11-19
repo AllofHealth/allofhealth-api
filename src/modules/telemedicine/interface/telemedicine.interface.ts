@@ -66,3 +66,10 @@ export interface IGetCalComEmbedConfig {
   consultationTypeId: string;
   doctorId?: string;
 }
+
+export interface IPendingBookingData {
+  patientEmail: string | null;
+  consultationType: string | null;
+  startTime: Date;
+  endTime: Date;
+}
