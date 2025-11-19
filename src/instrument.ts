@@ -3,31 +3,38 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN!,
+const enableVerboseLogs =
+  process.env.NODE_ENV === 'STAGING'
+    ? {
+        dsn: process.env.SENTRY_DSN!,
+      }
+    : {
+        dsn: process.env.SENTRY_DSN!,
 
-  debug: process.env.NODE_ENV === 'STAGING',
-  environment: process.env.NODE_ENV || 'STAGING',
+        debug: process.env.NODE_ENV === 'STAGING',
+        environment: process.env.NODE_ENV || 'STAGING',
 
-  enableLogs: true,
-  tracesSampleRate: 1.0,
-  sendDefaultPii: true,
+        enableLogs: true,
+        tracesSampleRate: 1.0,
+        sendDefaultPii: true,
 
-  integrations: [
-    Sentry.consoleLoggingIntegration({
-      levels: ['log', 'info', 'warn', 'error', 'debug'],
-    }),
+        integrations: [
+          Sentry.consoleLoggingIntegration({
+            levels: ['log', 'info', 'warn', 'error', 'debug'],
+          }),
 
-    Sentry.httpIntegration(),
+          Sentry.httpIntegration(),
 
-    Sentry.onUncaughtExceptionIntegration(),
-    Sentry.onUnhandledRejectionIntegration(),
-  ],
+          Sentry.onUncaughtExceptionIntegration(),
+          Sentry.onUnhandledRejectionIntegration(),
+        ],
 
-  beforeSend(event, hint) {
-    if (process.env.NODE_ENV === 'STAGING') {
-      console.log('Sending to Sentry:', event);
-    }
-    return event;
-  },
-});
+        beforeSend(event, hint) {
+          if (process.env.NODE_ENV === 'STAGING') {
+            console.log('Sending to Sentry:', event);
+          }
+          return event;
+        },
+      };
+
+Sentry.init(enableVerboseLogs);
