@@ -456,6 +456,7 @@ export const consultationBookings = pgTable(
     cancelledBy: uuid('cancelled_by').references(() => user.id),
 
     metadata: jsonb('metadata').default('{}'),
+    reminderRetryCount: integer('retry_count').default(0),
 
     createdAt: date('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })

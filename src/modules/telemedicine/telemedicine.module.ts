@@ -10,6 +10,7 @@ import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { UserModule } from '../user/user.module';
 import { TelemedicineController } from './controller/telemedicine.controller';
 import { TokenModule } from '../token/token.module';
+import { TelemedicineTasks } from './tasks/telemedicine.task';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { TokenModule } from '../token/token.module';
     FlutterwaveModule,
     ConsultationModule,
   ],
-  providers: [TelemedicineService, ErrorHandler],
+  providers: [TelemedicineService, ErrorHandler, TelemedicineTasks],
   controllers: [TelemedicineController],
 })
 export class TelemedicineModule {}
