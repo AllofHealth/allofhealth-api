@@ -68,8 +68,23 @@ export interface IGetCalComEmbedConfig {
 }
 
 export interface IPendingBookingData {
+  id: string;
+  externalBookingId: string | null;
+  patientId: string;
   patientEmail: string | null;
+  patientFullName: string | null;
+  doctorFullName: string | null;
   consultationType: string | null;
   startTime: Date;
   endTime: Date;
+}
+
+export interface IReminderEmailPayload {
+  patientName: string;
+  doctorName: string;
+  to: string;
+  paymentUrl: string;
+  consultationType: string;
+  date: string;
+  time: string;
 }
