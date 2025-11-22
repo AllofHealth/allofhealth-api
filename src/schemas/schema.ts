@@ -387,7 +387,7 @@ export const doctorConsultationTypes = pgTable('doctor_consultation_types', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   doctorId: uuid('doctor_id')
     .notNull()
-    .references(() => doctors.id, { onDelete: 'cascade' }),
+    .references(() => user.id, { onDelete: 'cascade' }),
   consultationType: uuid('consultation_type')
     .notNull()
     .references(() => consultationTypes.id, { onDelete: 'cascade' }),
