@@ -87,6 +87,16 @@ export class TelemedicineNotificationsQueue {
     });
   }
 
+  async handleSendBatchReminderJob(data: IHandleSendReminderEmail[]) {
+    await this.telemedicineRemindersQueue.add('send-batch-reminders', data, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+    });
+  }
+
   async handleSendReminderJob(data: IHandleSendReminderEmail) {
     await this.telemedicineRemindersQueue.add('send-reminder', data, {
       attempts: 3,

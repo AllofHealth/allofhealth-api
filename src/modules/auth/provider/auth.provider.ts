@@ -27,6 +27,7 @@ import {
 } from '../interface/auth.interface';
 import { AdminService } from '@/modules/admin/service/admin.service';
 import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
+import { USER_STATUS } from '@/modules/user/data/user.data';
 
 @Injectable()
 export class AuthProvider {
@@ -178,6 +179,11 @@ export class AuthProvider {
       }
 
       const userProfile = result.data;
+      if (userProfile.status === USER_STATUS.SUSPENDED) {
+        throw new UnauthorizedException(
+          'User us suspended, please contact support@allofhealth.com',
+        );
+      }
 
       if (userProfile.isFirstimeUser) {
         this.eventEmitter.emit(
@@ -203,8 +209,6 @@ export class AuthProvider {
           new AuthError(REJECTION_REASON.LOGIN_IN, HttpStatus.FORBIDDEN),
         );
       }
-
-      await this.userService.checkUserSuspension(userProfile.userId);
 
       const isPasswordValid = await this.authUtils.compare({
         hashedPassword: userProfile.password,
