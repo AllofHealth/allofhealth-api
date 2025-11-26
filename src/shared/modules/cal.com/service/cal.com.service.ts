@@ -1,22 +1,24 @@
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CalComProvider } from '../provider/cal.com.provider';
 import {
   AvailabilityParams,
-  AvailabilityResponse,
   BookingResponse,
   CreateBookingParams,
   ICancelBooking,
+  ICreateCalUser,
   IRescheduleBooking,
 } from '../interface/cal.com.interface';
 import { CalComError } from '../error/cal.com.error';
 
 @Injectable()
 export class CalComService {
-  constructor(private readonly calProvider: CalComProvider) {}
+  private readonly baseUrl: string;
+  private readonly clientId: string;
+
+  constructor(private readonly calProvider: CalComProvider) {
+    this.baseUrl = this.calProvider.baseUrl();
+    this.clientId = this.calProvider.clientId();
+  }
 
   private mapCalcomBookingToResponse(calcomBooking: any): BookingResponse {
     return {
@@ -33,7 +35,7 @@ export class CalComService {
   }
 
   async createBooking(ctx: CreateBookingParams) {
-    const url = `${this.calProvider.baseUrl}/bookings`;
+    const url = `${this.baseUrl}/bookings`;
     const data = JSON.stringify({
       start: ctx.startTime.toISOString(),
       eventTypeId: ctx.eventTypeId,
@@ -69,7 +71,7 @@ export class CalComService {
   }
 
   async getBooking(bookingId: string) {
-    const url = `${this.calProvider.baseUrl}/bookings/${bookingId}`;
+    const url = `${this.baseUrl}/bookings/${bookingId}`;
     try {
       const response = await this.calProvider.handleCalRequests({
         method: 'GET',
@@ -97,7 +99,7 @@ export class CalComService {
       timeZone: ctx.timeZone || 'UTC',
     });
 
-    const url = `${this.calProvider.baseUrl}/slots/available?${queryParams.toString()}`;
+    const url = `${this.baseUrl}/slots/available?${queryParams.toString()}`;
     try {
       const response = await this.calProvider.handleCalRequests({
         method: 'GET',
@@ -126,7 +128,7 @@ export class CalComService {
   }
 
   async cancelBooking(ctx: ICancelBooking) {
-    const url = `${this.calProvider.baseUrl}/bookings/${ctx.bookingId}/cancel`;
+    const url = `${this.baseUrl}/bookings/${ctx.bookingId}/cancel`;
     const data = JSON.stringify({
       reason: ctx.reason || 'Booking cancelled by user',
     });
@@ -152,7 +154,7 @@ export class CalComService {
   }
 
   async rescheduleBooking(ctx: IRescheduleBooking) {
-    const url = `${this.calProvider.baseUrl}/bookings/${ctx.bookingId}/reschedule`;
+    const url = `${this.baseUrl}/bookings/${ctx.bookingId}/reschedule`;
     const data = JSON.stringify({
       start: ctx.newStartTime.toISOString(),
     });
@@ -169,6 +171,59 @@ export class CalComService {
       throw new InternalServerErrorException(
         new CalComError(
           `An error occurred while rescheduling booking: ${e.message}`,
+          {
+            cause: e,
+          },
+        ),
+      );
+    }
+  }
+
+  async createManagedUser(ctx: ICreateCalUser) {
+    const {
+      email,
+      name,
+      timeFormat = 12,
+      weekStart = 'Monday',
+      timeZone = 'Africa/Lagos',
+      locale = 'en',
+      avatarUrl,
+      bio = 'Registered practitioner',
+      metadata = {
+        role: 'DOCTOR',
+      },
+    } = ctx;
+    const url = `${this.baseUrl}/v2/oauth-clients/${this.clientId}/users`;
+    const data = JSON.stringify({
+      email,
+      name,
+      timeFormat,
+      weekStart,
+      timeZone,
+      locale,
+      avatarUrl,
+      bio,
+      metadata,
+    });
+    try {
+      const response = await this.calProvider.handleCalRequests({
+        method: 'POST',
+        url,
+        data,
+        src: 'Create Managed User',
+        reqType: 'MANAGED',
+      });
+
+      const responseData = response.data;
+      return {
+        accessToken: responseData.accessToken,
+        refreshToken: responseData.refreshToken,
+        id: responseData.user.id,
+      };
+    } catch (e) {
+      throw new InternalServerErrorException(
+        new CalComError(
+          `An error occurred while creating managed user: ${e.message}`,
           {
             cause: e,
           },
