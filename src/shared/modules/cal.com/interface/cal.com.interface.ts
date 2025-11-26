@@ -1,4 +1,14 @@
 export type TCalMethods = 'GET' | 'POST';
+export type TWeek =
+  | 'Monday'
+  | 'Tuesday'
+  | 'Wednesday'
+  | 'Thursday'
+  | 'Friday'
+  | 'Saturday'
+  | 'Sunday';
+
+export type TRequestType = 'MANAGED' | 'REGUALR';
 
 export interface TimeSlot {
   start: Date;
@@ -64,4 +74,19 @@ export interface IHandleCalRequests {
   url: string;
   data?: string;
   src: string;
+  reqType?: TRequestType;
+}
+
+export interface ICreateCalUser {
+  email: string;
+  name: string;
+  timeFormat?: 12 | 24;
+  weekStart?: TWeek;
+  timeZone?: string;
+  locale?: string;
+  avatarUrl: string;
+  bio?: string;
+  metadata?: {
+    [key: string]: string | number | boolean | object;
+  };
 }
