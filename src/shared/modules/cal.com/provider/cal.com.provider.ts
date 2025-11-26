@@ -32,18 +32,41 @@ export class CalComProvider {
     };
   }
 
+  private getManagedRequestConfig(method: TCalMethods): AxiosRequestConfig {
+    return {
+      method,
+      headers: {
+        'content-type': 'application/json',
+        'x-cal-secret-key': this.calConfig.CALCOM_CLIENT_SECRET,
+      },
+    };
+  }
+
   baseUrl() {
     return this.calConfig.CALCOM_API_URL;
   }
 
+  clientId() {
+    return this.calConfig.CALCOM_CLIENT_ID;
+  }
+
   async handleCalRequests(ctx: IHandleCalRequests) {
     this.logger.log(`Handling request to ${ctx.src}`);
-    const { src, method, url, data } = ctx;
-    const config: AxiosRequestConfig = {
+    const { src, method, url, data, reqType } = ctx;
+
+    let config: AxiosRequestConfig = {
       ...this.getRequestConfig(method),
       url,
       data,
     };
+
+    if (reqType === 'MANAGED') {
+      config = {
+        ...this.getManagedRequestConfig(method),
+        url,
+        data,
+      };
+    }
     try {
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.request(config),
