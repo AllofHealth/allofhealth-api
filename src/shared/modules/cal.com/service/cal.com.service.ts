@@ -221,9 +221,34 @@ export class CalComService {
         id: responseData.user.id,
       };
     } catch (e) {
+      console.error(String(e));
       throw new InternalServerErrorException(
         new CalComError(
-          `An error occurred while creating managed user: ${e.message}`,
+          `An error occurred while creating managed user: ${e instanceof Error ? e.message : String(e)}`,
+          {
+            cause: e,
+          },
+        ),
+      );
+    }
+  }
+
+  async getAllManagedUsers() {
+    const url = `${this.baseUrl}/v2/oauth-clients/${this.clientId}/users`;
+    try {
+      const response = await this.calProvider.handleCalRequests({
+        method: 'GET',
+        url,
+        src: 'Get All Managed Users',
+        reqType: 'MANAGED',
+      });
+
+      return response.data;
+    } catch (e) {
+      console.error(String(e));
+      throw new InternalServerErrorException(
+        new CalComError(
+          `An error occurred while fetching managed users: ${e instanceof Error ? e.message : String(e)}`,
           {
             cause: e,
           },

@@ -67,6 +67,8 @@ export class CalComProvider {
         data,
       };
     }
+
+    this.logger.debug(config);
     try {
       const response: AxiosResponse = await firstValueFrom(
         this.httpService.request(config),
@@ -74,6 +76,7 @@ export class CalComProvider {
 
       return response.data;
     } catch (e) {
+      console.error(e);
       this.logger.error(
         `An error occurred while making request to this resource ${src}: ${e} `,
       );

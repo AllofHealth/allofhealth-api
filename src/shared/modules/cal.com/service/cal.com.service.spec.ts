@@ -12,6 +12,7 @@ import {
   CALCOM_EMBED_URL,
   CALCOM_REDIRECT_URI,
   CALCOM_WEBHOOK_SECRET,
+  PLACEHOLDER,
 } from '@/shared/data/constants';
 import { CalConfig } from '@/shared/config/cal.com/cal.config';
 
@@ -26,7 +27,6 @@ describe('CalComService', () => {
     CALCOM_REDIRECT_URI,
     CALCOM_WEBHOOK_SECRET,
   };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [HttpModule, MyLoggerModule],
@@ -43,5 +43,25 @@ describe('CalComService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('Authentication', () => {
+    it('should create a managed user successfully', async () => {
+      const response = await service.createManagedUser({
+        name: 'Chikezie',
+        email: 'preciousegbu@gmail.com',
+        avatarUrl: PLACEHOLDER,
+      });
+
+      console.log(response);
+      expect(response).toBeDefined();
+    }, 50000);
+
+    it.only('Should get all managed users successfully', async () => {
+      const response = await service.getAllManagedUsers();
+
+      console.log(response);
+      expect(response).toBeDefined();
+    }, 50000);
   });
 });

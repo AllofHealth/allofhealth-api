@@ -22,3 +22,21 @@ export interface IUpdateConsultationType {
     eventTypeId: number
   }>;
 }
+
+export type TConsultationTypes =
+  | 'General Consultation'
+  | 'Follow-up Consultation'
+  | 'Specialist Consultation'
+  | 'Emergency Consultation'
+  | 'Online Consultation'
+  | 'In-person Consultation'
+  | 'Pediatric Consultation'
+  | 'Geriatric Consultation'
+  | 'Dermatology Consultation'
+  | 'Cardiology Consultation'
+  | 'Neurology Consultation'
+  | 'Psychiatry Consultation'
+  | 'Nutrition Consultation'
+  | 'Physiotherapy Consultation'
+  | 'Dental Consultation';
+
