@@ -1,3 +1,4 @@
+import { TConsultationTypes } from '@/modules/consultation/interface/consultation.interface';
 import type { IUserSnippet } from '@/modules/user/interface/user.interface';
 
 export type TSort = 'asc' | 'desc';
@@ -30,6 +31,10 @@ export interface IDoctorSnippet extends IUserSnippet {
   languagesSpoken: string[];
   availability: string;
   isVerified: boolean;
+  consultationData: {
+    consultationOffered: string;
+    consultationId: string | null;
+  };
 }
 
 export interface IFetchDoctors {
@@ -37,6 +42,7 @@ export interface IFetchDoctors {
   limit?: number;
   sort?: TSort;
   query?: string;
+  filter?: TConsultationTypes;
 }
 
 export interface IUpdateRecordsReviewed {
