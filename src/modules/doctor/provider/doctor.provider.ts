@@ -133,6 +133,7 @@ export class DoctorProvider {
         availability: doctor[0].doctors.availability as string,
         isVerified: doctor[0].doctors.isVerified,
         consultationData: consultation,
+        availabilityData: doctor[0].availability,
       };
 
       return this.handler.handleReturn({
