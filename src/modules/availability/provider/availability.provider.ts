@@ -179,6 +179,11 @@ export class AvailabilityProvider {
             .where(eq(schema.availability.id, item.id));
         });
       });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SUCCESS_UPDATING_AVAILABILITY,
+      });
     } catch (e) {
       this.handler.handleError(e, e.message || AEM.ERROR_UPDATING_AVAILABILITY);
     }
