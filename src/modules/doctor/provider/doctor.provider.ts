@@ -85,6 +85,10 @@ export class DoctorProvider {
           .select()
           .from(schema.doctors)
           .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+          .innerJoin(
+            schema.availability,
+            eq(schema.doctors.userId, schema.availability.doctorId),
+          )
           .where(
             and(
               eq(schema.doctors.userId, userId),
