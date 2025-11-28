@@ -154,7 +154,6 @@ export class AvailabilityProvider {
         .map((_availability) => {
           const cleanData: IUpdateAvailabilityConfig = {
             id: _availability.id,
-            weekDay: _availability.weekDay,
           };
 
           if (_availability.startTime !== undefined) {
