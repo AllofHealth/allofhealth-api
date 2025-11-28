@@ -1,3 +1,4 @@
+import { IAvailability } from '@/modules/availability/interface/availability.interface';
 import { TConsultationTypes } from '@/modules/consultation/interface/consultation.interface';
 import type { IUserSnippet } from '@/modules/user/interface/user.interface';
 
@@ -35,6 +36,7 @@ export interface IDoctorSnippet extends IUserSnippet {
     consultationOffered: string;
     consultationId: string | null;
   };
+  availabilityData: IAvailability;
 }
 
 export interface IFetchDoctors {
