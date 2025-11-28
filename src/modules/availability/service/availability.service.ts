@@ -9,4 +9,8 @@ export class AvailabilityService {
   async createAvailability(ctx: ICreateAvailability) {
     return await this.availabilityProvider.createAvailability(ctx);
   }
+
+  async fetchDoctorAvailability(doctorId: string) {
+    return await this.availabilityProvider.fetchDoctorAvailability(doctorId);
+  }
 }
