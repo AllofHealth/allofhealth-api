@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -30,6 +31,7 @@ import {
 import { AvailabilityService } from '../service/availability.service';
 import {
   CreateAvailabilityDto,
+  DeleteAvailabilityDto,
   FetchDoctorAvailabilityDto,
   UpdateDoctorAvailabilityDto,
 } from '../dto/availability.dto';
@@ -131,6 +133,48 @@ export class AvailabilityController {
     return await this.availabilityService.updateDoctorAvailability({
       doctorId: body.userId,
       availabilityConfig: body.availabilityConfig,
+    });
+  }
+
+  @Delete('deleteAvailability')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Delete a doctor's availability slots" })
+  @ApiOkResponse({
+    description: 'Availability slots deleted successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUCCESS_DELETING_AVAILABILITY,
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden resource',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.FORBIDDEN,
+      message: 'Forbidden resource',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_DELETING_AVAILABILITY,
+    },
+  })
+  async deleteAvailability(
+    @Ip() ip: string,
+    @Body() body: DeleteAvailabilityDto,
+  ) {
+    this.logger.log(
+      `Deleting availability for doctor ${body.userId} from ip: ${ip}`,
+    );
+
+    return await this.availabilityService.deleteDoctorAvailability({
+      doctorId: body.userId,
+      id: body.availabilityIds,
     });
   }
 
