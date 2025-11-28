@@ -1,4 +1,3 @@
-import { TWeek } from '@/shared/modules/cal.com/interface/cal.com.interface';
 import { WeekDay } from '../dto/availability.dto';
 
 interface IAvailabilityConfig {
@@ -10,4 +9,9 @@ interface IAvailabilityConfig {
 export interface ICreateAvailability {
   doctorId: string;
   availabilityConfig: IAvailabilityConfig[];
+}
+
+export interface IFetchWeekDayAvailability {
+  doctorId: string;
+  weekDay: WeekDay;
 }
