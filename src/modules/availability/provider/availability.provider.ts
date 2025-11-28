@@ -17,6 +17,7 @@ import {
 } from '../data/availability.data';
 import {
   ICreateAvailability,
+  IDeleteAvailability,
   IFetchWeekDayAvailability,
   IUpdateAvailability,
   IUpdateAvailabilityConfig,
@@ -185,6 +186,29 @@ export class AvailabilityProvider {
       });
     } catch (e) {
       this.handler.handleError(e, e.message || AEM.ERROR_UPDATING_AVAILABILITY);
+    }
+  }
+
+  async deleteAvailability(ctx: IDeleteAvailability) {
+    try {
+      await this.validateDoctor(ctx.doctorId);
+      await this._db.transaction(async (tx) => {
+        ctx.id.forEach(async (id) => {
+          await tx
+            .delete(schema.availability)
+            .where(eq(schema.availability.id, id));
+        });
+      });
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ASM.SUCCESS_DELETING_AVAILABILITY,
+      });
+    } catch (e) {
+      return this.handler.handleError(
+        e,
+        e.message || AEM.ERROR_DELETING_AVAILABILITY,
+      );
     }
   }
 }
