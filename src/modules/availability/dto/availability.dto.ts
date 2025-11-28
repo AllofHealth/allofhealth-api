@@ -85,10 +85,6 @@ class UpdateAvailabilityConfigDto {
   @IsNotEmpty()
   id: string;
 
-  @ApiProperty({ description: 'Day of the week', enum: WeekDay })
-  @IsEnum(WeekDay)
-  weekDay: WeekDay;
-
   @ApiPropertyOptional({
     description: 'Start time in HH:mm AM/PM format',
     example: '08:00 AM',
