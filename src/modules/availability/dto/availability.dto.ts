@@ -51,7 +51,7 @@ class AvailabilityConfigDto {
 
 export class CreateAvailabilityDto {
   @ApiProperty({
-    description: 'The unique identifier of the user',
+    description: 'The unique identifier of the user (doctor)',
     example: '550e8400-e29b-41d4-a716-446655440000',
   })
   @IsNotEmpty()
@@ -66,4 +66,14 @@ export class CreateAvailabilityDto {
   @ValidateNested({ each: true })
   @Type(() => AvailabilityConfigDto)
   availabilityConfig: AvailabilityConfigDto[];
+}
+
+export class FetchDoctorAvailabilityDto {
+  @ApiProperty({
+    description: "The ID of the doctor whose availability is to be fetched.",
+    example: 'c2d1b0a8-0b9c-4a1a-8e0a-4b0c0e1a2b3c'
+  })
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 }
