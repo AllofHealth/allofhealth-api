@@ -26,3 +26,8 @@ export interface IUpdateAvailability {
   doctorId: string;
   availabilityConfig: IUpdateAvailabilityConfig[];
 }
+
+export interface IDeleteAvailability {
+  doctorId: string;
+  id: string[];
+}
