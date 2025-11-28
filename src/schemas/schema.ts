@@ -7,6 +7,7 @@ import {
   jsonb,
   pgTable,
   text,
+  time,
   timestamp,
   unique,
   uuid,
@@ -563,3 +564,17 @@ export const paymentTransactions = pgTable(
     statusIndex: index().on(table.status),
   }),
 );
+
+export const availability = pgTable('availability', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  doctorId: uuid('doctor_id')
+    .notNull()
+    .references(() => user.id),
+  weekDay: varchar('week_day', { length: 10 }).notNull().unique(),
+  startTime: text('start_time').notNull(),
+  endTime: text('end_time').notNull(),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
