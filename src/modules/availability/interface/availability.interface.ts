@@ -18,7 +18,6 @@ export interface IFetchWeekDayAvailability {
 
 export interface IUpdateAvailabilityConfig {
   id: string;
-  weekDay: WeekDay;
   startTime?: string;
   endTime?: string;
 }
