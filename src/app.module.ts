@@ -43,6 +43,7 @@ import { BookingModule } from './modules/booking/booking.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { ConsultationModule } from './modules/consultation/consultation.module';
+import { AvailabilityModule } from './modules/availability/availability.module';
 
 @Module({
   imports: [
@@ -128,6 +129,7 @@ import { ConsultationModule } from './modules/consultation/consultation.module';
     PaymentModule,
     WebhooksModule,
     ConsultationModule,
+    AvailabilityModule,
   ],
   controllers: [AppController],
   providers: [
