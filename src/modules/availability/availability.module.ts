@@ -3,11 +3,11 @@ import { AvailabilityProvider } from './provider/availability.provider';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { AvailabilityService } from './service/availability.service';
 import { AvailabilityController } from './controller/availability.controller';
-import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
+import { TokenModule } from '../token/token.module';
 
 @Module({
-  imports: [forwardRef(() => AuthModule), forwardRef(() => UserModule)],
+  imports: [forwardRef(() => TokenModule), forwardRef(() => UserModule)],
   providers: [AvailabilityService, AvailabilityProvider, ErrorHandler],
   controllers: [AvailabilityController],
 })
