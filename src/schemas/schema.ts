@@ -571,8 +571,8 @@ export const availability = pgTable('availability', {
     .notNull()
     .references(() => user.id),
   weekDay: varchar('week_day', { length: 10 }).notNull().unique(),
-  startTime: time('start_time').notNull().unique(),
-  endTime: time('end_time').notNull().unique(),
+  startTime: text('start_time').notNull(),
+  endTime: text('end_time').notNull(),
   createdAt: date('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
