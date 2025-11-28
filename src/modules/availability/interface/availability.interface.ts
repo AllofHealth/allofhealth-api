@@ -15,3 +15,15 @@ export interface IFetchWeekDayAvailability {
   doctorId: string;
   weekDay: WeekDay;
 }
+
+export interface IUpdateAvailabilityConfig {
+  id: string;
+  weekDay: WeekDay;
+  startTime?: string;
+  endTime?: string;
+}
+
+export interface IUpdateAvailability {
+  doctorId: string;
+  availabilityConfig: IUpdateAvailabilityConfig[];
+}
