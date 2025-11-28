@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Ip,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -30,6 +31,7 @@ import { AvailabilityService } from '../service/availability.service';
 import {
   CreateAvailabilityDto,
   FetchDoctorAvailabilityDto,
+  UpdateDoctorAvailabilityDto,
 } from '../dto/availability.dto';
 import { AuthGuard } from '@/modules/auth/guards/auth.guard';
 import { OwnerGuard } from '@/modules/user/guard/user.guard';
@@ -88,6 +90,47 @@ export class AvailabilityController {
     );
 
     return await this.availabilityService.fetchDoctorAvailability(query.userId);
+  }
+
+  @Patch('updateDoctorAvailability')
+  @UseGuards(AuthGuard, OwnerGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Update a doctor's availability" })
+  @ApiOkResponse({
+    description: 'Availability updated successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: ASM.SUCCESS_UPDATING_AVAILABILITY,
+    },
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden resource',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.FORBIDDEN,
+      message: 'Forbidden resource',
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Internal server error',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: AEM.ERROR_UPDATING_AVAILABILITY,
+    },
+  })
+  async updateDoctorAvailability(
+    @Ip() ip: string,
+    @Body() body: UpdateDoctorAvailabilityDto,
+  ) {
+    this.logger.log(
+      `Updating availability for doctor ${body.userId} from ip: ${ip}`,
+    );
+    return await this.availabilityService.updateDoctorAvailability({
+      doctorId: body.userId,
+      availabilityConfig: body.availabilityConfig,
+    });
   }
 
   @Post('createAvailability')
