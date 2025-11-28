@@ -18,7 +18,10 @@ import {
 import {
   ICreateAvailability,
   IFetchWeekDayAvailability,
+  IUpdateAvailability,
+  IUpdateAvailabilityConfig,
 } from '../interface/availability.interface';
+import { AvailabilityError } from '../error/availability.error';
 
 @Injectable()
 export class AvailabilityProvider {
@@ -55,8 +58,7 @@ export class AvailabilityProvider {
     }
   }
 
-  async createAvailability(ctx: ICreateAvailability) {
-    const { doctorId, availabilityConfig } = ctx;
+  private async validateDoctor(doctorId: string) {
     try {
       const user = await this._db
         .select({
@@ -77,6 +79,18 @@ export class AvailabilityProvider {
       if (user[0].status === USER_STATUS.SUSPENDED) {
         throw new ForbiddenException('Doctor is suspended');
       }
+    } catch (e) {
+      throw new AvailabilityError(
+        'An error occurred while validating the doctor',
+        { cause: e },
+      );
+    }
+  }
+
+  async createAvailability(ctx: ICreateAvailability) {
+    const { doctorId, availabilityConfig } = ctx;
+    try {
+      await this.validateDoctor(doctorId);
 
       await this._db.transaction(async (tx) => {
         await tx
@@ -109,6 +123,8 @@ export class AvailabilityProvider {
 
   async fetchDoctorAvailability(doctorId: string) {
     try {
+      await this.validateDoctor(doctorId);
+
       const availability = await this._db
         .select()
         .from(schema.availability)
@@ -125,6 +141,46 @@ export class AvailabilityProvider {
       });
     } catch (e) {
       this.handler.handleError(e, e.message || AEM.ERROR_FETCHING_AVAILABILITY);
+    }
+  }
+
+  async updateDoctorAvailability(ctx: IUpdateAvailability) {
+    const { doctorId, availabilityConfig } = ctx;
+    try {
+      await this.validateDoctor(doctorId);
+
+      let dataToUpdate: IUpdateAvailabilityConfig[] = [];
+      dataToUpdate = availabilityConfig
+        .map((_availability) => {
+          const cleanData: IUpdateAvailabilityConfig = {
+            id: _availability.id,
+            weekDay: _availability.weekDay,
+          };
+
+          if (_availability.startTime !== undefined) {
+            cleanData.startTime = _availability.startTime;
+          }
+          if (_availability.endTime !== undefined) {
+            cleanData.endTime = _availability.endTime;
+          }
+
+          return cleanData;
+        })
+
+        .filter(
+          (item) => item.startTime !== undefined || item.endTime !== undefined,
+        );
+
+      await this._db.transaction(async (tx) => {
+        dataToUpdate.forEach(async (item) => {
+          await tx
+            .update(schema.availability)
+            .set(item)
+            .where(eq(schema.availability.id, item.id));
+        });
+      });
+    } catch (e) {
+      this.handler.handleError(e, e.message || AEM.ERROR_UPDATING_AVAILABILITY);
     }
   }
 }
