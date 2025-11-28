@@ -31,3 +31,13 @@ export interface IDeleteAvailability {
   doctorId: string;
   id: string[];
 }
+
+export interface IAvailability {
+  id: string;
+  doctorId: string;
+  weekDay: string;
+  startTime: string;
+  endTime: string;
+  createdAt: string;
+  updatedAt: Date;
+}
