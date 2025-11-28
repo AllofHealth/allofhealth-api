@@ -1,7 +1,7 @@
 import { TWeek } from '@/shared/modules/cal.com/interface/cal.com.interface';
 
 interface IAvailabilityConfig {
-  week: TWeek;
+  weekDay: TWeek;
   startTime: string;
   endTime: string;
 }
