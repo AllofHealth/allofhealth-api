@@ -120,3 +120,27 @@ export class UpdateDoctorAvailabilityDto {
   @Type(() => UpdateAvailabilityConfigDto)
   availabilityConfig: UpdateAvailabilityConfigDto[];
 }
+
+export class DeleteAvailabilityDto {
+  @ApiProperty({
+    description:
+      'The unique identifier of the user (doctor) whose availability slots are to be deleted.',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+
+  @ApiProperty({
+    description: 'An array of availability slot IDs to be deleted.',
+    type: [String],
+    example: [
+      'c2d1b0a8-0b9c-4a1a-8e0a-4b0c0e1a2b3c',
+      'd3e2c1b0-c9d8-b7a6-f5e4-d3c2b1a0e9f8',
+    ],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  availabilityIds: string[];
+}
