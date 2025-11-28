@@ -44,6 +44,7 @@ export class AvailabilityController {
   constructor(private readonly availabilityService: AvailabilityService) {}
 
   @Get('fetchDoctorAvailability')
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: "Fetch a doctor's availability" })
   @ApiQuery({ name: 'userId', required: true, type: String })
   @ApiOkResponse({
