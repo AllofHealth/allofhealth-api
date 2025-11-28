@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AvailabilityProvider } from '../provider/availability.provider';
 import {
   ICreateAvailability,
+  IDeleteAvailability,
   IUpdateAvailability,
 } from '../interface/availability.interface';
 
@@ -19,5 +20,8 @@ export class AvailabilityService {
 
   async updateDoctorAvailability(ctx: IUpdateAvailability) {
     return await this.availabilityProvider.updateDoctorAvailability(ctx);
+  }
+  async deleteDoctorAvailability(ctx: IDeleteAvailability) {
+    return await this.availabilityProvider.deleteAvailability(ctx);
   }
 }
