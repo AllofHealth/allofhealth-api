@@ -1,9 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   ValidateNested,
@@ -70,10 +71,56 @@ export class CreateAvailabilityDto {
 
 export class FetchDoctorAvailabilityDto {
   @ApiProperty({
-    description: "The ID of the doctor whose availability is to be fetched.",
-    example: 'c2d1b0a8-0b9c-4a1a-8e0a-4b0c0e1a2b3c'
+    description: 'The ID of the doctor whose availability is to be fetched.',
+    example: 'c2d1b0a8-0b9c-4a1a-8e0a-4b0c0e1a2b3c',
   })
   @IsString()
   @IsNotEmpty()
   userId: string;
+}
+
+class UpdateAvailabilityConfigDto {
+  @ApiProperty({ description: 'The ID of the availability slot to update.' })
+  @IsString()
+  @IsNotEmpty()
+  id: string;
+
+  @ApiProperty({ description: 'Day of the week', enum: WeekDay })
+  @IsEnum(WeekDay)
+  weekDay: WeekDay;
+
+  @ApiPropertyOptional({
+    description: 'Start time in HH:mm AM/PM format',
+    example: '08:00 AM',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, {
+    message: 'startTime must be in HH:mm AM/PM format',
+  })
+  startTime?: string;
+
+  @ApiPropertyOptional({
+    description: 'End time in HH:mm AM/PM format',
+    example: '06:00 PM',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^(1[0-2]|0?[1-9]):[0-5][0-9] (AM|PM)$/, {
+    message: 'endTime must be in HH:mm AM/PM format',
+  })
+  endTime?: string;
+}
+
+export class UpdateDoctorAvailabilityDto {
+  @ApiProperty({ description: 'The unique identifier of the user (doctor)' })
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+
+  @ApiProperty({ type: [UpdateAvailabilityConfigDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateAvailabilityConfigDto)
+  availabilityConfig: UpdateAvailabilityConfigDto[];
 }
