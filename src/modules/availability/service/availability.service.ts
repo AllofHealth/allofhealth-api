@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { AvailabilityProvider } from '../provider/availability.provider';
-import { ICreateAvailability } from '../interface/availability.interface';
+import {
+  ICreateAvailability,
+  IUpdateAvailability,
+} from '../interface/availability.interface';
 
 @Injectable()
 export class AvailabilityService {
@@ -12,5 +15,9 @@ export class AvailabilityService {
 
   async fetchDoctorAvailability(doctorId: string) {
     return await this.availabilityProvider.fetchDoctorAvailability(doctorId);
+  }
+
+  async updateDoctorAvailability(ctx: IUpdateAvailability) {
+    return await this.availabilityProvider.updateDoctorAvailability(ctx);
   }
 }
