@@ -23,6 +23,7 @@ import {
   IUpdateAvailabilityConfig,
 } from '../interface/availability.interface';
 import { AvailabilityError } from '../error/availability.error';
+import { WeekDay } from '../dto/availability.dto';
 
 @Injectable()
 export class AvailabilityProvider {
@@ -93,24 +94,36 @@ export class AvailabilityProvider {
     try {
       await this.validateDoctor(doctorId);
 
+      const allWeekDays = Object.values(WeekDay);
+      const availabilityMap = new Map(
+        availabilityConfig.map((config) => [config.weekDay, config]),
+      );
+
+      const fullAvailabilityConfig = allWeekDays.map((day) => {
+        const existingConfig = availabilityMap.get(day);
+        if (existingConfig) {
+          return {
+            weekDay: day,
+            startTime: existingConfig.startTime,
+            endTime: existingConfig.endTime,
+          };
+        }
+        return {
+          weekDay: day,
+          startTime: '0:00',
+          endTime: '0:00',
+        };
+      });
+
       await this._db.transaction(async (tx) => {
-        await tx
-          .insert(schema.availability)
-          .values(
-            availabilityConfig.map((_availability) => ({
-              doctorId,
-              weekDay: _availability.weekDay,
-              startTime: _availability.startTime,
-              endTime: _availability.endTime,
-            })),
-          )
-          .onConflictDoUpdate({
-            target: schema.availability.weekDay,
-            set: {
-              startTime: sql`excluded.start_time`,
-              endTime: sql`excluded.end_time`,
-            },
-          });
+        await tx.insert(schema.availability).values(
+          fullAvailabilityConfig.map((_availability) => ({
+            doctorId,
+            weekDay: _availability.weekDay,
+            startTime: _availability.startTime,
+            endTime: _availability.endTime,
+          })),
+        );
       });
 
       return this.handler.handleReturn({
