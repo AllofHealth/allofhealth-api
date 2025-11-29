@@ -36,7 +36,7 @@ export interface IDoctorSnippet extends IUserSnippet {
     consultationOffered: string;
     consultationId: string | null;
   };
-  availabilityData?: IAvailability;
+  availabilityData?: IAvailability[] | never[];
 }
 
 export interface IFetchDoctors {

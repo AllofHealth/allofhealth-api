@@ -10,5 +10,6 @@ import { TokenModule } from '../token/token.module';
   imports: [forwardRef(() => TokenModule), forwardRef(() => UserModule)],
   providers: [AvailabilityService, AvailabilityProvider, ErrorHandler],
   controllers: [AvailabilityController],
+  exports: [AvailabilityService],
 })
 export class AvailabilityModule {}
