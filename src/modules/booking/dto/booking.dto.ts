@@ -8,6 +8,7 @@ import {
   IsDateString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { TBookingStatus } from '../interface/booking.interface';
 
 export class InitializeBookingPaymentDto {
   @ApiProperty({
@@ -94,17 +95,19 @@ export class GetPatientBookingsDto {
 
 export class GetDoctorBookingsDto {
   @ApiProperty({
-    description: 'Doctor ID',
-    example: 'doctor-456',
+    description:
+      'The unique identifier of the doctor whose bookings are being retrieved',
+    example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
   @IsNotEmpty()
   @IsString()
   userId: string;
 
   @ApiProperty({
-    description: 'Page number for pagination',
+    description: 'Page number for pagination (1-based index)',
     example: 1,
     required: false,
+    default: 1,
   })
   @IsOptional()
   @Type(() => Number)
@@ -112,9 +115,10 @@ export class GetDoctorBookingsDto {
   page?: number;
 
   @ApiProperty({
-    description: 'Number of items per page',
+    description: 'Maximum number of bookings to return per page',
     example: 12,
     required: false,
+    default: 12,
   })
   @IsOptional()
   @Type(() => Number)
@@ -122,7 +126,8 @@ export class GetDoctorBookingsDto {
   limit?: number;
 
   @ApiProperty({
-    description: 'Start date for filtering bookings (ISO 8601 format)',
+    description:
+      'Start date for filtering bookings (inclusive). Only bookings scheduled on or after this date will be returned. Format: ISO 8601 date-time string',
     example: '2025-01-01T00:00:00Z',
     required: false,
   })
@@ -131,7 +136,8 @@ export class GetDoctorBookingsDto {
   startDate?: string;
 
   @ApiProperty({
-    description: 'End date for filtering bookings (ISO 8601 format)',
+    description:
+      'End date for filtering bookings (inclusive). Only bookings scheduled on or before this date will be returned. Format: ISO 8601 date-time string',
     example: '2025-12-31T23:59:59Z',
     required: false,
   })
@@ -140,11 +146,25 @@ export class GetDoctorBookingsDto {
   endDate?: string;
 
   @ApiProperty({
-    description: 'Filter bookings by status',
+    description: `Filter bookings by their current status. Available statuses:
+    - pending_payment: Booking created but payment not yet initiated
+    - processing_payment: Payment is being processed
+    - confirmed: Booking confirmed and paid
+    - completed: Consultation has been completed
+    - cancelled: Booking was cancelled by patient or doctor
+    - no_show: Patient did not attend the scheduled consultation`,
     example: 'confirmed',
+    enum: [
+      'pending_payment',
+      'processing_payment',
+      'confirmed',
+      'completed',
+      'cancelled',
+      'no_show',
+    ],
     required: false,
   })
   @IsOptional()
   @IsString()
-  status?: string;
+  status?: TBookingStatus;
 }

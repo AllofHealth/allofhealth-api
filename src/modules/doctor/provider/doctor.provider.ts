@@ -233,26 +233,6 @@ export class DoctorProvider {
 
       const whereConditions = and(...whereClauses);
 
-      let baseQuery = this.db
-        .select()
-        .from(schema.doctors)
-        .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-        .leftJoin(
-          schema.doctorConsultationTypes,
-          and(
-            eq(schema.doctorConsultationTypes.doctorId, schema.doctors.userId),
-            eq(schema.doctorConsultationTypes.isActive, true),
-          ),
-        )
-        .leftJoin(
-          schema.consultationTypes,
-          eq(
-            schema.consultationTypes.id,
-            schema.doctorConsultationTypes.consultationType,
-          ),
-        )
-        .where(whereConditions);
-
       const filterWhereClauses = [...whereClauses];
       if (filter && filter.trim()) {
         filterWhereClauses.push(

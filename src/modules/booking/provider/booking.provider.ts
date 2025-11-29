@@ -349,7 +349,7 @@ export class BookingProvider {
   }
 
   async getDoctorBookings(ctx: IGetDoctorBookings) {
-    const { doctorId, endDate, startDate, limit = 12, page = 1 } = ctx;
+    const { doctorId, endDate, startDate, limit = 12, page = 1, status } = ctx;
     const skip = (page - 1) * limit;
     try {
       const conditions = [eq(schema.consultationBookings.doctorId, doctorId)];
@@ -370,6 +370,10 @@ export class BookingProvider {
             endDate.toISOString(),
           ),
         );
+      }
+
+      if (status) {
+        conditions.push(eq(schema.consultationBookings.status, status));
       }
 
       const whereClause = and(...conditions);
