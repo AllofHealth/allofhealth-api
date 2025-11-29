@@ -27,6 +27,7 @@ import { formatDateToReadable } from '@/shared/utils/date.utils';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { DoctorError } from '../errors/doctor.errors';
 import { ConsultationService } from '@/modules/consultation/service/consultation.service';
+import { AvailabilityService } from '@/modules/availability/service/availability.service';
 
 @Injectable()
 export class DoctorProvider {
@@ -34,6 +35,7 @@ export class DoctorProvider {
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly consultationService: ConsultationService,
+    private readonly availabilityService: AvailabilityService,
     private readonly handler: ErrorHandler,
   ) {}
 
@@ -52,6 +54,8 @@ export class DoctorProvider {
         return {
           consultationOffered: 'none',
           consultationId: null,
+          price: null,
+          description: null,
         };
       }
 
@@ -68,6 +72,8 @@ export class DoctorProvider {
       return {
         consultationOffered: consultationNameResponse.data.name,
         consultationId: doctorConsultationData.id,
+        price: consultationNameResponse.data.price,
+        description: consultationNameResponse.data.description,
       };
     } catch (e) {
       throw new InternalServerErrorException(
@@ -78,17 +84,32 @@ export class DoctorProvider {
     }
   }
 
+  private async prepareAvailabilityData(userId: string) {
+    try {
+      const availability =
+        await this.availabilityService.fetchDoctorAvailability(userId);
+
+      if (!availability || !availability.data) {
+        return [];
+      }
+
+      return availability.data;
+    } catch (e) {
+      throw new InternalServerErrorException(
+        new DoctorError(
+          e.message || 'An error occurred while preparing availability data',
+        ),
+      );
+    }
+  }
+
   async fetchDoctor(userId: string) {
     try {
-      const [doctor, consultation] = await Promise.all([
+      const [doctor, consultation, availability] = await Promise.all([
         this.db
           .select()
           .from(schema.doctors)
           .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-          .innerJoin(
-            schema.availability,
-            eq(schema.doctors.userId, schema.availability.doctorId),
-          )
           .where(
             and(
               eq(schema.doctors.userId, userId),
@@ -98,6 +119,7 @@ export class DoctorProvider {
           .limit(1),
 
         this.prepareConsultationData(userId),
+        this.prepareAvailabilityData(userId),
       ]);
 
       if (!doctor || doctor.length === 0) {
@@ -133,7 +155,7 @@ export class DoctorProvider {
         availability: doctor[0].doctors.availability as string,
         isVerified: doctor[0].doctors.isVerified,
         consultationData: consultation,
-        availabilityData: doctor[0].availability,
+        availabilityData: availability,
       };
 
       return this.handler.handleReturn({
