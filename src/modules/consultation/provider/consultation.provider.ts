@@ -71,8 +71,17 @@ export class ConsultationProvider {
         .select({
           id: schema.consultationTypes.id,
           name: schema.consultationTypes.name,
+          price: schema.doctorConsultationTypes.price,
+          description: schema.doctorConsultationTypes.description,
         })
         .from(schema.consultationTypes)
+        .leftJoin(
+          schema.doctorConsultationTypes,
+          eq(
+            schema.doctorConsultationTypes.consultationType,
+            schema.consultationTypes.id,
+          ),
+        )
         .where(eq(schema.consultationTypes.id, consultationTypeId))
         .limit(1);
 
