@@ -64,6 +64,8 @@ import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { ILoginResponse } from '@/modules/auth/interface/auth.interface';
 import { NewsletterService } from '@/modules/newsletter/service/newsletter.service';
 import { IFetchAllContacts } from '@/shared/modules/brevo/interface/brevo.interface';
+import { BookingService } from '@/modules/booking/service/booking.service';
+import { IFetchAllBookings } from '@/modules/booking/interface/booking.interface';
 
 @Injectable()
 export class AdminProvider {
@@ -80,6 +82,7 @@ export class AdminProvider {
     private readonly assetService: AssetService,
     private readonly approvalService: ApprovalService,
     private readonly newsletterService: NewsletterService,
+    private readonly bookingService: BookingService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -1053,5 +1056,9 @@ export class AdminProvider {
 
   async fetchAllSubscribers(ctx: IFetchAllContacts) {
     return await this.newsletterService.fetchAllSubscribers(ctx);
+  }
+
+  async fetchAllBookings(ctx: IFetchAllBookings) {
+    return await this.bookingService.fetchAllBookings(ctx);
   }
 }
