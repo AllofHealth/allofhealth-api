@@ -18,6 +18,7 @@ import {
   IFetchUsers,
 } from '@/modules/user/interface/user.interface';
 import { IFetchAllContacts } from '@/shared/modules/brevo/interface/brevo.interface';
+import { IFetchAllBookings } from '@/modules/booking/interface/booking.interface';
 
 @Injectable()
 export class AdminService {
@@ -104,5 +105,9 @@ export class AdminService {
 
   async fetchNewsletterSubscribers(ctx: IFetchAllContacts) {
     return await this.adminProvider.fetchAllSubscribers(ctx);
+  }
+
+  async fetchAllBookings(ctx: IFetchAllBookings) {
+    return await this.adminProvider.fetchAllBookings(ctx);
   }
 }
