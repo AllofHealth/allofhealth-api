@@ -36,6 +36,7 @@ import {
   FetchApprovalManagementDataDto,
   DeleteUserDto,
   RevokeSuspensionDto,
+  FetchAllBookingsDto,
 } from '../dto/admin.dto';
 import { AdminGuard } from '../guard/admin.guard';
 import { AdminService } from '../service/admin.service';
@@ -922,5 +923,76 @@ export class AdminController {
       offset,
       sort,
     });
+  }
+
+  @Get('fetchAllBookings')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Fetch all bookings (requires admin)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: [
+      'pending_payment',
+      'processing_payment',
+      'confirmed',
+      'completed',
+      'cancelled',
+      'no_show',
+    ],
+  })
+  @ApiOkResponse({
+    description: 'All bookings retrieved successfully',
+    type: SuccessResponseDto,
+    example: {
+      status: HttpStatus.OK,
+      message: 'All bookings retrieved successfully',
+      data: [
+        {
+          bookingId: 'c6a9a3b2-c8a7-4b72-9b2a-7c2a7e2a9c3d',
+          bookingReference:
+            'AOH-TEL-459539GWCRDOP-c6a9a3b2-c8a7-4b72-9b2a-7c2a7e2a9c3d',
+          patientId: 'a2a7e2a9-c3d0-4b72-9b2a-7c2a7e2a9c3d',
+          doctorId: 'd8a7e2a9-c3d0-4b72-9b2a-7c2a7e2a9c3d',
+          patientFullName: 'John Patient',
+          doctorFullName: 'Dr. Jane Doe',
+          doctorProfilePicture: 'https://example.com/doctor.jpg',
+          patientProfilePicture: 'https://example.com/patient.jpg',
+          status: 'confirmed',
+          videoRoomId: 'vri_12345',
+          videoRoomUrl: 'https://doxy.me/aoh/12345',
+          startTime: '2025-11-20T10:00:00.000Z',
+          endTime: '2025-11-20T10:45:00.000Z',
+          price: '5000',
+          paymentStatus: 'paid',
+          currency: 'NGN',
+          paymentIntentId: 'pi_12345',
+        },
+      ],
+      meta: {
+        currentPage: 1,
+        totalPages: 1,
+        totalCount: 1,
+        itemsPerPage: 10,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    },
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'Error fetching all bookings',
+    type: ErrorResponseDto,
+    example: {
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Error fetching all bookings',
+    },
+  })
+  async fetchAllBookings(
+    @Ip() ip: string,
+    @Query() ctx: FetchAllBookingsDto,
+  ) {
+    this.logger.log(`Admin fetching all bookings from ${ip}`);
+    return await this.adminService.fetchAllBookings(ctx);
   }
 }
