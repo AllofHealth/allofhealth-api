@@ -41,6 +41,12 @@ export interface IUpdatePaymentDetails {
   paidAt?: Date;
 }
 
+export interface IFetchAllBookings {
+  page?: number;
+  limit?: number;
+  status?: TBookingStatus;
+}
+
 export interface IGetPatientBookings {
   patientId: string;
   status?: string;
