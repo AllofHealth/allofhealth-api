@@ -1,6 +1,8 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpStatus,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -48,6 +50,7 @@ export class BookingService {
     private readonly consultationService: ConsultationService,
     private readonly calendarService: CalendarService,
     private readonly flutterwaveService: FlutterwaveService,
+    @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly doxyService: DoxyService,
     private readonly eventEmitter: EventEmitter2,
