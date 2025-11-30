@@ -28,6 +28,7 @@ import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { DoctorError } from '../errors/doctor.errors';
 import { ConsultationService } from '@/modules/consultation/service/consultation.service';
 import { AvailabilityService } from '@/modules/availability/service/availability.service';
+import { IAvailability } from '@/modules/availability/interface/availability.interface';
 
 @Injectable()
 export class DoctorProvider {
@@ -216,7 +217,14 @@ export class DoctorProvider {
   }
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
-    const { page = 1, limit = 12, sort = 'desc', query, filter } = ctx;
+    const {
+      page = 1,
+      limit = 12,
+      sort = 'desc',
+      query,
+      filter,
+      fetchAvailability = false,
+    } = ctx;
     const skip = (page - 1) * limit;
     const sortFn = sort === 'desc' ? desc : asc;
     const sortColumn = schema.user.createdAt;
@@ -230,8 +238,6 @@ export class DoctorProvider {
         const searchQuery = `%${query.trim()}%`;
         whereClauses.push(ilike(schema.user.fullName, searchQuery));
       }
-
-      const whereConditions = and(...whereClauses);
 
       const filterWhereClauses = [...whereClauses];
       if (filter && filter.trim()) {
@@ -293,11 +299,19 @@ export class DoctorProvider {
         .offset(skip)
         .limit(limit);
 
+      let availabilityData: IAvailability[] | never[];
+
       const parsedDoctors: IDoctorSnippet[] = await Promise.all(
         doctors.map(async (doctor) => {
           const consultationData = await this.prepareConsultationData(
             doctor.users.id,
           );
+
+          if (fetchAvailability) {
+            availabilityData = await this.prepareAvailabilityData(
+              doctor.users.id,
+            );
+          }
           return {
             userId: doctor.users.id,
             fullName: doctor.users.fullName,
@@ -322,6 +336,7 @@ export class DoctorProvider {
             availability: doctor.doctors.availability as string,
             isVerified: doctor.doctors.isVerified as boolean,
             consultationData,
+            availabilityData,
           };
         }),
       );

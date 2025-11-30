@@ -19,7 +19,7 @@ export interface IUpdateConsultationType {
     durationMinutes: number;
     price: number;
     isActive: boolean;
-    eventTypeId: number
+    eventTypeId: number;
   }>;
 }
 
@@ -40,3 +40,9 @@ export type TConsultationTypes =
   | 'Physiotherapy Consultation'
   | 'Dental Consultation';
 
+export interface IConsultation {
+  consultationId: string | null;
+  consultationOffered: string | null;
+  description: string | null;
+  price: string | null;
+}

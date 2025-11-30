@@ -2,6 +2,8 @@ import type { Result } from 'neverthrow';
 import type { TRole } from '@/shared/interface/shared.interface';
 import type { UserError } from '../error/user.error';
 import { IFetchDoctors } from '@/modules/doctor/interface/doctor.interface';
+import { IAvailability } from '@/modules/availability/interface/availability.interface';
+import { IConsultation } from '@/modules/consultation/interface/consultation.interface';
 export type TAuthProvider = 'GOOGLE' | 'CREDENTIALS';
 export type TUserStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'SUSPENDED';
 export type TUserRole = TRole;
@@ -72,6 +74,8 @@ export interface IUserSnippet {
   gender: string;
   status?: string;
   lastActive?: string;
+  availabilityData?: IAvailability[];
+  consultationData?: IConsultation;
 }
 
 export type CreateUserType = Promise<Result<IUserSnippet, UserError>>;

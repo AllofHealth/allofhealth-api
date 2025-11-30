@@ -32,11 +32,6 @@ export interface IDoctorSnippet extends IUserSnippet {
   languagesSpoken: string[];
   availability: string;
   isVerified: boolean;
-  consultationData: {
-    consultationOffered: string;
-    consultationId: string | null;
-  };
-  availabilityData?: IAvailability[] | never[];
 }
 
 export interface IFetchDoctors {
@@ -45,6 +40,7 @@ export interface IFetchDoctors {
   sort?: TSort;
   query?: string;
   filter?: TConsultationTypes;
+  fetchAvailability?: boolean;
 }
 
 export interface IUpdateRecordsReviewed {

@@ -867,7 +867,10 @@ export class AdminProvider {
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
     try {
-      const allDoctors = await this.doctorService.fetchAllDoctors(ctx);
+      const allDoctors = await this.doctorService.fetchAllDoctors({
+        ...ctx,
+        fetchAvailability: true,
+      });
 
       if (!allDoctors?.data) {
         throw new HttpException(
@@ -892,6 +895,8 @@ export class AdminProvider {
           userId: doctor.userId,
           status: doctor.status,
           lastActive: doctor.lastActive!,
+          consultationData: doctor.consultationData,
+          availabilityData: doctor.availabilityData,
         } as IUserSnippet;
       });
 
