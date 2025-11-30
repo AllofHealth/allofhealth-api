@@ -10,6 +10,7 @@ import {
   ICancelBooking,
   IConfirmBooking,
   ICreateVideoRoomForBooking,
+  IFetchAllBookings,
   IGetDoctorBookings,
   IGetPatientBookings,
   IHandleCalComBookingCreated,
@@ -565,5 +566,9 @@ export class BookingService {
         e || 'An error occurred while checking video room status',
       );
     }
+  }
+
+  async fetchAllBookings(ctx: IFetchAllBookings) {
+    return await this.bookingProvider.fetchAllBookings(ctx);
   }
 }
