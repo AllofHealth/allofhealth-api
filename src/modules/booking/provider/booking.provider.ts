@@ -10,6 +10,7 @@ import {
 import {
   ICancelBooking,
   ICreateBooking,
+  IFetchAllBookings,
   IFindBooking,
   IGetDoctorBookings,
   IGetPatientBookings,
@@ -22,8 +23,9 @@ import {
   BOOKING_SUCCESS_MESSAGES as BSM,
 } from '../data/booking.data';
 import * as schema from '@/schemas/schema';
-import { and, eq, gte, lte, sql } from 'drizzle-orm';
+import { aliasedTable, and, eq, gte, lte, sql } from 'drizzle-orm';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class BookingProvider {
@@ -291,6 +293,8 @@ export class BookingProvider {
 
   async getPatientBookings(ctx: IGetPatientBookings) {
     const { patientId, page = 1, limit = 12, status } = ctx;
+    const patient = aliasedTable(schema.user, 'patient');
+    const doctor = aliasedTable(schema.user, 'doctor');
     const skip = (page - 1) * limit;
     try {
       let whereClause: any = eq(
@@ -318,11 +322,20 @@ export class BookingProvider {
           bookingReference: schema.consultationBookings.bookingReference,
           patientId: schema.consultationBookings.patientId,
           doctorId: schema.consultationBookings.doctorId,
+          patientFullName: patient.fullName,
+          doctorFullName: doctor.fullName,
+          startTime: schema.consultationBookings.startTime,
+          endTime: schema.consultationBookings.endTime,
           status: schema.consultationBookings.status,
           videoRoomId: schema.consultationBookings.videoRoomId,
           videoRoomUrl: schema.consultationBookings.videoRoomUrl,
         })
         .from(schema.consultationBookings)
+        .leftJoin(
+          patient,
+          eq(schema.consultationBookings.patientId, patient.id),
+        )
+        .leftJoin(doctor, eq(schema.consultationBookings.doctorId, doctor.id))
         .where(whereClause)
         .offset(skip)
         .limit(limit);
@@ -350,6 +363,8 @@ export class BookingProvider {
 
   async getDoctorBookings(ctx: IGetDoctorBookings) {
     const { doctorId, endDate, startDate, limit = 12, page = 1, status } = ctx;
+    const patient = aliasedTable(schema.user, 'patient');
+    const doctor = aliasedTable(schema.user, 'doctor');
     const skip = (page - 1) * limit;
     try {
       const conditions = [eq(schema.consultationBookings.doctorId, doctorId)];
@@ -392,11 +407,20 @@ export class BookingProvider {
           bookingReference: schema.consultationBookings.bookingReference,
           patientId: schema.consultationBookings.patientId,
           doctorId: schema.consultationBookings.doctorId,
+          patientFullName: patient.fullName,
+          doctorFullName: doctor.fullName,
           status: schema.consultationBookings.status,
           videoRoomId: schema.consultationBookings.videoRoomId,
           videoRoomUrl: schema.consultationBookings.videoRoomUrl,
+          startTime: schema.consultationBookings.startTime,
+          endTime: schema.consultationBookings.endTime,
         })
         .from(schema.consultationBookings)
+        .leftJoin(
+          patient,
+          eq(schema.consultationBookings.patientId, patient.id),
+        )
+        .leftJoin(doctor, eq(schema.consultationBookings.doctorId, doctor.id))
         .where(whereClause)
         .offset(skip)
         .limit(limit);
@@ -440,10 +464,81 @@ export class BookingProvider {
     }
   }
 
+  async fetchAllBookings(ctx: IFetchAllBookings) {
+    const { page = 1, limit = 10, status } = ctx;
+    const patient = aliasedTable(schema.user, 'patient');
+    const doctor = aliasedTable(schema.user, 'doctor');
+    const skip = (page - 1) * limit;
+    try {
+      const conditions: any[] = [];
+      if (status) {
+        conditions.push(eq(schema.consultationBookings.status, status));
+      }
+
+      const totalBookingsCount = await this._db
+        .select({ count: sql`count(*)`.as('count') })
+        .from(schema.consultationBookings);
+
+      const totalCount = Number(totalBookingsCount[0]?.count ?? 0);
+      const totalPages = Math.ceil(totalCount / limit);
+
+      const baseQuery = this._db
+        .select({
+          bookingId: schema.consultationBookings.id,
+          bookingReference: schema.consultationBookings.bookingReference,
+          patientId: schema.consultationBookings.patientId,
+          doctorId: schema.consultationBookings.doctorId,
+          patientFullName: patient.fullName,
+          doctorFullName: doctor.fullName,
+          doctorProfilePicture: doctor.profilePicture,
+          patientProfilePicture: patient.profilePicture,
+          status: schema.consultationBookings.status,
+          videoRoomId: schema.consultationBookings.videoRoomId,
+          videoRoomUrl: schema.consultationBookings.videoRoomUrl,
+          startTime: schema.consultationBookings.startTime,
+          endTime: schema.consultationBookings.endTime,
+          price: schema.consultationBookings.amount,
+          paymentStatus: schema.consultationBookings.paymentStatus,
+          currency: schema.consultationBookings.currency,
+          paymentIntentId: schema.consultationBookings.paymentIntentId,
+        })
+        .from(schema.consultationBookings)
+        .leftJoin(
+          patient,
+          eq(schema.consultationBookings.patientId, patient.id),
+        )
+        .leftJoin(doctor, eq(schema.consultationBookings.doctorId, doctor.id));
+
+      const bookings = status
+        ? await baseQuery
+            .where(eq(schema.consultationBookings.status, status))
+            .offset(skip)
+            .limit(limit)
+        : await baseQuery.offset(skip).limit(limit);
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: BSM.SUCCESS_FETCHING_ALL_BOOKINGS,
+        data: bookings,
+        meta: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          itemsPerPage: limit,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        },
+      });
+    } catch (e) {
+      this.handler.handleError(e, e.message || BEM.ERROR_FETCHING_ALL_BOOKINGS);
+    }
+  }
+
   generateBookingReference() {
     const prefix = 'AOH-TEL';
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `${prefix}-${timestamp}${random}`;
+    const uuid = uuidv4();
+    return `${prefix}-${timestamp}${random}-${uuid}`;
   }
 }
