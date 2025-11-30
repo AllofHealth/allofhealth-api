@@ -11,6 +11,7 @@ import { UserModule } from '../user/user.module';
 import { AssetModule } from '../asset/asset.module';
 import { ApprovalModule } from '../approval/approval.module';
 import { NewsletterModule } from '../newsletter/newsletter.module';
+import { BookingModule } from '../booking/booking.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NewsletterModule } from '../newsletter/newsletter.module';
     forwardRef(() => AssetModule),
     forwardRef(() => ApprovalModule),
     forwardRef(() => NewsletterModule),
+    forwardRef(() => BookingModule),
   ],
   providers: [AdminProvider, AdminService, ErrorHandler, AuthUtils],
   controllers: [AdminController],
