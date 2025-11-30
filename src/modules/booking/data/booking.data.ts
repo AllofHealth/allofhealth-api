@@ -9,6 +9,7 @@ export enum BOOKING_ERROR_MESSAGES {
   ERROR_GETTING_PATIENT_BOOKINGS = 'Error getting patient bookings',
   ERROR_GETTING_BOOKING = 'Error getting booking',
   ERROR_GETTING_DOCTOR_BOOKINGS = 'Error getting doctor bookings',
+  ERROR_FETCHING_ALL_BOOKINGS = 'Error fetching all bookings',
 }
 export enum BOOKING_SUCCESS_MESSAGES {
   SUCCESS_CREATE_BOOKING = 'Booking created successfully',
@@ -20,6 +21,7 @@ export enum BOOKING_SUCCESS_MESSAGES {
   SUCCESS_GETTING_PATIENT_BOOKINGS = 'Patient bookings retrieved successfully',
   SUCCESS_GETTING_BOOKING = 'Booking retrieved successfully',
   SUCCESS_GETTING_DOCTOR_BOOKINGS = 'Doctor bookings retrieved successfully',
+  SUCCESS_FETCHING_ALL_BOOKINGS = 'All bookings retrieved successfully',
 }
 
 export const BOOKING_DURATION = 45;
