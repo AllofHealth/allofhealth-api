@@ -46,8 +46,11 @@ export class HealthInfoProvider {
         context: 'health-info',
       });
 
-      if (!('data' in uploadResult && uploadResult.data)) {
-        throw new HttpException(uploadResult.message, uploadResult.status);
+      if (!uploadResult?.data) {
+        throw new HttpException(
+          'Failed to upload file',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
 
       return {
@@ -154,7 +157,7 @@ export class HealthInfoProvider {
         message: HSM.HEALTH_INFO_CREATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, HEM.ERROR_CREATING_HEALTH_INFO);
+      this.handler.handleError(e, HEM.ERROR_CREATING_HEALTH_INFO);
     }
   }
 
@@ -181,7 +184,7 @@ export class HealthInfoProvider {
         message: HSM.HEALTH_INFO_UPDATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, HEM.ERROR_UPDATING_HEALTH_INFO);
+      this.handler.handleError(e, HEM.ERROR_UPDATING_HEALTH_INFO);
     }
   }
 
@@ -195,8 +198,8 @@ export class HealthInfoProvider {
         }
 
         const approval = await this.approvalService.fetchApproval(approvalId);
-        if (!('data' in approval && approval.data)) {
-          throw new UnauthorizedException(approval.message);
+        if (!approval?.data) {
+          throw new UnauthorizedException('Approval not found');
         }
 
         const approvalData = approval.data;
@@ -297,7 +300,7 @@ export class HealthInfoProvider {
         data: patientHealthInfo[0],
       });
     } catch (e) {
-      return this.handler.handleError(e, HEM.ERROR_FETCHING_HEALTH_INFO);
+      this.handler.handleError(e, HEM.ERROR_FETCHING_HEALTH_INFO);
     }
   }
 }

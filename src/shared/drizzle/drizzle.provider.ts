@@ -1,7 +1,7 @@
-import { Pool } from '@neondatabase/serverless';
+import { Pool } from 'pg';
 import type { Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { drizzle } from 'drizzle-orm/neon-serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from '@/schemas/schema';
 
 export const DRIZZLE_PROVIDER = 'DRIZZLE_PROVIDER';

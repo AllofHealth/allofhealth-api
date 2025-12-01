@@ -2,7 +2,10 @@ import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { ContractService } from '@/modules/contract/service/contract.service';
 import { DoctorService } from '@/modules/doctor/service/doctor.service';
 import { IPFS_ERROR_MESSAGES } from '@/modules/ipfs/data/ipfs.data';
+import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
 import { IpfsService } from '@/modules/ipfs/service/ipfs.service';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+import { UserService } from '@/modules/user/service/user.service';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
@@ -14,21 +17,31 @@ import {
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
+import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
+import {
+  formatDateToReadable,
+  formatDateToStandard,
+} from '@/shared/utils/date.utils';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { and, eq, sql } from 'drizzle-orm';
 import {
   RECORDS_STATUS,
   RECORDS_ERROR_MESSAGES as REM,
   RECORDS_SUCCESS_MESSAGES as RSM,
 } from '../data/records.data';
+import { RecordsError } from '../error/records.error';
 import {
   ICreateRecord,
   IfetchAndDecrypt,
@@ -36,20 +49,13 @@ import {
   IFetchRecordById,
 } from '../interface/records.interface';
 import { RecordsEncryptionService } from '../service/record-encryption.service';
-import {
-  formatDateToReadable,
-  formatDateToStandard,
-} from '@/shared/utils/date.utils';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
-import { IpfsRecord } from '@/modules/ipfs/interface/ipfs.interface';
-import { CreateRecordQueue } from '@/shared/queues/records/records.queue';
-import { UserService } from '@/modules/user/service/user.service';
 
 @Injectable()
 export class RecordsProvider {
   private readonly logger = new MyLoggerService(RecordsProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly handler: ErrorHandler,
     private readonly doctorService: DoctorService,
     private readonly recordEncryptionService: RecordsEncryptionService,
@@ -58,7 +64,7 @@ export class RecordsProvider {
     private readonly eventEmitter: EventEmitter2,
     private readonly approvalService: ApprovalService,
     private readonly contractService: ContractService,
-    private readonly createRecordQueue: CreateRecordQueue,
+    private createRecordQueue: CreateRecordQueue,
   ) {}
 
   private async returnPractitionerName(practitionerId: string) {
@@ -68,6 +74,100 @@ export class RecordsProvider {
     }
 
     return doctor.data?.fullName;
+  }
+
+  private async cacheRecord(ctx: EAddMedicalRecordToContract) {
+    const { approvalId, cid, practitionerId, recordChainId, userId } = ctx;
+    const parsedRecord = {
+      userId,
+      approvalId,
+      cid,
+      practitionerId,
+      recordChainId,
+    };
+
+    await this.cacheManager.set(
+      `${userId}-${approvalId}`,
+      JSON.stringify(parsedRecord),
+    );
+  }
+
+  @OnEvent(SharedEvents.STORE_RECORD_ON_CHAIN)
+  private async storeRecordOnChain(ctx: EAddMedicalRecordToContract) {
+    try {
+      const txData = await this.contractService.addMedicalRecordToContract(ctx);
+      if (!txData || !txData.data) {
+        const cacheKey = `${ctx.userId}-${ctx.approvalId}`;
+        const cachedData = await this.cacheManager.get(cacheKey);
+        const parsedData = JSON.parse(
+          cachedData as string,
+        ) as EAddMedicalRecordToContract;
+
+        this.logger.log(`Data from cache ${cachedData}`);
+
+        const retryTxData =
+          await this.contractService.addMedicalRecordToContract(parsedData);
+        if (!retryTxData || !retryTxData.data) {
+          await this.createRecordQueue.createRecordJob(parsedData);
+        }
+
+        await this.cacheManager.del(cacheKey);
+      }
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: RSM.ADDED_RECORD_ON_CHAIN_SUCCESSFULLY,
+      });
+    } catch (e) {
+      if (e instanceof InternalServerErrorException) {
+        this.logger.warn(
+          `InternalServerErrorException caught, retrying transaction for user ${ctx.userId}, approval ${ctx.approvalId}`,
+          e.message,
+        );
+        try {
+          const cacheKey = `${ctx.userId}-${ctx.approvalId}`;
+          const cachedData = await this.cacheManager.get(cacheKey);
+          const parsedData = cachedData
+            ? (JSON.parse(cachedData as string) as EAddMedicalRecordToContract)
+            : ctx;
+
+          this.logger.debug(`Attempting retry for medical record transaction`);
+          const retryTxData =
+            await this.contractService.addMedicalRecordToContract(parsedData);
+
+          if (!retryTxData || !retryTxData.data) {
+            this.logger.warn(`Retry failed, queueing job for later processing`);
+            await this.createRecordQueue.createRecordJob(parsedData);
+          } else {
+            this.logger.log(
+              `Retry successful for user ${ctx.userId}, approval ${ctx.approvalId}`,
+            );
+          }
+
+          if (cachedData) {
+            await this.cacheManager.del(cacheKey);
+          }
+
+          return this.handler.handleReturn({
+            status: HttpStatus.OK,
+            message: RSM.ADDED_RECORD_ON_CHAIN_SUCCESSFULLY,
+          });
+        } catch (retryError) {
+          this.logger.error(
+            `Retry attempt also failed for user ${ctx.userId}, approval ${ctx.approvalId}`,
+            retryError.message,
+          );
+        }
+      }
+
+      throw new RecordsError(
+        REM.FAILED_TO_STORE_RECORDS_ON_CHAIN,
+        {
+          cause: e.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async createRecord(ctx: ICreateRecord) {
@@ -109,7 +209,6 @@ export class RecordsProvider {
         });
       }
 
-      // Process attachments
       const attachments: Express.Multer.File[] = [];
       if (attachment1) attachments.push(attachment1);
       if (attachment2) attachments.push(attachment2);
@@ -117,10 +216,7 @@ export class RecordsProvider {
 
       const name = await this.returnPractitionerName(practitionerId);
       if (!name) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: 'Practitioner not found',
-        });
+        throw new NotFoundException('Practitioner not found');
       }
 
       const encryptedRecordResult =
@@ -134,10 +230,7 @@ export class RecordsProvider {
 
       const encryptedResult = encryptedRecordResult.data;
       if (!encryptedResult) {
-        return this.handler.handleReturn({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: REM.ERROR_CREATING_RECORD,
-        });
+        throw new InternalServerErrorException('Error encrypting record');
       }
 
       const dbResult = await this.db.transaction(async (tx) => {
@@ -166,7 +259,7 @@ export class RecordsProvider {
           .update(schema.userRecordCounters)
           .set({
             lastRecordChainId: nextChainId,
-            updatedAt: new Date().toISOString(),
+            updatedAt: new Date(),
           })
           .where(eq(schema.userRecordCounters.userId, patientId));
 
@@ -203,23 +296,12 @@ export class RecordsProvider {
         attachments: attachments,
       });
 
-      if (!('data' in ipfsResult) || !ipfsResult) {
-        await this.rollbackRecordCreation({
-          recordChainId: dbResult.recordId,
-          userId: patientId,
-        });
-        return this.handler.handleReturn({
-          status: ipfsResult.status,
-          message: ipfsResult.message,
-        });
-      }
-
-      const cid = ipfsResult.data;
+      const cid = ipfsResult?.data;
       if (!cid) {
-        return this.handler.handleReturn({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: IPFS_ERROR_MESSAGES.ERROR_UPLOADING_RECORD,
-        });
+        throw new HttpException(
+          IPFS_ERROR_MESSAGES.ERROR_UPLOADING_RECORD,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
 
       const recordEvent = new EAddMedicalRecordToContract(
@@ -230,7 +312,9 @@ export class RecordsProvider {
         dbResult.recordId,
       );
 
-      await this.createRecordQueue.createRecordJob(recordEvent);
+      await this.cacheRecord(recordEvent);
+      this.eventEmitter.emit(SharedEvents.STORE_RECORD_ON_CHAIN, recordEvent);
+
       this.eventEmitter.emit(
         SharedEvents.UPDATE_USER_LOGIN,
         new EOnUserLogin(practitionerId, new Date(), new Date()),
@@ -241,7 +325,7 @@ export class RecordsProvider {
         message: RSM.SUCCESS_CREATING_RECORD,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_CREATING_RECORD);
+      this.handler.handleError(e, e.message || REM.ERROR_CREATING_RECORD);
     }
   }
 
@@ -293,7 +377,7 @@ export class RecordsProvider {
             .update(schema.userRecordCounters)
             .set({
               lastRecordChainId: recordChainId - 1,
-              updatedAt: new Date().toISOString(),
+              updatedAt: new Date(),
             })
             .where(eq(schema.userRecordCounters.userId, userId));
           this.eventEmitter.emit(
@@ -394,7 +478,7 @@ export class RecordsProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
+      this.handler.handleError(e, e.message || REM.ERROR_FETCHING_RECORDS);
     }
   }
 
@@ -407,22 +491,12 @@ export class RecordsProvider {
         viewerAddress,
       });
 
-      if (!('data' in recordUriResult && recordUriResult)) {
-        throw new HttpException(
-          'Failed to fetch record URIs',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      const recordUris = recordUriResult.data;
-      this.logger.log(`Record uri is fetched from chain ${recordUris}`);
+      const recordUris = recordUriResult?.data;
       if (recordUris && recordUris.length > 0) {
         const decryptedRecords = await Promise.all(
           recordUris.map(async (uri) => {
             const encryptedRecord =
               await this.ipfsService.fetchRecordFromIpfs(uri);
-            this.logger.log(
-              `Ipfs server returns with record ${JSON.stringify(encryptedRecord)}`,
-            );
 
             const isIpfsRecord = (record: any): record is IpfsRecord => {
               return (
@@ -462,10 +536,6 @@ export class RecordsProvider {
                   : [],
               };
 
-              this.logger.log(
-                `Decrypted record data: ${JSON.stringify(recordData)}`,
-              );
-
               return {
                 ...recordData,
                 uploadedAt: formatDateToReadable(encryptedRecord.uploadedAt),
@@ -484,7 +554,6 @@ export class RecordsProvider {
   }
 
   async fetchRecordByChainId(ctx: IFetchRecordById) {
-    this.logger.log(`Provider is hit.`);
     const { patientId, practitionerId, recordChainId } = ctx;
     let viewerAddress: string | undefined = undefined;
     try {
@@ -526,10 +595,7 @@ export class RecordsProvider {
           !approvalDetails.isRequestAccepted ||
           !readPermissions.includes(approvalDetails.accessLevel.toLowerCase())
         ) {
-          return this.handler.handleReturn({
-            status: HttpStatus.UNAUTHORIZED,
-            message: 'Invalid permissions',
-          });
+          throw new UnauthorizedException('Invalid permissions');
         }
 
         if (!isValid) {
@@ -538,11 +604,9 @@ export class RecordsProvider {
             new EDeleteApproval(approvalDetails.approvalId),
           );
 
-          return this.handler.handleReturn({
-            status: HttpStatus.CONFLICT,
-            message: 'Approval duration expired, deleting approval',
-            data: approvalDetails.approvalId,
-          });
+          throw new ConflictException(
+            'Approval duration expired, deleting approval',
+          );
         }
       }
 
@@ -561,19 +625,12 @@ export class RecordsProvider {
         );
 
       const recordType = patientRecordType[0].recordType;
-      this.logger.log(
-        `Patient record from db ${JSON.stringify(patientRecordType)}`,
-      );
 
       const decryptedRecord = await this.fetchUriAndDecrypt({
         recordIds: [recordChainId],
         userId: patientId,
         viewerAddress,
       });
-
-      this.logger.log(
-        `Decrypted record from db ${JSON.stringify(decryptedRecord)}`,
-      );
 
       if (!decryptedRecord) {
         throw new HttpException(
@@ -608,7 +665,7 @@ export class RecordsProvider {
         data: enrichedRecord,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_FETCHING_RECORDS);
+      this.handler.handleError(e, e.message || REM.ERROR_FETCHING_RECORDS);
     }
   }
 }

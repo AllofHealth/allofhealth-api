@@ -10,7 +10,7 @@ export class AccountAbstractionService {
 
   @OnEvent(SharedEvents.CREATE_SMART_ACCOUNT, { async: true })
   async createSmartAccount(ctx: CreateSmartAccount) {
-    return this.provider.createSmartAccount(ctx.userId);
+    return this.provider.createSmartAccount(ctx.userId, ctx.rpc);
   }
 
   async getSmartAddress(userId: string) {

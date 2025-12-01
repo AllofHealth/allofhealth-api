@@ -223,3 +223,20 @@ export function monthNumberToName(
     ? abbreviatedMonthNames[monthNumber]
     : fullMonthNames[monthNumber];
 }
+
+/**
+ * Formats a timestamp (milliseconds since epoch) to a readable time string "H:MM.SS"
+ * Example: 2:05.30 for 2 hours, 5 minutes, and 30 seconds
+ * @param ms - Timestamp in milliseconds
+ * @returns Readable time string
+ */
+export function formatTimeReadable(ms: number): string {
+  if (typeof ms !== 'number' || isNaN(ms) || ms < 0) {
+    throw new Error('Invalid timestamp provided');
+  }
+  const date = new Date(ms);
+  const hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const seconds = date.getSeconds().toString().padStart(2, '0');
+  return `${hours}:${minutes}.${seconds}`;
+}

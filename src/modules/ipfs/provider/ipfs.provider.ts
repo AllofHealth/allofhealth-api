@@ -169,6 +169,7 @@ export class IpfsProvider implements OnModuleInit {
       const jsonString = buffer.toString('utf-8');
 
       const recordData = JSON.parse(jsonString);
+
       if (!recordData) {
         throw new Error('Invalid record format: missing required fields');
       }

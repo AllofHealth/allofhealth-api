@@ -37,7 +37,10 @@ export class StoreId {
 }
 
 export class CreateSmartAccount {
-  constructor(readonly userId: string) {}
+  constructor(
+    readonly userId: string,
+    readonly rpc?: string,
+  ) {}
 }
 
 export class MintHealthToken {
@@ -99,15 +102,16 @@ export class ERegisterEntity {
 export class EHandleRegisterPatient {
   constructor(
     readonly userId: string,
-    readonly governmentIdFilePath: string,
+
+    readonly governmentIdFilePath?: string,
   ) {}
 }
 
 export class EHandleRegisterDoctor {
   constructor(
     readonly userId: string,
-    readonly governmentIdFilePath: string,
     readonly scannedLicenseFilePath: string,
+    readonly governmentIdFilePath?: string,
   ) {}
 }
 
@@ -187,5 +191,44 @@ export class ESendEmail {
     readonly from?: string,
     readonly useHtml?: boolean,
     readonly context?: TEmailContext,
+  ) {}
+}
+
+export class BookingCreatedEvent {
+  constructor(
+    readonly to: string,
+    readonly patientName: string,
+    readonly doctorName: string,
+    readonly date: string,
+    readonly time: string,
+    readonly consultationType: string,
+  ) {}
+}
+
+export class BookingConfirmedEvent {
+  constructor(
+    public readonly bookingId: string,
+    public readonly patientId: string,
+    public readonly doctorId: string,
+    public readonly videoRoomUrl: string,
+  ) {}
+}
+
+export class BookingCancelledEvent {
+  constructor(
+    public readonly bookingId: string,
+    public readonly patientId: string,
+    public readonly doctorId: string,
+    public readonly paymentStatus: string,
+    public readonly amount: number,
+  ) {}
+}
+
+export class BookingCompletedEvent {
+  constructor(
+    public readonly bookingId: string,
+    public readonly patientId: string,
+    public readonly doctorId: string,
+    public readonly duration: number,
   ) {}
 }

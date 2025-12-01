@@ -68,3 +68,14 @@ cache/
 
 # Sentry Config File
 .sentryclirc
+
+# Google Service Account
+src/shared/modules/push-notifications/config/allofhealth-google.config.json
+
+# Cal.com integration
+src/shared/modules/cal-integration/config/cal-integration.config.json
+
+# Cal.com integration
+
+# Seed
+src/modules/seed

@@ -1,4 +1,9 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as fs from 'fs';
 import ImageKit from 'imagekit';
@@ -114,7 +119,7 @@ export class AssetProvider {
 
       return folders.some((folder) => folder.name === folderName);
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_VALIDATING_FOLDER);
+      this.handler.handleError(e, e.message || AEM.ERROR_VALIDATING_FOLDER);
     }
   }
 
@@ -140,7 +145,7 @@ export class AssetProvider {
         status: HttpStatus.OK,
       };
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_CREATING_FOLDER);
+      this.handler.handleError(e, e.message || AEM.ERROR_CREATING_FOLDER);
     }
   }
 
@@ -190,12 +195,6 @@ export class AssetProvider {
       if (!result) {
         throw new BadRequestException(AEM.ERROR_CREATING_FOLDER);
       }
-      if (result.status === HttpStatus.INTERNAL_SERVER_ERROR) {
-        return this.handler.handleReturn({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: AEM.ERROR_CREATING_FOLDER,
-        });
-      }
 
       filesToCleanup.push(profilePictureFilePath);
       const profilePictureBuffer = fs.readFileSync(profilePictureFilePath);
@@ -217,7 +216,7 @@ export class AssetProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.ERROR_UPLOADING_FILE);
+      this.handler.handleError(e, e.mesasage || AEM.ERROR_UPLOADING_FILE);
     }
   }
 
@@ -229,21 +228,12 @@ export class AssetProvider {
       const { token } = this.authenticateImageKit();
 
       if (!token) {
-        return this.handler.handleReturn({
-          status: HttpStatus.UNAUTHORIZED,
-          message: AEM.UNAUTHORIZED,
-        });
+        throw new UnauthorizedException();
       }
 
       const result = await this.createFolder(ctx.userId);
       if (!result) {
         throw new BadRequestException(AEM.ERROR_CREATING_FOLDER);
-      }
-      if (result.status === HttpStatus.INTERNAL_SERVER_ERROR) {
-        return this.handler.handleReturn({
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: AEM.ERROR_CREATING_FOLDER,
-        });
       }
 
       let uploadPromises: Promise<any>[] = [];
@@ -318,7 +308,7 @@ export class AssetProvider {
       });
     } catch (e) {
       await this.cleanupLocalFiles(filesToCleanup);
-      return this.handler.handleError(e, AEM.ERROR_UPLOADING_FILE);
+      return this.handler.handleError(e, e.message || AEM.ERROR_UPLOADING_FILE);
     }
   }
 }

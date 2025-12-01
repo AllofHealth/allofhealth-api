@@ -3,7 +3,12 @@ import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { ExternalAccountService } from '@/shared/modules/external-account/service/external-account.service';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import {
   WALLET_ERROR_MESSAGES as WEM,
@@ -24,7 +29,7 @@ export class WalletProvider {
     try {
       return await this.contractService.fetchTokenBalance(userId);
     } catch (e) {
-      return this.handler.handleError(e, WEM.ERROR_FETCHING_TOKEN_BALANCE);
+      this.handler.handleError(e, WEM.ERROR_FETCHING_TOKEN_BALANCE);
     }
   }
 
@@ -39,10 +44,7 @@ export class WalletProvider {
         .where(eq(schema.accounts.userId, userId));
 
       if (!wallet || wallet.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: WEM.NOT_FOUND,
-        });
+        throw new NotFoundException(WEM.NOT_FOUND);
       }
 
       const walletBalance = await this.eoaService.getBalance(
@@ -59,7 +61,7 @@ export class WalletProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, WEM.ERROR_FETCHING_WALLET);
+      this.handler.handleError(e, WEM.ERROR_FETCHING_WALLET);
     }
   }
 }

@@ -90,6 +90,21 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - ✅ Patient-owned health data tracking
 - ✅ Secure journal storage
 
+#### Error Monitoring & Observability
+- ✅ Sentry integration for error tracking and monitoring
+- ✅ Custom logger service with Sentry integration
+- ✅ Automated error reporting and performance monitoring
+- ✅ Real-time error alerts and debugging support
+- ✅ Source map uploads for better error tracking
+
+#### Push Notifications System
+- ✅ Firebase Admin SDK integration for push notifications
+- ✅ Cross-platform notification support (iOS/Android)
+- ✅ Custom notification service with error handling
+- ✅ Token-based notification targeting
+- ✅ Notification payload customization with data support
+
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 #### Medical Record Management
 - ✅ Blockchain-based approval system for data access
 - ✅ Patient-controlled access permissions
@@ -170,6 +185,10 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - 🔄 Real-time notifications system
 - 🔄 Medical records retrieval interface
 - 🔄 Achievement badges and milestone rewards
+- 🔄 Medical records retrieval interface
+- 🔄 Achievement badges and milestone rewards
+- 🔄 Push notification automation for task reminders
+- 🔄 Advanced Sentry performance monitoring and alerting
 
 ### 🔮 Advanced Features (Planned)
 
@@ -192,6 +211,9 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 - **Authentication**: JWT, 2FA support
 - **File Storage**: Local disk storage (development), IPFS (production)
 - **API**: RESTful APIs with comprehensive OpenAPI documentation
+- **Error Monitoring**: Sentry for real-time error tracking and performance monitoring
+- **Push Notifications**: Firebase Admin SDK for cross-platform notifications
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ### Decentralized Storage
 - **IPFS**: Kubo implementation for distributed file storage
@@ -206,10 +228,11 @@ To create a unified, patient-controlled digital health ecosystem that eliminates
 
 ### DevOps & Infrastructure
 - **Containerization**: Docker with IPFS integration
-- **CI/CD**: GitHub Actions
+- **CI/CD**: GitHub Actions with Sentry source map uploads
 - **Cloud**: AWS/GCP (planned)
-- **Monitoring**: Prometheus + Grafana (planned)
+- **Monitoring**: Sentry (error tracking), Prometheus + Grafana (planned)
 - **Security**: SSL/TLS, rate limiting, DDoS protection
+- **Process Management**: PM2 for production deployment
 
 ## 🚀 Getting Started
 
@@ -399,6 +422,14 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 ### Newsletter Management
 - `POST /newsletter/subscribe` - Subscribe to newsletter
 
+### Push Notifications
+- **Internal Service**: `PushNotificationsService` - Firebase-based notification delivery
+- **Cross-Platform Support**: iOS and Android push notification support
+- **Token Management**: Device token-based notification targeting
+- **Payload Customization**: Support for notification title, body, and custom data
+- **Error Handling**: Comprehensive error tracking with Sentry integration
+
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 ### IPFS Integration
 - `GET /ipfs/testIpfs` - Test IPFS functionality and upload
 
@@ -468,6 +499,8 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - **📋 Audit Trails**: Comprehensive logging for compliance
 - **🔒 Record Encryption Service**: Dedicated service for encrypting/decrypting medical records
 - **🛡️ Batch Processing**: Secure batch encryption for multiple data components
+- **📊 Error Monitoring**: Real-time error tracking and alerting with Sentry
+- **🔔 Secure Notifications**: Firebase-based push notifications with proper error handling
 
 ## 🔧 Development Status
 
@@ -506,6 +539,10 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [x] **Comprehensive admin dashboard with user management**
 - [x] **User suspension, rejection, and account management**
 - [x] **Task statistics and historical reward data**
+- [x] **Sentry integration for comprehensive error monitoring and performance tracking**
+- [x] **Firebase push notifications system with cross-platform support**
+- [x] **Custom logger service with Sentry breadcrumbs and error capture**
+- [x] **Automated source map uploads for enhanced debugging**
 
 ### 🔄 In Progress
 - [ ] Frontend web application development
@@ -534,6 +571,9 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - [ ] Health token marketplace and exchange
 - [ ] Streak bonuses and tiered rewards
 - [ ] Social features and health challenges
+- [ ] Automated push notification triggers for health reminders
+- [ ] Advanced Sentry dashboards and custom alerts
+- [ ] Real-time notification delivery status tracking
 
 ## 📊 Success Metrics
 
@@ -571,6 +611,17 @@ docker run -p 3001:3001 -p 5001:5001 -p 8080:8080 allofhealth-api
 - IPFS content verification
 - Regular security assessments
 - Penetration testing (planned)
+- **Error Privacy**: Sentry configured with privacy controls for sensitive data
+
+### Audit & Monitoring
+- Comprehensive audit trails
+- Real-time security monitoring with Sentry
+- IPFS content verification
+- Regular security assessments
+- Penetration testing (planned)
+- Error tracking and performance monitoring
+- Custom logging with breadcrumb tracking
+>>>>>>> c4a97b599ee13bf577d48228045ff0488126f718
 
 ## 🐳 Docker Support
 
@@ -629,6 +680,16 @@ RECORD_ENCRYPTION_KEY= # Base64 encoded 32-byte key for AES-256-CBC encryption
 # Reward System
 DAILY_TARGET=5         # Number of daily tasks required for token reward
 REWARD_AMOUNT=0.01     # Amount of tokens minted per daily target completion (in ETH)
+
+
+# Sentry Configuration
+SENTRY_DSN=            # Sentry DSN for error tracking
+NODE_ENV=STAGING       # Environment (STAGING, PRODUCTION, DEVELOPMENT)
+
+# Firebase Push Notifications
+# Place your Firebase service account JSON file at:
+# src/shared/modules/push-notifications/config/allofhealth-google.config.json
+
 
 # Database
 DATABASE_URL=postgresql://...

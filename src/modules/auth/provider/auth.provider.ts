@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '@/modules/token/service/token.service';
 import { ICreateUser } from '@/modules/user/interface/user.interface';
 import { UserService } from '@/modules/user/service/user.service';
-import { EOnUserLogin } from '@/shared/dtos/event.dto';
+import { EOnUserLogin, ESendEmail } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import { AuthUtils } from '@/shared/utils/auth.utils';
@@ -60,13 +60,6 @@ export class AuthProvider {
         token: refreshToken,
         expiresIn,
       });
-
-      if (result.status !== HttpStatus.OK) {
-        return {
-          status: result.status,
-          message: result.message,
-        };
-      }
     }
 
     return { accessToken, refreshToken };
@@ -102,26 +95,14 @@ export class AuthProvider {
         token: refreshToken,
       });
 
-      if (
-        tokenResult.status !== HttpStatus.OK ||
-        !('data' in tokenResult && tokenResult.data)
-      ) {
-        return {
-          status: HttpStatus.UNAUTHORIZED,
-          message: AEM.TOKEN_NOT_FOUND,
-        };
+      const userResult = await this.findUserById(payload.userId);
+
+      if (!userResult?.data) {
+        throw new AuthError('User not found', HttpStatus.NOT_FOUND);
       }
 
-      const userResult = await this.findUserById(payload.userId);
-      if (
-        userResult.status !== HttpStatus.OK ||
-        !('data' in userResult) ||
-        userResult.data === null
-      ) {
-        return {
-          status: HttpStatus.OK,
-          message: userResult.message,
-        };
+      if (!tokenResult?.data) {
+        throw new AuthError('Token not found', HttpStatus.UNAUTHORIZED);
       }
 
       const tokens = await this.generateTokens({
@@ -155,29 +136,26 @@ export class AuthProvider {
         },
       };
     } catch (error) {
-      return this.handler.handleError(error, AEM.TOKEN_REFRESH_FAILED);
+      this.handler.handleError(
+        error,
+        error.message || AEM.TOKEN_REFRESH_FAILED,
+      );
     }
   }
 
   async handleSignup(ctx: ICreateUser) {
     try {
-      const result = await this.createUser({
+      await this.createUser({
         ...ctx,
         authProvider: 'CREDENTIALS',
       });
-      if (result.status !== HttpStatus.OK) {
-        return {
-          status: result.status,
-          message: result.message,
-        };
-      }
 
       return {
         status: HttpStatus.OK,
         message: ASM.REGISTRATION_SUCCESS,
       };
     } catch (error) {
-      return this.handler.handleError(error, AEM.REGISTRATION_FAILED);
+      this.handler.handleError(error, error.message || AEM.REGISTRATION_FAILED);
     }
   }
 
@@ -193,27 +171,39 @@ export class AuthProvider {
       }
 
       const result = await this.findUserByEmail(email);
-      if (
-        result.status !== HttpStatus.OK ||
-        !('data' in result && result.data)
-      ) {
-        return {
-          status: HttpStatus.NOT_FOUND,
-          message: AEM.USER_NOT_FOUND,
-        };
+      if (!result || !result.data) {
+        throw new UnauthorizedException(
+          new AuthError(AEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND),
+        );
       }
 
       const userProfile = result.data;
+
+      if (userProfile.isFirstimeUser) {
+        this.eventEmitter.emit(
+          SharedEvents.SEND_ONBOARDING,
+          new ESendEmail(
+            email,
+            undefined,
+            undefined,
+            userProfile.fullName,
+            undefined,
+            undefined,
+            'WELCOME',
+          ),
+        );
+      }
+
       const isUserRejected = await this.adminService.verifyRejectionStatus({
         email: userProfile.email,
       });
 
       if (isUserRejected) {
-        return this.handler.handleReturn({
-          status: HttpStatus.FORBIDDEN,
-          message: REJECTION_REASON.LOGIN_IN,
-        });
+        throw new UnauthorizedException(
+          new AuthError(REJECTION_REASON.LOGIN_IN, HttpStatus.FORBIDDEN),
+        );
       }
+
       await this.userService.checkUserSuspension(userProfile.userId);
 
       const isPasswordValid = await this.authUtils.compare({
@@ -259,7 +249,7 @@ export class AuthProvider {
         } as ILoginResponse,
       });
     } catch (e) {
-      return this.handler.handleError(e, AEM.LOGIN_FAILED);
+      this.handler.handleError(e, e.message || AEM.LOGIN_FAILED);
     }
   }
 }

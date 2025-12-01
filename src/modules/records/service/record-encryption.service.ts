@@ -35,10 +35,20 @@ export class RecordsEncryptionService {
   }
 
   private batchEncryptRecords(tests: string[]) {
+    if (!Array.isArray(tests)) {
+      throw new Error(
+        `Expected array for batch encryption, received: ${typeof tests}`,
+      );
+    }
     return Promise.all(tests.map((test) => this.encryptRecord(test)));
   }
 
   private batchDecryptRecords(encryptedTests: string[]) {
+    if (!Array.isArray(encryptedTests)) {
+      throw new Error(
+        `Expected array for batch decryption, received: ${typeof encryptedTests}`,
+      );
+    }
     return Promise.all(
       encryptedTests.map((encryptedTest) => this.decryptRecord(encryptedTest)),
     );
@@ -54,6 +64,18 @@ export class RecordsEncryptionService {
     } = ctx;
 
     try {
+      // Validate required arrays
+      if (!Array.isArray(clinicalNotes)) {
+        throw new Error(
+          `clinicalNotes must be an array, received: ${typeof clinicalNotes}`,
+        );
+      }
+      if (!Array.isArray(diagnosis)) {
+        throw new Error(
+          `diagnosis must be an array, received: ${typeof diagnosis}`,
+        );
+      }
+
       const encryptedTitle = this.encryptRecord(title);
       const encryptedClinicalNotes =
         await this.batchEncryptRecords(clinicalNotes);
@@ -62,11 +84,11 @@ export class RecordsEncryptionService {
       let encryptedLabResults: string[] = [];
       let encryptedMedicationsPrescribed: string[] = [];
 
-      if (labResults) {
+      if (labResults && Array.isArray(labResults)) {
         encryptedLabResults = await this.batchEncryptRecords(labResults);
       }
 
-      if (medicationsPrescribed) {
+      if (medicationsPrescribed && Array.isArray(medicationsPrescribed)) {
         encryptedMedicationsPrescribed = await this.batchEncryptRecords(
           medicationsPrescribed,
         );
@@ -100,6 +122,18 @@ export class RecordsEncryptionService {
     } = ctx;
 
     try {
+      // Validate required arrays
+      if (!Array.isArray(clinicalNotes)) {
+        throw new Error(
+          `clinicalNotes must be an array, received: ${typeof clinicalNotes}`,
+        );
+      }
+      if (!Array.isArray(diagnosis)) {
+        throw new Error(
+          `diagnosis must be an array, received: ${typeof diagnosis}`,
+        );
+      }
+
       const decryptedClinicalNotes =
         await this.batchDecryptRecords(clinicalNotes);
       const decryptedDiagnosis = await this.batchDecryptRecords(diagnosis);
@@ -108,11 +142,11 @@ export class RecordsEncryptionService {
       let decryptedLabResults: string[] = [];
       let decryptedMedicationsPrescribed: string[] = [];
 
-      if (labResults) {
+      if (labResults && Array.isArray(labResults)) {
         decryptedLabResults = await this.batchDecryptRecords(labResults);
       }
 
-      if (medicationsPrescribed) {
+      if (medicationsPrescribed && Array.isArray(medicationsPrescribed)) {
         decryptedMedicationsPrescribed = await this.batchDecryptRecords(
           medicationsPrescribed,
         );

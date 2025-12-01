@@ -1,5 +1,12 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, ne, sql } from 'drizzle-orm';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { and, asc, desc, eq, ilike, ne, sql } from 'drizzle-orm';
 import * as schema from '@/schemas/schema';
 import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
 import { Database } from '@/shared/drizzle/drizzle.types';
@@ -42,10 +49,7 @@ export class DoctorProvider {
         .limit(1);
 
       if (!doctor || doctor.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: DEM.DOCTOR_NOT_FOUND,
-        });
+        throw new NotFoundException(DEM.DOCTOR_NOT_FOUND);
       }
 
       let servicesOffered: string[];
@@ -80,31 +84,31 @@ export class DoctorProvider {
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
-        message: DSM.DOCTOR_CREATED,
+        message: DSM.DOCTOR_FETCHED,
         data: parsedDoctor,
       });
     } catch (e) {
-      return this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
+      this.handler.handleError(e, e.message || DEM.ERROR_CREATING_DOCTOR);
     }
   }
 
   async validateDoctorExists(userId: string) {
-    const doctor = await this.fetchDoctor(userId);
-    if (doctor.status === HttpStatus.OK) {
+    try {
+      const doctor = await this.fetchDoctor(userId);
+      if (!doctor) {
+        return false;
+      }
       return true;
+    } catch (error) {
+      return false;
     }
-
-    return false;
   }
 
   async createDoctor(ctx: ICreateDoctor) {
     try {
       const doctorExists = await this.validateDoctorExists(ctx.userId);
       if (doctorExists) {
-        return this.handler.handleReturn({
-          status: HttpStatus.FOUND,
-          message: DEM.DOCTOR_ALREADY_EXISTS,
-        });
+        throw new ConflictException(DEM.DOCTOR_ALREADY_EXISTS);
       }
 
       const licenseExpirationDateString =
@@ -131,7 +135,7 @@ export class DoctorProvider {
         message: DSM.DOCTOR_CREATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, DEM.ERROR_CREATING_DOCTOR);
+      this.handler.handleError(e, e.message || DEM.ERROR_CREATING_DOCTOR);
     }
   }
 
@@ -141,19 +145,17 @@ export class DoctorProvider {
     const sortFn = sort === 'desc' ? desc : asc;
     const sortColumn = schema.user.createdAt;
     try {
-      const constantQuery = [
+      const whereClauses = [
         eq(schema.user.role, USER_ROLE.DOCTOR),
         ne(schema.user.status, USER_STATUS.SUSPENDED),
       ];
-      let whereConditions: any;
 
       if (query && query.trim()) {
         const searchQuery = `%${query.trim()}%`;
-        whereConditions = and(
-          ...constantQuery,
-          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery}`,
-        );
+        whereClauses.push(ilike(schema.user.fullName, searchQuery));
       }
+
+      const whereConditions = and(...whereClauses);
 
       const totalDoctorsResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
@@ -212,7 +214,7 @@ export class DoctorProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, DEM.ERROR_FETCHING_ALL_DOCTORS);
+      this.handler.handleError(e, e.message || DEM.ERROR_FETCHING_ALL_DOCTORS);
     }
   }
 

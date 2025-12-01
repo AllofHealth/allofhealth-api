@@ -35,6 +35,14 @@ import { BrevoModule } from './shared/modules/brevo/brevo.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER } from '@nestjs/core';
+import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
+import { PushNotificationsModule } from './shared/modules/push-notifications/push-notifications.module';
+import { TelemedicineModule } from './modules/telemedicine/telemedicine.module';
+import { BookingModule } from './modules/booking/booking.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { ConsultationModule } from './modules/consultation/consultation.module';
 
 @Module({
   imports: [
@@ -63,10 +71,29 @@ import { APP_FILTER } from '@nestjs/core';
         redis: {
           host: configService.get('redis.host'),
           port: configService.get('redis.port'),
-          username: configService.get('redis.username'),
           password: configService.get('redis.password'),
         },
       }),
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const password = configService.getOrThrow<string>('redis.password');
+        const host = configService.getOrThrow<string>('redis.host');
+        const port = configService.getOrThrow<string>('redis.port');
+
+        const url = `redis://${password}@${host}:${port}`;
+
+        return {
+          stores: new KeyvRedis(url),
+          ttl: 600 * 1000,
+          socket: {
+            reconnectStrategy: (retries) => Math.min(retries * 50, 1000),
+          },
+        };
+      },
     }),
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
@@ -95,6 +122,12 @@ import { APP_FILTER } from '@nestjs/core';
     DailyTasksModule,
     BrevoModule,
     NewsletterModule,
+    PushNotificationsModule,
+    TelemedicineModule,
+    BookingModule,
+    PaymentModule,
+    WebhooksModule,
+    ConsultationModule,
   ],
   controllers: [AppController],
   providers: [

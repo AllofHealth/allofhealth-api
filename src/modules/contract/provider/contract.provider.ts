@@ -14,7 +14,9 @@ import { ExternalAccountService } from '@/shared/modules/external-account/servic
 import { PaymasterMode } from '@biconomy/account';
 import {
   BadRequestException,
+  ConflictException,
   HttpStatus,
+  Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
@@ -36,16 +38,22 @@ import {
   IApproveRecordAccessTx,
   IHandleAddMedicalRecord,
   IHandleApproval,
+  ILogRegistrationFailure,
   IProcessBatchViewMedicalRecord,
   IViewerHasAccessToRecords,
   IViewMedicalRecord,
 } from '../interface/contract.interface';
 import { RpcRotationService } from '@/shared/utils/contract/rpc-rotation.contract';
+import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
+import { Database } from '@/shared/drizzle/drizzle.types';
+import * as schema from '@/schemas/schema';
+import { ContractError } from '../error/contract.error';
 
 @Injectable()
 export class ContractProvider {
   private readonly logger = new MyLoggerService(ContractProvider.name);
   constructor(
+    @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly contractConfig: ContractConfig,
     private readonly eoaService: ExternalAccountService,
     private readonly handlerService: ErrorHandler,
@@ -128,6 +136,20 @@ export class ContractProvider {
     };
   }
 
+  private async logContractFailure(ctx: ILogRegistrationFailure) {
+    const { userId, reason = 'RPC ERROR' } = ctx;
+    try {
+      await this.db.insert(schema.contractRegistrationFailures).values({
+        userId,
+        reason,
+      });
+
+      return true;
+    } catch (e) {
+      this.handlerService.handleError(e, CEM.ERROR_LOGGING_CONTRACT_FAILURE);
+    }
+  }
+
   provideAdminContractInstance(rpc?: string) {
     return new ethers.Contract(
       this.contractConfig.CONTRACT_ADDRESS,
@@ -198,9 +220,9 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
-        CEM.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT,
+        e.message || CEM.ERROR_PROVIDING_SYSTEM_ADMIN_COUNT,
       );
     }
   }
@@ -249,10 +271,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(
-        e,
-        CEM.ERROR_PROVIDING_PATIENT_COUNT,
-      );
+      this.handlerService.handleError(e, CEM.ERROR_PROVIDING_PATIENT_COUNT);
     }
   }
 
@@ -313,7 +332,7 @@ export class ContractProvider {
       }
     } catch (e) {
       console.error(e);
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         CEM.ERROR_VERIFYING_NEW_RECORD_WRITE_PERMISSION,
       );
@@ -377,7 +396,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
         CEM.ERROR_VERIFYING_PRACTITIONER_ACCESS,
       );
@@ -430,7 +449,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_FETCHING_PATIENT_ID);
+      this.handlerService.handleError(e, CEM.ERROR_FETCHING_PATIENT_ID);
     }
   }
 
@@ -483,7 +502,7 @@ export class ContractProvider {
         throw new InternalServerErrorException('All RPC endpoints failed');
       }
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_FETCHING_DOCTOR_ID);
+      this.handlerService.handleError(e, CEM.ERROR_FETCHING_DOCTOR_ID);
     }
   }
 
@@ -498,6 +517,16 @@ export class ContractProvider {
 
       const { transactionHash } = await opResponse.waitForTxHash();
 
+      if (!transactionHash) {
+        await this.logContractFailure({
+          userId,
+        });
+
+        throw new ContractError('Failed to register patient', {
+          cause: 'Possibly rpc error',
+        });
+      }
+
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.PATIENT_REGISTERED_SUCCESSFULLY,
@@ -506,7 +535,11 @@ export class ContractProvider {
         },
       });
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
+      await this.logContractFailure({
+        userId,
+        reason: e.message,
+      });
+      this.handlerService.handleError(e, CEM.ERROR_REGISTERING_PATIENT);
     }
   }
 
@@ -514,11 +547,8 @@ export class ContractProvider {
     try {
       const smartWallet = await this.aaService.provideSmartWallet(userId);
       const result = await this.aaService.getSmartAddress(userId);
-      if (!('data' in result && result.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: result.message,
-        });
+      if (!result?.data) {
+        throw new Error('Failed to get smart address');
       }
 
       const smartAddress = result.data.smartAddress;
@@ -529,6 +559,16 @@ export class ContractProvider {
       });
 
       const { transactionHash } = await opResponse.waitForTxHash();
+      if (!transactionHash) {
+        await this.logContractFailure({
+          userId,
+        });
+
+        throw new ContractError('Failed to register doctor', {
+          cause: 'Possibly rpc error',
+        });
+      }
+
       return this.handlerService.handleReturn({
         status: HttpStatus.OK,
         message: CSM.DOCTOR_REGISTERED_SUCCESSFULLY,
@@ -537,7 +577,14 @@ export class ContractProvider {
         },
       });
     } catch (e) {
-      return this.handlerService.handleError(e, CEM.ERROR_REGISTERING_DOCTOR);
+      await this.logContractFailure({
+        userId,
+        reason: e.message,
+      });
+      this.handlerService.handleError(
+        e,
+        e.message || CEM.ERROR_REGISTERING_DOCTOR,
+      );
     }
   }
 
@@ -550,18 +597,12 @@ export class ContractProvider {
       const patientResult = await this.aaService.getSmartAddress(userId);
       const doctorResult = await this.aaService.getSmartAddress(doctorId);
 
-      if (!('data' in patientResult && patientResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientResult.message,
-        });
+      if (!patientResult?.data) {
+        throw new Error('Failed to get patient smart address');
       }
 
-      if (!('data' in doctorResult && doctorResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: doctorResult.message,
-        });
+      if (!doctorResult?.data) {
+        throw new Error('Failed to get doctor smart address');
       }
 
       const patientSmartAddress = patientResult.data.smartAddress;
@@ -569,11 +610,8 @@ export class ContractProvider {
 
       const patientIdResult =
         await this.handleGetPatientId(patientSmartAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -582,11 +620,8 @@ export class ContractProvider {
         patientId,
       });
 
-      if (!('data' in approvalRequest && approvalRequest.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: approvalRequest.message,
-        });
+      if (!approvalRequest?.data) {
+        throw new Error('Failed to check approval status');
       }
 
       const isApproved = approvalRequest.data.isApproved;
@@ -618,7 +653,7 @@ export class ContractProvider {
     } catch (e) {
       return this.handlerService.handleError(
         e,
-        CEM.ERROR_APPROVING_ADD_NEW_RECORD,
+        e.message || CEM.ERROR_APPROVING_ADD_NEW_RECORD,
       );
     }
   }
@@ -627,8 +662,8 @@ export class ContractProvider {
     const practitionerResult =
       await this.aaService.getSmartAddress(practitionerId);
 
-    if (!('data' in practitionerResult && practitionerResult.data)) {
-      throw new BadRequestException(practitionerResult.message);
+    if (!practitionerResult?.data) {
+      throw new BadRequestException('Failed to get practitioner smart address');
     }
 
     return practitionerResult.data.smartAddress;
@@ -637,8 +672,8 @@ export class ContractProvider {
   async getPatientSmartAddress(patientId: string) {
     const patientResult = await this.aaService.getSmartAddress(patientId);
 
-    if (!('data' in patientResult && patientResult.data)) {
-      throw new BadRequestException(patientResult.message);
+    if (!patientResult?.data) {
+      throw new BadRequestException('Failed to get patient smart address');
     }
 
     return patientResult.data.smartAddress;
@@ -660,11 +695,8 @@ export class ContractProvider {
 
       const patientIdResult =
         await this.handleGetPatientId(patientSmartAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -674,19 +706,13 @@ export class ContractProvider {
         recordId,
       });
 
-      if (!('data' in hasAccessResult && hasAccessResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: hasAccessResult.message,
-        });
+      if (!hasAccessResult?.data) {
+        throw new Error('Failed to check access status');
       }
 
       const hasAccess = hasAccessResult.data.hasAccess;
       if (hasAccess) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.OK,
-          message: CSM.VIEW_ACCESS_ALREADY_APPROVED,
-        });
+        throw new ConflictException(CSM.RECORD_ACCESS_APPROVED);
       }
 
       const tx = this.approveRecordAcessTx({
@@ -710,9 +736,9 @@ export class ContractProvider {
         },
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
-        CEM.ERROR_APPROVING_RECORD_ACCESS,
+        e.message || CEM.ERROR_APPROVING_RECORD_ACCESS,
       );
     }
   }
@@ -731,23 +757,13 @@ export class ContractProvider {
     switch (accessLevel) {
       case 'full':
         if (!recordIds || recordIds.length === 0) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: CEM.RECORD_ID_REQUIRED,
-          });
+          throw new BadRequestException(CEM.RECORD_ID_REQUIRED);
         }
 
-        const result = await this.handleApproveToAddNewRecord({
+        await this.handleApproveToAddNewRecord({
           doctorId: practitionerId,
           userId,
         });
-
-        if (result.status !== HttpStatus.OK) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: result.message,
-          });
-        }
 
         // Emit events for each record ID
         for (const recordId of recordIds) {
@@ -769,10 +785,7 @@ export class ContractProvider {
 
       case 'read':
         if (!recordIds || recordIds.length === 0) {
-          return this.handlerService.handleReturn({
-            status: HttpStatus.BAD_REQUEST,
-            message: CEM.RECORD_ID_REQUIRED,
-          });
+          throw new BadRequestException(CEM.RECORD_ID_REQUIRED);
         }
 
         // Emit events for each record ID
@@ -815,18 +828,14 @@ export class ContractProvider {
         this.aaService.getSmartAddress(practitionerId),
       ]);
 
-      if (!('data' in patientResult && patientResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientResult.message,
-        });
+      if (!patientResult?.data) {
+        throw new BadRequestException('Failed to get patient smart address');
       }
 
-      if (!('data' in practitionerResult && practitionerResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: practitionerResult.message,
-        });
+      if (!practitionerResult?.data) {
+        throw new BadRequestException(
+          'Failed to get practitioner smart address',
+        );
       }
 
       const patientSmartAddress = patientResult.data.smartAddress;
@@ -834,11 +843,8 @@ export class ContractProvider {
 
       const patientIdResult =
         await this.handleGetPatientId(patientSmartAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -858,6 +864,10 @@ export class ContractProvider {
 
       const { transactionHash } = await opResponse.waitForTxHash();
 
+      if (!transactionHash) {
+        throw new InternalServerErrorException('Failed to add medical record');
+      }
+
       await this.eventEmitter.emitAsync(
         SharedEvents.RESET_APPROVAL_PERMISSIONS,
         new EResetApprovalPermissions(approvalId),
@@ -869,9 +879,9 @@ export class ContractProvider {
         data: transactionHash,
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
-        CEM.ERROR_ADDING_MEDICAL_RECORD,
+        e.message || CEM.ERROR_ADDING_MEDICAL_RECORD,
       );
     }
   }
@@ -895,7 +905,7 @@ export class ContractProvider {
     } catch (e) {
       await this.rewardServicce.updateMintedState(userId, false);
 
-      return this.handlerService.handleError(e, CEM.ERROR_MINTING_TOKEN);
+      this.handlerService.handleError(e, e.message || CEM.ERROR_MINTING_TOKEN);
     }
   }
 
@@ -913,9 +923,9 @@ export class ContractProvider {
         data: formattedBalance,
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
-        CEM.ERROR_FETCHING_TOKEN_BALANCE,
+        e.message || CEM.ERROR_FETCHING_TOKEN_BALANCE,
       );
     }
   }
@@ -926,11 +936,8 @@ export class ContractProvider {
       let viewer: string = '';
       const patientAddress = await this.getPatientSmartAddress(userId);
       const patientIdResult = await this.handleGetPatientId(patientAddress);
-      if (!('data' in patientIdResult && patientIdResult.data)) {
-        return this.handlerService.handleReturn({
-          status: HttpStatus.BAD_REQUEST,
-          message: patientIdResult.message,
-        });
+      if (!patientIdResult?.data) {
+        throw new Error('Failed to get patient ID');
       }
 
       const patientId = patientIdResult.data.patientId;
@@ -955,9 +962,9 @@ export class ContractProvider {
         data: String(recordURI),
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
-        CEM.ERROR_VIEWING_MEDICAL_RECORD,
+        e.message || CEM.ERROR_VIEWING_MEDICAL_RECORD,
       );
     }
   }
@@ -974,7 +981,7 @@ export class ContractProvider {
           viewerAddress,
         });
 
-        if (!('data' in recordResult && recordResult.data)) {
+        if (!recordResult?.data) {
           this.logger.warn(`can not fetch record for this id`);
           continue;
         }
@@ -988,9 +995,9 @@ export class ContractProvider {
         data: recordURIS,
       });
     } catch (e) {
-      return this.handlerService.handleError(
+      this.handlerService.handleError(
         e,
-        CEM.ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS,
+        e.message || CEM.ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS,
       );
     }
   }

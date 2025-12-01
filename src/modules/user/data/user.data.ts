@@ -22,6 +22,8 @@ export enum USER_ERROR_MESSAGES {
   INVALID_EMAIL_ADDRESS = 'Invalid email address',
   ERROR_RESETING_PASSWORD = 'Error resetting password',
   PASSWORD_SAME_AS_OLD = 'Password cannot be the same as the old password',
+  ERROR_REINITIALIZING_WALLET = 'Error reinitializing wallet',
+  ERROR_ENDING_JOY_RIDE = 'Error ending joy ride',
 }
 
 export enum USER_SUCCESS_MESSAGE {
@@ -36,6 +38,7 @@ export enum USER_SUCCESS_MESSAGE {
   USER_ROLE_FETCHED_SUCCESSFULLY = 'User role fetched successfully',
   USERS_FETCHED_SUCCESSFULLY = 'User fetched successfully',
   PASSWORD_RESET_SUCCESSFUL = 'Password reset successful',
+  JOY_RIDE_ENDED_SUCCESSFULLY = 'Joy ride ended successfully',
 }
 
 export enum USER_STATUS {

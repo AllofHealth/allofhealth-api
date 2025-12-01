@@ -17,6 +17,7 @@ export enum ContractErrorMessages {
   ERROR_VIEWING_MEDICAL_RECORD = 'Error viewing medical record',
   ERROR_PROCESSING_BATCH_VIEW_MEDICAL_RECORDS = 'Error processing batch view medical record',
   ERROR_NO_ACCESS_TO_RECORD = 'No access to record',
+  ERROR_LOGGING_CONTRACT_FAILURE = 'Error logging contract registration failure',
 }
 
 export enum ContractSuccessMessages {

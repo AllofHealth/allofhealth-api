@@ -1,4 +1,9 @@
-import { EXPIRES_IN } from '../data/constants';
+import {
+  EXPIRES_IN,
+  IS_PRODUCTION,
+  PROD_URL,
+  STAGING_URL,
+} from '../data/constants';
 
 export default () => ({
   jwt: {
@@ -6,10 +11,7 @@ export default () => ({
     expiresIn: EXPIRES_IN,
   },
   database: {
-    url:
-      process.env.NODE_ENV === 'PRODUCTION'
-        ? process.env.DATABASE_URL
-        : process.env.DATABASE_URL_STAGING,
+    url: IS_PRODUCTION ? PROD_URL : STAGING_URL,
   },
   redis: {
     host: process.env.REDIS_HOST,

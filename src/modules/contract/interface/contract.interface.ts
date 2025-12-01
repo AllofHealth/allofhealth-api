@@ -70,3 +70,8 @@ export interface IProcessBatchViewMedicalRecord {
 export interface IGetNextContractInstance {
   adminContractInstance: (rpc: string) => Contract;
 }
+
+export interface ILogRegistrationFailure {
+  userId: string;
+  reason?: string;
+}

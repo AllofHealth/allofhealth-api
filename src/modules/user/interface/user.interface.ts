@@ -25,7 +25,7 @@ export interface ICreateUser {
   gender: string;
   phoneNumber: string;
   password: string;
-  governmentIdfilePath: string;
+  governmentIdfilePath?: string;
   bio?: string;
   servicesOffered?: string[];
   specialization?: string;
@@ -94,4 +94,10 @@ export interface IFetchUsers extends IFetchPatients {}
 export interface IPasswordReset {
   emailAddress: string;
   password: string;
+}
+
+export interface IWalletInfoResponse {
+  walletAddress: string;
+  balance: string;
+  lastUpdated: Date;
 }

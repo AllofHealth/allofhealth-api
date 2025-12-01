@@ -157,7 +157,7 @@ export class RewardProvider {
         message: RSM.REWARD_CREATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_CREATING_REWARD);
+      this.handler.handleError(e, REM.ERROR_CREATING_REWARD);
     }
   }
 
@@ -196,7 +196,7 @@ export class RewardProvider {
 
       await this.db.update(schema.dailyReward).set({
         dailyTaskCount: sql`${schema.dailyReward.dailyTaskCount} + 1`,
-        updatedAt: new Date().toISOString(),
+        updatedAt: new Date(),
       });
 
       return this.handler.handleReturn({
@@ -204,7 +204,7 @@ export class RewardProvider {
         message: RSM.REWARD_UPDATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_UPDATING_REWARD);
+      this.handler.handleError(e, e.message || REM.ERROR_UPDATING_REWARD);
     }
   }
 
@@ -217,22 +217,19 @@ export class RewardProvider {
         })
         .where(eq(schema.dailyReward.userId, userId));
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_UPDATING_REWARD);
+      this.handler.handleError(e, e.message || REM.ERROR_UPDATING_REWARD);
     }
   }
 
   async fetchRewardMetrics(userId: string) {
     try {
       const balance = await this.contractService.fetchTokenBalance(userId);
-      if (!(balance && 'data' in balance)) {
-        throw new BadRequestException(balance.message);
+      if (!balance?.data) {
+        throw new BadRequestException('Failed to fetch token balance');
       }
       const tokenBalance = balance.data;
       if (!tokenBalance) {
-        return this.handler.handleReturn({
-          status: HttpStatus.OK,
-          message: REM.TOKEN_BALANCE_NOT_FOUND,
-        });
+        throw new NotFoundException(REM.TOKEN_BALANCE_NOT_FOUND);
       }
 
       const [claimedBalance, pendingRewards] = await Promise.all([
@@ -260,7 +257,10 @@ export class RewardProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, REM.ERROR_FETCHING_REWARD_METIRCS);
+      this.handler.handleError(
+        e,
+        e.message || REM.ERROR_FETCHING_REWARD_METIRCS,
+      );
     }
   }
 }

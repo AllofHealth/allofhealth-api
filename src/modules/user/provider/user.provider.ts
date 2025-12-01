@@ -1,14 +1,18 @@
 import {
   BadRequestException,
+  ConflictException,
   forwardRef,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  NotFoundException,
   NotImplementedException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, sql } from 'drizzle-orm';
 import { IUploadIdentityFile } from '@/modules/asset/interface/asset.interface';
 import { AssetService } from '@/modules/asset/service/asset.service';
 import { ICreateDoctor } from '@/modules/doctor/interface/doctor.interface';
@@ -45,6 +49,7 @@ import {
   IPasswordReset,
   IUpdateUser,
   IUserSnippet,
+  IWalletInfoResponse,
 } from '../interface/user.interface';
 import { WalletService } from '@/modules/wallet/service/wallet.service';
 import { ApprovalService } from '@/modules/approval/service/approval.service';
@@ -55,6 +60,8 @@ import { ResendService } from '@/shared/modules/resend/service/resend.service';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { AdminService } from '@/modules/admin/service/admin.service';
 import { REJECTION_REASON } from '@/modules/admin/data/admin.data';
+import { AccountAbstractionService } from '@/shared/modules/account-abstraction/service/account-abstraction.service';
+import { RpcRotationService } from '@/shared/utils/contract/rpc-rotation.contract';
 
 @Injectable()
 export class UserProvider {
@@ -73,6 +80,8 @@ export class UserProvider {
     @Inject(forwardRef(() => AdminService))
     private readonly adminService: AdminService,
     private readonly logger: MyLoggerService,
+    @Inject(forwardRef(() => AccountAbstractionService))
+    private readonly aaService: AccountAbstractionService,
   ) {
     this.logger.setContext(UserProvider.name);
   }
@@ -100,7 +109,7 @@ export class UserProvider {
         SharedEvents.DELETE_USER,
         new DeleteUser(ctx.userId),
       );
-      return this.handler.handleError(error, 'Failed to emit event');
+      this.handler.handleError(error, 'Failed to emit event');
     }
   }
 
@@ -111,10 +120,7 @@ export class UserProvider {
       await this.db
         .delete(schema.identity)
         .where(eq(schema.identity.userId, ctx.userId));
-      return this.handler.handleError(
-        error,
-        'Failed to emit event to store identity',
-      );
+      this.handler.handleError(error, 'Failed to emit event to store identity');
     }
   }
 
@@ -122,7 +128,7 @@ export class UserProvider {
     try {
       return await this.findUserById(userId);
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
+      this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
     }
   }
 
@@ -139,18 +145,12 @@ export class UserProvider {
         }),
       ]);
 
-      if (!('data' in baseData) || !baseData || !baseData.data) {
-        return this.handler.handleReturn({
-          status: baseData.status,
-          message: baseData.message,
-        });
+      if (!baseData?.data) {
+        throw new Error('Failed to fetch base data');
       }
 
-      if (!('data' in approvalData) || !approvalData || !approvalData.data) {
-        return this.handler.handleReturn({
-          status: approvalData.status,
-          message: approvalData.message,
-        });
+      if (!approvalData?.data) {
+        throw new Error('Failed to fetch approval data');
       }
 
       const userData = baseData.data;
@@ -158,11 +158,8 @@ export class UserProvider {
 
       const tokenBalanceResult =
         await this.contractService.fetchTokenBalance(userId);
-      if (!('data' in tokenBalanceResult && tokenBalanceResult.data)) {
-        return this.handler.handleReturn({
-          status: tokenBalanceResult.status,
-          message: tokenBalanceResult.message,
-        });
+      if (!tokenBalanceResult?.data) {
+        throw new Error('Failed to fetch token balance');
       }
 
       return this.handler.handleReturn({
@@ -176,7 +173,10 @@ export class UserProvider {
         },
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
+      this.handler.handleError(
+        e,
+        e.message || UEM.ERROR_FETCHING_DASHBOARD_DATA,
+      );
     }
   }
 
@@ -189,6 +189,13 @@ export class UserProvider {
         role: 'PATIENT',
         governmentIdFilePath,
       });
+      if (governmentIdFilePath) {
+        await this.emitStoreIdentity({
+          userId,
+          role: 'PATIENT',
+          governmentIdFilePath,
+        });
+      }
 
       await this.eventEmitter.emitAsync(
         SharedEvents.CREATE_SMART_ACCOUNT,
@@ -245,6 +252,62 @@ export class UserProvider {
     }
   }
 
+  private async handleReInitializeWallet(userId: string) {
+    try {
+      let userWallet;
+      try {
+        userWallet = await this.aaService.createSmartAccount({ userId });
+      } catch (initialError) {
+        this.logger.warn(
+          `Initial smart account creation failed. Starting RPC rotation. Error: ${initialError.message}`,
+        );
+
+        const rpcRotationService = new RpcRotationService();
+        const unusedRpcs = rpcRotationService.returnUnused();
+
+        for (const rpc of unusedRpcs) {
+          try {
+            userWallet = await this.aaService.createSmartAccount({
+              userId,
+              rpc,
+            });
+            if (userWallet?.data) {
+              this.logger.log(
+                `Smart account created successfully with RPC: ${rpc}`,
+              );
+              break;
+            }
+          } catch (rpcError) {
+            this.logger.warn(
+              `Failed to create smart account with RPC: ${rpc}. Error: ${rpcError.message}`,
+            );
+          }
+        }
+      }
+
+      if (!userWallet || !userWallet.data) {
+        throw new UserError(
+          'Failed to create smart account after trying all available RPCs',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
+
+      const createdWalletInfo =
+        await this.walletService.fetchUserWallet(userId);
+
+      if (!createdWalletInfo?.data) {
+        throw new UserError(
+          'Failed to fetch wallet info after creating smart account',
+          HttpStatus.EXPECTATION_FAILED,
+        );
+      }
+
+      return createdWalletInfo.data;
+    } catch (e) {
+      this.handler.handleError(e, UEM.ERROR_REINITIALIZING_WALLET);
+    }
+  }
+
   async handleSuspensionCheck(userId: string) {
     try {
       const status = await this.db
@@ -271,12 +334,15 @@ export class UserProvider {
   }
 
   async validateEmailAddress(emailAddress: string) {
-    const user = await this.findUserByEmail(emailAddress);
-    if (user.status === HttpStatus.OK) {
+    try {
+      const user = await this.findUserByEmail(emailAddress);
+      if (!user?.data) {
+        return false;
+      }
       return true;
+    } catch (error) {
+      return false;
     }
-
-    return false;
   }
 
   async findUserByEmail(emailAddress: string) {
@@ -288,12 +354,7 @@ export class UserProvider {
         .limit(1);
 
       if (!user || user.length === 0) {
-        console.log('user not found');
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: UEM.USER_NOT_FOUND,
-          data: null,
-        });
+        throw new NotFoundException(UEM.USER_NOT_FOUND);
       }
 
       const usersnippet = {
@@ -313,7 +374,7 @@ export class UserProvider {
         data: usersnippet,
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
+      this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
     }
   }
 
@@ -325,18 +386,31 @@ export class UserProvider {
         .where(eq(schema.user.id, id))
         .limit(1);
 
-      const walletInfo = await this.walletService.fetchUserWallet(user[0].id);
+      let userWalletInfo: IWalletInfoResponse | null = null;
+      try {
+        const walletInfo = await this.walletService.fetchUserWallet(user[0].id);
+        if (!walletInfo?.data) {
+          const createdWallet = await this.handleReInitializeWallet(user[0].id);
+          if (!createdWallet) {
+            throw new InternalServerErrorException(
+              UEM.ERROR_REINITIALIZING_WALLET,
+            );
+          }
 
-      if (
-        !('data' in walletInfo) ||
-        !walletInfo ||
-        walletInfo.status !== HttpStatus.OK ||
-        !walletInfo.data
-      ) {
-        return this.handler.handleReturn({
-          status: walletInfo.status,
-          message: walletInfo.message,
-        });
+          userWalletInfo = createdWallet;
+        } else {
+          userWalletInfo = walletInfo.data;
+        }
+      } catch (e) {
+        this.logger.debug(`No wallet found: Reinitiializing Now`);
+        const createdWallet = await this.handleReInitializeWallet(user[0].id);
+        if (!createdWallet) {
+          throw new InternalServerErrorException(
+            UEM.ERROR_REINITIALIZING_WALLET,
+          );
+        }
+
+        userWalletInfo = createdWallet;
       }
 
       const updatedParsedUser = {
@@ -352,10 +426,10 @@ export class UserProvider {
         phoneNumber: user[0].phoneNumber,
         status: user[0].status,
         walletData: {
-          walletAddress: walletInfo.data.walletAddress,
-          balance: walletInfo.data.balance,
+          walletAddress: userWalletInfo?.walletAddress,
+          balance: userWalletInfo?.balance,
           lastTransactionDate: formatDateToReadable(
-            walletInfo.data.lastUpdated,
+            userWalletInfo?.lastUpdated!,
           ),
         },
       };
@@ -369,7 +443,7 @@ export class UserProvider {
         data: updatedParsedUser,
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_FETCHING_USER);
+      this.handler.handleError(e, e.message || UEM.ERROR_FETCHING_USER);
     }
   }
 
@@ -382,10 +456,7 @@ export class UserProvider {
         .limit(1);
 
       if (!role || role.length === 0) {
-        return this.handler.handleReturn({
-          status: HttpStatus.NOT_FOUND,
-          message: UEM.USER_NOT_FOUND,
-        });
+        throw new NotFoundException(UEM.USER_NOT_FOUND);
       }
 
       const userRole = role[0].role as TRole;
@@ -402,7 +473,10 @@ export class UserProvider {
           });
       }
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_FETCHING_DASHBOARD_DATA);
+      this.handler.handleError(
+        e,
+        e.message || UEM.ERROR_FETCHING_DASHBOARD_DATA,
+      );
     }
   }
 
@@ -413,15 +487,14 @@ export class UserProvider {
     const sortColumn = schema.user.createdAt;
 
     try {
-      let whereConditions: any = eq(schema.user.role, USER_ROLE.PATIENT);
+      const whereClauses = [eq(schema.user.role, USER_ROLE.PATIENT)];
 
       if (query && query.trim()) {
         const searchQuery = `%${query.trim()}%`;
-        whereConditions = and(
-          whereConditions,
-          sql`LOWER(${schema.user.fullName}) LIKE LOWER(${searchQuery})`,
-        );
+        whereClauses.push(ilike(schema.user.fullName, searchQuery));
       }
+
+      const whereConditions = and(...whereClauses);
 
       const totalPatientResult = await this.db
         .select({ count: sql`count(*)`.as('count') })
@@ -469,7 +542,7 @@ export class UserProvider {
     } catch (e) {
       this.logger.error(`${UEM.ERROR_FETCHING_PATIENTS}: ${e}`);
       throw new HttpException(
-        UEM.ERROR_FETCHING_PATIENTS,
+        e.message || UEM.ERROR_FETCHING_PATIENTS,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -535,7 +608,7 @@ export class UserProvider {
     } catch (e) {
       this.logger.error(`${UEM.ERROR_FETCHING_ALL_USERS}: ${e}`);
       throw new HttpException(
-        UEM.ERROR_FETCHING_ALL_USERS,
+        e.message || UEM.ERROR_FETCHING_ALL_USERS,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -550,7 +623,7 @@ export class UserProvider {
         message: USM.USER_DELETED_SUCCESSFULLY,
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_DELETING_USER);
+      this.handler.handleError(e, UEM.ERROR_DELETING_USER);
     }
   }
 
@@ -575,7 +648,7 @@ export class UserProvider {
         message: USM.SUCCESS_SENDING_OTP,
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_SENDING_EMAIL);
+      this.handler.handleError(e, UEM.ERROR_SENDING_EMAIL);
     }
   }
 
@@ -585,10 +658,7 @@ export class UserProvider {
       const emailExists = await this.validateEmailAddress(ctx.emailAddress);
 
       if (emailExists) {
-        return this.handler.handleReturn({
-          status: HttpStatus.FOUND,
-          message: UEM.USER_EXISTS,
-        });
+        throw new ConflictException(UEM.EMAIL_EXIST);
       }
 
       const isUserRejected = await this.adminService.verifyRejectionStatus({
@@ -596,10 +666,7 @@ export class UserProvider {
       });
 
       if (isUserRejected) {
-        return this.handler.handleReturn({
-          status: HttpStatus.FORBIDDEN,
-          message: REJECTION_REASON.SIGN_UP,
-        });
+        throw new UnauthorizedException(REJECTION_REASON.SIGN_UP);
       }
 
       const dateOfBirthString =
@@ -640,26 +707,15 @@ export class UserProvider {
 
       switch (ctx.role) {
         case 'PATIENT':
-          await this.eventEmitter.emitAsync(
-            SharedEvents.PATIENT_REGISTRATION,
-            new EHandleRegisterPatient(
-              insertedUser.id,
-              ctx.governmentIdfilePath,
-            ),
-          );
-
-          this.eventEmitter.emit(
-            SharedEvents.SEND_ONBOARDING,
-            new ESendEmail(
-              ctx.emailAddress,
-              undefined,
-              undefined,
-              ctx.fullName,
-              undefined,
-              undefined,
-              'WELCOME',
-            ),
-          );
+          if (ctx.governmentIdfilePath) {
+            await this.eventEmitter.emitAsync(
+              SharedEvents.PATIENT_REGISTRATION,
+              new EHandleRegisterPatient(
+                insertedUser.id,
+                ctx.governmentIdfilePath,
+              ),
+            );
+          }
 
           parsedUser = {
             userId: insertedUser.id,
@@ -695,27 +751,16 @@ export class UserProvider {
             bio: ctx.bio,
           });
 
-          await this.eventEmitter.emitAsync(
-            SharedEvents.DOCTOR_REGISTRATION,
-            new EHandleRegisterDoctor(
-              insertedUser.id,
-              ctx.governmentIdfilePath,
-              ctx.scannedLicensefilePath!,
-            ),
-          );
-
-          this.eventEmitter.emit(
-            SharedEvents.SEND_ONBOARDING,
-            new ESendEmail(
-              ctx.emailAddress,
-              undefined,
-              undefined,
-              ctx.fullName,
-              undefined,
-              undefined,
-              'WELCOME',
-            ),
-          );
+          if (ctx.governmentIdfilePath && ctx.scannedLicensefilePath) {
+            await this.eventEmitter.emitAsync(
+              SharedEvents.DOCTOR_REGISTRATION,
+              new EHandleRegisterDoctor(
+                insertedUser.id,
+                ctx.governmentIdfilePath!,
+                ctx.scannedLicensefilePath!,
+              ),
+            );
+          }
 
           parsedUser = {
             userId: insertedUser.id,
@@ -743,7 +788,7 @@ export class UserProvider {
           );
       }
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_CREATE_USER);
+      this.handler.handleError(e, e.message || UEM.ERROR_CREATE_USER);
     }
   }
 
@@ -770,7 +815,7 @@ export class UserProvider {
     } = ctx;
     try {
       const userResult = await this.findUserById(userId);
-      if (!('data' in userResult && userResult.data && userResult)) {
+      if (!userResult?.data) {
         throw new HttpException(UEM.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
@@ -833,11 +878,8 @@ export class UserProvider {
           profilePictureFilePath,
         });
 
-        if (!('data' in result && result.data)) {
-          return this.handler.handleReturn({
-            status: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: UEM.ERROR_UPDATING_USER,
-          });
+        if (!result?.data) {
+          throw new Error('Failed to upload profile picture');
         }
 
         const profilePicture = result.data.url;
@@ -861,7 +903,7 @@ export class UserProvider {
         message: USM.USER_UPDATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_UPDATING_USER);
+      this.handler.handleError(e, e.message || UEM.ERROR_UPDATING_USER);
     }
   }
 
@@ -879,7 +921,7 @@ export class UserProvider {
         message: USM.OTP_VALIDATED,
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_VALIDATING_OTP);
+      this.handler.handleError(e, UEM.ERROR_VALIDATING_OTP);
     }
   }
 
@@ -901,7 +943,7 @@ export class UserProvider {
       this.logger.error(`${UEM.ERROR_DETERMINING_USER_ROLE}: ${e}`);
       throw new HttpException(
         new UserError(
-          UEM.ERROR_DETERMINING_USER_ROLE,
+          e.message || UEM.ERROR_DETERMINING_USER_ROLE,
           HttpStatus.INTERNAL_SERVER_ERROR,
         ),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -924,7 +966,7 @@ export class UserProvider {
         subject: 'Forgot Password',
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_HANDLING_FORGOT_PASSWORD);
+      this.handler.handleError(e, UEM.ERROR_HANDLING_FORGOT_PASSWORD);
     }
   }
 
@@ -978,7 +1020,30 @@ export class UserProvider {
         message: USM.PASSWORD_RESET_SUCCESSFUL,
       });
     } catch (e) {
-      return this.handler.handleError(e, UEM.ERROR_RESETING_PASSWORD);
+      this.handler.handleError(e, e.message || UEM.ERROR_RESETING_PASSWORD);
+    }
+  }
+
+  async endjoyRide(userId: string) {
+    try {
+      const user = await this.findUserById(userId);
+      if (!user || !user.data) {
+        throw new NotFoundException(UEM.USER_NOT_FOUND);
+      }
+
+      await this.db
+        .update(schema.user)
+        .set({
+          isFirstTime: false,
+        })
+        .where(eq(schema.user.id, userId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: USM.JOY_RIDE_ENDED_SUCCESSFULLY,
+      });
+    } catch (e) {
+      this.handler.handleError(e, e.message || UEM.ERROR_ENDING_JOY_RIDE);
     }
   }
 }

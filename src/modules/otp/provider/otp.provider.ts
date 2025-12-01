@@ -47,7 +47,7 @@ export class OtpProvider {
         message: OSM.SUCCESS_CREATING_OTP,
       });
     } catch (e) {
-      return this.handler.handleError(e, OEM.ERROR_CREATING_OTP);
+      this.handler.handleError(e, e.message || OEM.ERROR_CREATING_OTP);
     }
   }
 

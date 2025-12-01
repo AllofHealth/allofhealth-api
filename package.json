@@ -2,7 +2,7 @@
   "name": "allofhealth-api",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "3illBaby",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -22,12 +22,17 @@
     "migrate": "node migrate.js",
     "migrate:drizzle": "drizzle-kit migrate",
     "studio": "drizzle-kit studio",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org allof-health --project node-nestjs ./dist && sentry-cli sourcemaps upload --org allof-health --project node-nestjs ./dist"
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org allof-health --project node-nestjs ./dist && sentry-cli sourcemaps upload --org allof-health --project node-nestjs ./dist",
+    "sentry:sourcemaps:conditional": "if [ \"$SKIP_SENTRY_SOURCEMAPS\" != \"true\" ]; then npm run sentry:sourcemaps; else echo 'Skipping Sentry sourcemaps upload'; fi",
+    "build:ci": "nest build && npm run sentry:sourcemaps:conditional"
   },
   "dependencies": {
     "@biconomy/account": "^4.5.7",
+    "@electric-sql/pglite": "^0.3.14",
     "@itgorillaz/configify": "^4.0.0",
+    "@keyv/redis": "^5.1.1",
     "@neondatabase/serverless": "^1.0.1",
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/bull": "^11.0.2",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",
@@ -39,10 +44,12 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/swagger": "^11.2.0",
+    "@react-email/render": "^2.0.0",
     "@sentry/cli": "^2.53.0",
     "@sentry/nestjs": "^10.10.0",
     "@types/bcrypt": "^5.0.2",
     "@types/form-data": "^2.2.1",
+    "@types/uuid": "^10.0.0",
     "bcrypt": "^6.0.0",
     "bull": "^4.16.5",
     "class-transformer": "^0.5.1",
@@ -51,7 +58,9 @@
     "eslint-plugin-neverthrow": "^1.1.4",
     "ethers": "^6.14.3",
     "firebase-admin": "^13.5.0",
+    "flutterwave-node-v3": "^1.3.0",
     "form-data": "^4.0.3",
+    "ics": "^3.8.1",
     "imagekit": "^6.0.0",
     "ioredis": "^5.6.1",
     "keyv": "^5.3.3",
@@ -59,11 +68,15 @@
     "neverthrow": "^8.2.0",
     "otpauth": "^9.4.0",
     "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.16.3",
     "postmark": "^4.0.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "redis": "^5.5.6",
     "reflect-metadata": "^0.2.2",
     "resend": "^4.8.0",
     "rxjs": "^7.8.1",
+    "uuid": "^13.0.0",
     "viem": "^2.30.6"
   },
   "devDependencies": {
@@ -100,24 +113,38 @@
     "ultracite": "5.0.29"
   },
   "jest": {
+    "preset": "ts-jest",
     "moduleFileExtensions": [
       "js",
       "json",
-      "ts"
+      "ts",
+      "tsx"
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)sx?$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(uuid|@react-email))"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",
+    "globals": {
+      "ts-jest": {
+        "useESM": true
+      }
+    },
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1"
-    }
+    },
+    "moduleDirectories": [
+      "node_modules",
+      "src"
+    ]
   },
   "config": {
     "commitizen": {

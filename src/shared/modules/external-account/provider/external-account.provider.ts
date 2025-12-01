@@ -41,7 +41,7 @@ export class ExternalAccountProvider {
     return new ethers.JsonRpcProvider(this.rpcUrl);
   }
 
-  createSigner() {
+  createSigner(rpc?: string) {
     const wallet = this.handleCreateWallet();
 
     const signer = new ethers.Wallet(
