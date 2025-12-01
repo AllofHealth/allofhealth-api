@@ -65,7 +65,7 @@
 # export IPFS_PORT=5001
 # export IPFS_PROTOCOL=http
 
-cd /usr/src/app
-pm2 start dist/src/main.js --name allofhealth-api
-exec pm2-runtime start allofhealth-api
+# cd /usr/src/app
+# pm2 start dist/src/main.js --name allofhealth-api
+# exec pm2-runtime start allofhealth-api
 
