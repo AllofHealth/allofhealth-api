@@ -75,3 +75,4 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi_staging:$IMAGE_TAG
             
             
+            
