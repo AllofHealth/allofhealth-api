@@ -569,7 +569,7 @@ export const availability = pgTable('availability', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   doctorId: uuid('doctor_id')
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
   weekDay: varchar('week_day', { length: 10 }).notNull(),
   startTime: text('start_time').notNull(),
   endTime: text('end_time').notNull(),
