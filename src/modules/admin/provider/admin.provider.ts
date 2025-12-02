@@ -796,11 +796,15 @@ export class AdminProvider {
         userEmail = user.email;
       }
 
-      const rejectedUser = await this.db.query.rejectionLogs.findFirst({
-        where: eq(schema.rejectionLogs.email, userEmail),
-      });
+      const rejectedUser = await this.db
+        .select({
+          id: schema.rejectionLogs.id,
+        })
+        .from(schema.rejectionLogs)
+        .where(eq(schema.rejectionLogs.email, userEmail))
+        .limit(1);
 
-      if (rejectedUser?.id) {
+      if (rejectedUser[0]?.id) {
         isUserRejected = true;
       }
 
