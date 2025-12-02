@@ -232,6 +232,7 @@ export class DoctorProvider {
       const whereClauses = [
         eq(schema.user.role, USER_ROLE.DOCTOR),
         ne(schema.user.status, USER_STATUS.SUSPENDED),
+        eq(schema.doctors.isVerified, true),
       ];
 
       if (query && query.trim()) {
