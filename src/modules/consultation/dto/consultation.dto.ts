@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
@@ -95,40 +95,40 @@ export class UpdateDoctorConsultationTypeDto {
   @IsNotEmpty()
   userId: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'A description of the consultation type.',
     example: 'A 45 minute detailed consultation.',
     required: false,
   })
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The duration of the consultation in minutes.',
     example: 45,
     required: false,
   })
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
   durationMinutes?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The price of the consultation.',
     example: 150,
     required: false,
   })
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
   price?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Whether the consultation type is active.',
     example: false,
     required: false,
   })
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   isActive?: boolean;
 }
 
