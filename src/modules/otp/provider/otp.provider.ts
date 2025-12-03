@@ -98,6 +98,12 @@ export class OtpProvider {
         SharedEvents.VALIDATE_OTP,
         new EValidateOtp(emailAddress),
       );
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: 'Validation successful',
+        data: isValid,
+      });
     }
     if (!isValid) {
       throw new BadRequestException('Otp validation failed');
