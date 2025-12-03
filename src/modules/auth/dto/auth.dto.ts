@@ -133,8 +133,6 @@ export class SignUpDto {
     required: false,
   })
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
   languagesSpoken?: string[];
 
   @ApiPropertyOptional({
