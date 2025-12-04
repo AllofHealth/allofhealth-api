@@ -22,6 +22,7 @@ import {
 } from '../data/doctor.data';
 import { DoctorService } from '../service/doctor.service';
 import { TSort } from '../interface/doctor.interface';
+import { TConsultationTypes } from '@/modules/consultation/interface/consultation.interface';
 
 @ApiTags('Doctor Operations')
 @Controller('doctor')
@@ -54,6 +55,10 @@ export class DoctorController {
         medicalLicenseNumber: '',
         yearsOfExperience: '',
         availability: '',
+        consultationData: {
+          consultationOffered: 'General Consultation',
+          consultationId: '1234567',
+        },
       },
     },
   })
@@ -76,6 +81,29 @@ export class DoctorController {
   @ApiQuery({ name: 'limit', required: false })
   @ApiQuery({ name: 'sort', required: false })
   @ApiQuery({ name: 'query', required: false })
+  @ApiQuery({
+    name: 'filter',
+    required: false,
+    description: 'Filter doctors by consultation type',
+    enum: [
+      'General Consultation',
+      'Follow-up Consultation',
+      'Specialist Consultation',
+      'Emergency Consultation',
+      'Online Consultation',
+      'In-person Consultation',
+      'Pediatric Consultation',
+      'Geriatric Consultation',
+      'Dermatology Consultation',
+      'Cardiology Consultation',
+      'Neurology Consultation',
+      'Psychiatry Consultation',
+      'Nutrition Consultation',
+      'Physiotherapy Consultation',
+      'Dental Consultation',
+    ],
+    example: 'General Consultation',
+  })
   @ApiOkResponse({
     description: 'Fetch all doctors',
     type: Array,
@@ -98,6 +126,10 @@ export class DoctorController {
           medicalLicenseNumber: '',
           yearsOfExperience: '',
           availability: '',
+          consultationData: {
+            consultationOffered: 'General Consultation',
+            consultationId: '1234567',
+          },
         },
       ],
       meta: {
@@ -123,6 +155,7 @@ export class DoctorController {
     @Query('limit') limit?: number,
     @Query('sort') sort?: TSort,
     @Query('query') query?: string,
+    @Query('filter') filter?: TConsultationTypes,
   ) {
     this.logger.log(`Fetch doctor request from ${ip}`);
     return await this.doctorSevice.fetchAllDoctors({
@@ -130,6 +163,7 @@ export class DoctorController {
       limit,
       sort,
       query,
+      filter,
     });
   }
 }

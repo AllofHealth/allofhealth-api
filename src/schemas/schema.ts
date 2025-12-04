@@ -7,6 +7,7 @@ import {
   jsonb,
   pgTable,
   text,
+  time,
   timestamp,
   unique,
   uuid,
@@ -387,7 +388,7 @@ export const doctorConsultationTypes = pgTable('doctor_consultation_types', {
   id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
   doctorId: uuid('doctor_id')
     .notNull()
-    .references(() => doctors.id, { onDelete: 'cascade' }),
+    .references(() => user.id, { onDelete: 'cascade' }),
   consultationType: uuid('consultation_type')
     .notNull()
     .references(() => consultationTypes.id, { onDelete: 'cascade' }),
@@ -456,6 +457,7 @@ export const consultationBookings = pgTable(
     cancelledBy: uuid('cancelled_by').references(() => user.id),
 
     metadata: jsonb('metadata').default('{}'),
+    reminderRetryCount: integer('retry_count').default(0),
 
     createdAt: date('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
@@ -562,3 +564,17 @@ export const paymentTransactions = pgTable(
     statusIndex: index().on(table.status),
   }),
 );
+
+export const availability = pgTable('availability', {
+  id: uuid('id').notNull().primaryKey().defaultRandom().unique(),
+  doctorId: uuid('doctor_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  weekDay: varchar('week_day', { length: 10 }).notNull(),
+  startTime: text('start_time').notNull(),
+  endTime: text('end_time').notNull(),
+  createdAt: date('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});

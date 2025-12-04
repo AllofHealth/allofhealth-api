@@ -64,6 +64,8 @@ import { ApprovalService } from '@/modules/approval/service/approval.service';
 import { ILoginResponse } from '@/modules/auth/interface/auth.interface';
 import { NewsletterService } from '@/modules/newsletter/service/newsletter.service';
 import { IFetchAllContacts } from '@/shared/modules/brevo/interface/brevo.interface';
+import { BookingService } from '@/modules/booking/service/booking.service';
+import { IFetchAllBookings } from '@/modules/booking/interface/booking.interface';
 
 @Injectable()
 export class AdminProvider {
@@ -80,6 +82,7 @@ export class AdminProvider {
     private readonly assetService: AssetService,
     private readonly approvalService: ApprovalService,
     private readonly newsletterService: NewsletterService,
+    private readonly bookingService: BookingService,
   ) {}
 
   private async validateIsSuperAdmin(adminId: string) {
@@ -793,11 +796,15 @@ export class AdminProvider {
         userEmail = user.email;
       }
 
-      const rejectedUser = await this.db.query.rejectionLogs.findFirst({
-        where: eq(schema.rejectionLogs.email, userEmail),
-      });
+      const rejectedUser = await this.db
+        .select({
+          id: schema.rejectionLogs.id,
+        })
+        .from(schema.rejectionLogs)
+        .where(eq(schema.rejectionLogs.email, userEmail))
+        .limit(1);
 
-      if (rejectedUser?.id) {
+      if (rejectedUser[0]?.id) {
         isUserRejected = true;
       }
 
@@ -864,7 +871,10 @@ export class AdminProvider {
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
     try {
-      const allDoctors = await this.doctorService.fetchAllDoctors(ctx);
+      const allDoctors = await this.doctorService.fetchAllDoctors({
+        ...ctx,
+        fetchAvailability: true,
+      });
 
       if (!allDoctors?.data) {
         throw new HttpException(
@@ -889,6 +899,8 @@ export class AdminProvider {
           userId: doctor.userId,
           status: doctor.status,
           lastActive: doctor.lastActive!,
+          consultationData: doctor.consultationData,
+          availabilityData: doctor.availabilityData,
         } as IUserSnippet;
       });
 
@@ -1053,5 +1065,9 @@ export class AdminProvider {
 
   async fetchAllSubscribers(ctx: IFetchAllContacts) {
     return await this.newsletterService.fetchAllSubscribers(ctx);
+  }
+
+  async fetchAllBookings(ctx: IFetchAllBookings) {
+    return await this.bookingService.fetchAllBookings(ctx);
   }
 }

@@ -1,4 +1,11 @@
 export type TPaymentStatus = 'successful' | 'failed' | 'pending';
+export type TBookingStatus =
+  | 'pending_payment'
+  | 'processing_payment'
+  | 'confirmed'
+  | 'completed'
+  | 'cancelled'
+  | 'no_show';
 
 export interface ICreateBooking {
   bookingReference: string;
@@ -34,6 +41,12 @@ export interface IUpdatePaymentDetails {
   paidAt?: Date;
 }
 
+export interface IFetchAllBookings {
+  page?: number;
+  limit?: number;
+  status?: TBookingStatus;
+}
+
 export interface IGetPatientBookings {
   patientId: string;
   status?: string;
@@ -43,11 +56,11 @@ export interface IGetPatientBookings {
 
 export interface IGetDoctorBookings {
   doctorId: string;
-  status?: string;
   page?: number;
   limit?: number;
   startDate?: Date;
   endDate?: Date;
+  status?: TBookingStatus;
 }
 
 interface IAttendee {

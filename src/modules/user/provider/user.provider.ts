@@ -322,6 +322,7 @@ export class UserProvider {
       }
 
       const userStatus = status[0].status;
+      this.logger.log(`user status => ${userStatus}`);
       if (userStatus === USER_STATUS.SUSPENDED) {
         throw new HttpException(
           new UserError(UEM.USER_SUSPENDED, HttpStatus.FORBIDDEN),
@@ -366,6 +367,7 @@ export class UserProvider {
         role: user[0].role,
         password: user[0].password,
         isFirstimeUser: user[0].isFirstTime,
+        status: user[0].status,
       };
 
       return this.handler.handleReturn({

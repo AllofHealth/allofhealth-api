@@ -7,6 +7,7 @@ export enum CONSULTATION_ERROR_MESSAGES {
   ERROR_DELETING_CONSULTATION_TYPE = 'Error deleting consultation type',
   ERROR_ADDING_CONSULTATION_TYPE = 'Error adding consultation type',
   ERROR_FETCHING_ALL_CONSULTATION_TYPES = 'Error fetching all consultation types',
+  ERROR_FETCHING_CONSULTATION_TYPE = 'Error fetching consultation type',
 }
 
 export enum CONSULTATION_SUCCESS_MESSAGES {
@@ -18,6 +19,7 @@ export enum CONSULTATION_SUCCESS_MESSAGES {
   SUCCESS_FINDING_CONSULTATION_TYPE = 'Consultation type found successfully',
   SUCCESS_ADDING_CONSULTATION_TYPE = 'Consultation type added successfully',
   SUCCESS_FETCHING_CONSULTATION_TYPES = 'Consultation types fetched successfully',
+  SUCCESS_FETCHING_CONSULTATION_TYPE = 'Consultation type fetched successfully',
 }
 
 export const CONSULTATION_TYPES_SEED_DATA = [

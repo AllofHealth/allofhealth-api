@@ -73,3 +73,11 @@ export const IS_PRODUCTION =
   process.env.NODE_ENV === 'PRODUCTION' ? true : false;
 export const PROD_URL = process.env.DATABASE_URL;
 export const STAGING_URL = process.env.DATABASE_URL_STAGING;
+
+export const CALCOM_API_KEY = process.env.CALCOM_API_KEY;
+export const CALCOM_API_URL = process.env.CALCOM_API_URL;
+export const CALCOM_WEBHOOK_SECRET = process.env.CALCOM_WEBHOOK_SECRET;
+export const CALCOM_CLIENT_ID = process.env.CALCOM_CLIENT_ID;
+export const CALCOM_CLIENT_SECRET = process.env.CALCOM_CLIENT_SECRET;
+export const CALCOM_REDIRECT_URI = process.env.CALCOM_REDIRECT_URI;
+export const CALCOM_EMBED_URL = process.env.CALCOM_EMBED_URL;

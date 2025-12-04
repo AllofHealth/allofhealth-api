@@ -5,7 +5,11 @@ import {
   ISendSurveyEmail,
   ISendTelemedicineReminder,
 } from '@/modules/telemedicine/interface/telemedicine.interface';
-import { IHandleBookingRequest } from '@/shared/modules/resend/interface/resend.interface';
+import {
+  IHandleBookingRequest,
+  IHandlePatientConfirmationEmail,
+  IHandleSendReminderEmail,
+} from '@/shared/modules/resend/interface/resend.interface';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
@@ -31,7 +35,7 @@ export class TelemedicineNotificationsQueue {
     );
   }
 
-  async handleSendConfirmationEmailJob(data: ISendConfirmationEmail) {
+  async handleSendConfirmationEmailJob(data: IHandlePatientConfirmationEmail) {
     await this.telemedicineNotificationsQueue.add(
       'send-confirmation-email',
       data,
@@ -83,12 +87,22 @@ export class TelemedicineNotificationsQueue {
     });
   }
 
-  async handleSendReminderJob(data: ISendTelemedicineReminder) {
+  async handleSendBatchReminderJob(data: IHandleSendReminderEmail[]) {
+    await this.telemedicineRemindersQueue.add('send-batch-reminders', data, {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+    });
+  }
+
+  async handleSendReminderJob(data: IHandleSendReminderEmail) {
     await this.telemedicineRemindersQueue.add('send-reminder', data, {
       attempts: 3,
       backoff: {
         type: 'exponential',
-        delay: data.delay,
+        delay: 1000,
       },
     });
   }

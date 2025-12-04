@@ -65,6 +65,39 @@ export class ConsultationProvider {
     }
   }
 
+  async fetchConsultationType(consultationTypeId: string) {
+    try {
+      const consultationType = await this._db
+        .select({
+          id: schema.consultationTypes.id,
+          name: schema.consultationTypes.name,
+          price: schema.doctorConsultationTypes.price,
+          description: schema.doctorConsultationTypes.description,
+        })
+        .from(schema.consultationTypes)
+        .leftJoin(
+          schema.doctorConsultationTypes,
+          eq(
+            schema.doctorConsultationTypes.consultationType,
+            schema.consultationTypes.id,
+          ),
+        )
+        .where(eq(schema.consultationTypes.id, consultationTypeId))
+        .limit(1);
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: CSM.SUCCESS_FETCHING_CONSULTATION_TYPE,
+        data: consultationType[0],
+      });
+    } catch (e) {
+      this.handler.handleError(
+        e,
+        e.message || CEM.ERROR_FETCHING_CONSULTATION_TYPE,
+      );
+    }
+  }
+
   async createDoctorConsultationType(ctx: ICreateConsultationType) {
     const { currency, doctorId, durationMinutes, price, description } = ctx;
     try {
@@ -140,7 +173,7 @@ export class ConsultationProvider {
       const updateData: any = {};
 
       if (description !== undefined) updateData.description = description;
-      if (eventTypeId !== undefined) updateData.calcomEventTypeId = eventTypeId
+      if (eventTypeId !== undefined) updateData.calcomEventTypeId = eventTypeId;
       if (durationMinutes) updateData.durationMinutes = durationMinutes;
       if (price) updateData.price = price.toString();
       if (isActive !== undefined) updateData.isActive = isActive;
@@ -176,7 +209,13 @@ export class ConsultationProvider {
         .select()
         .from(schema.doctorConsultationTypes)
         .where(eq(schema.doctorConsultationTypes.id, id))
-        .innerJoin(schema.consultationTypes, eq(schema.doctorConsultationTypes.consultationType, schema.consultationTypes.id))
+        .innerJoin(
+          schema.consultationTypes,
+          eq(
+            schema.doctorConsultationTypes.consultationType,
+            schema.consultationTypes.id,
+          ),
+        )
         .limit(1);
 
       return this.handler.handleReturn({

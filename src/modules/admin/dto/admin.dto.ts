@@ -1,3 +1,4 @@
+import { TBookingStatus } from '@/modules/booking/interface/booking.interface';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -261,4 +262,45 @@ export class FetchApprovalManagementDataDto {
   @IsOptional()
   @IsIn(['ASC', 'DESC'])
   sort?: 'ASC' | 'DESC';
+}
+
+export class FetchAllBookingsDto {
+  @ApiPropertyOptional({
+    description: 'Page number for pagination',
+    example: 1,
+    default: 1,
+  })
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of items per page',
+    example: 10,
+    default: 10,
+  })
+  @IsOptional()
+  limit?: number;
+
+  @ApiPropertyOptional({
+    description: 'Filter by booking status',
+    enum: [
+      'pending_payment',
+      'processing_payment',
+      'confirmed',
+      'completed',
+      'cancelled',
+      'no_show',
+    ],
+    example: 'confirmed',
+  })
+  @IsOptional()
+  @IsIn([
+    'pending_payment',
+    'processing_payment',
+    'confirmed',
+    'completed',
+    'cancelled',
+    'no_show',
+  ])
+  status?: TBookingStatus;
 }

@@ -229,6 +229,10 @@ export class BookingController {
           bookingReference: 'AOH-TEL-123456',
           patientId: 'patient-123',
           doctorId: 'doctor-456',
+          patientFullName: 'John Doe',
+          doctorFullName: 'Dr. Jane Smith',
+          startTime: '2025-11-10T10:00:00.000Z',
+          endTime: '2025-11-10T10:30:00.000Z',
           status: 'confirmed',
           videoRoomId: 'video-room-123',
           videoRoomUrl: 'https://doxy.me/room/123',
@@ -280,39 +284,61 @@ export class BookingController {
   @ApiOperation({
     summary: 'Get bookings for a doctor',
     description:
-      'Retrieves a paginated list of bookings for a specific doctor, with optional date filtering.',
+      'Retrieves a paginated list of bookings for a specific doctor. Supports filtering by date range and booking status. This endpoint is typically used by doctors to view their upcoming appointments, past consultations, or bookings requiring attention.',
   })
   @ApiQuery({
     name: 'userId',
     type: String,
     required: true,
-    description: 'The ID of the doctor.',
+    description: 'The unique identifier of the doctor.',
+    example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
   @ApiQuery({
     name: 'page',
     type: Number,
     required: false,
-    description: 'Page number for pagination.',
+    description: 'Page number for pagination (1-based index). Defaults to 1.',
     example: 1,
   })
   @ApiQuery({
     name: 'limit',
     type: Number,
     required: false,
-    description: 'Number of items per page.',
+    description:
+      'Maximum number of bookings to return per page. Defaults to 12.',
     example: 12,
   })
   @ApiQuery({
     name: 'startDate',
     type: Date,
     required: false,
-    description: 'Start date for filtering bookings.',
+    description:
+      'Start date for filtering bookings (inclusive). Returns bookings scheduled on or after this date. Format: ISO 8601 date-time string.',
+    example: '2025-01-01T00:00:00Z',
   })
   @ApiQuery({
     name: 'endDate',
     type: Date,
     required: false,
-    description: 'End date for filtering bookings.',
+    description:
+      'End date for filtering bookings (inclusive). Returns bookings scheduled on or before this date. Format: ISO 8601 date-time string.',
+    example: '2025-12-31T23:59:59Z',
+  })
+  @ApiQuery({
+    name: 'status',
+    type: String,
+    required: false,
+    description:
+      'Filter bookings by status. Available values: pending_payment, processing_payment, confirmed, completed, cancelled, no_show.',
+    enum: [
+      'pending_payment',
+      'processing_payment',
+      'confirmed',
+      'completed',
+      'cancelled',
+      'no_show',
+    ],
+    example: 'confirmed',
   })
   @ApiOkResponse({
     description: 'Doctor bookings retrieved successfully.',
@@ -322,13 +348,22 @@ export class BookingController {
       message: 'Doctor bookings retrieved successfully',
       data: [
         {
-          bookingId: 'booking-123',
+          bookingId: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
           bookingReference: 'AOH-TEL-123456',
-          patientId: 'patient-123',
-          doctorId: 'doctor-456',
+          patientId: 'p1a2b3c4-d5e6-f789-0123-456789abcdef',
+          doctorId: 'd1a2b3c4-d5e6-f789-0123-456789abcdef',
+          patientFullName: 'John Doe',
+          doctorFullName: 'Dr. Jane Smith',
+          consultationDate: '2025-11-10',
+          startTime: '2025-11-10T10:00:00.000Z',
+          endTime: '2025-11-10T10:30:00.000Z',
           status: 'confirmed',
-          videoRoomId: 'video-room-123',
+          paymentStatus: 'paid',
+          amount: '5000.00',
+          currency: 'NGN',
+          videoRoomId: 'vri_xxxxxxxx',
           videoRoomUrl: 'https://doxy.me/room/123',
+          videoPlatform: 'doxy',
         },
       ],
       meta: {
@@ -350,7 +385,8 @@ export class BookingController {
     },
   })
   @ApiInternalServerErrorResponse({
-    description: 'An internal server error occurred.',
+    description:
+      'An internal server error occurred while retrieving doctor bookings.',
     type: ErrorResponseDto,
     example: {
       status: HttpStatus.INTERNAL_SERVER_ERROR,

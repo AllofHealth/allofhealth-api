@@ -4,9 +4,15 @@ import { TokenModule } from '../token/token.module';
 import { DoctorController } from './controller/doctor.controller';
 import { DoctorProvider } from './provider/doctor.provider';
 import { DoctorService } from './service/doctor.service';
+import { ConsultationModule } from '../consultation/consultation.module';
+import { AvailabilityModule } from '../availability/availability.module';
 
 @Module({
-  imports: [forwardRef(() => TokenModule)],
+  imports: [
+    forwardRef(() => TokenModule),
+    forwardRef(() => ConsultationModule),
+    forwardRef(() => AvailabilityModule),
+  ],
   providers: [DoctorService, DoctorProvider, ErrorHandler],
   controllers: [DoctorController],
   exports: [DoctorService],

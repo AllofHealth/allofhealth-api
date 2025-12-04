@@ -1,3 +1,5 @@
+import { IAvailability } from '@/modules/availability/interface/availability.interface';
+import { TConsultationTypes } from '@/modules/consultation/interface/consultation.interface';
 import type { IUserSnippet } from '@/modules/user/interface/user.interface';
 
 export type TSort = 'asc' | 'desc';
@@ -37,6 +39,8 @@ export interface IFetchDoctors {
   limit?: number;
   sort?: TSort;
   query?: string;
+  filter?: TConsultationTypes;
+  fetchAvailability?: boolean;
 }
 
 export interface IUpdateRecordsReviewed {

@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { and, asc, desc, eq, ilike, ne, sql } from 'drizzle-orm';
@@ -25,28 +26,102 @@ import { USER_ROLE, USER_STATUS } from '@/modules/user/data/user.data';
 import { formatDateToReadable } from '@/shared/utils/date.utils';
 import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 import { DoctorError } from '../errors/doctor.errors';
+import { ConsultationService } from '@/modules/consultation/service/consultation.service';
+import { AvailabilityService } from '@/modules/availability/service/availability.service';
+import { IAvailability } from '@/modules/availability/interface/availability.interface';
 
 @Injectable()
 export class DoctorProvider {
   private readonly logger = new MyLoggerService(DoctorProvider.name);
   constructor(
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
+    private readonly consultationService: ConsultationService,
+    private readonly availabilityService: AvailabilityService,
     private readonly handler: ErrorHandler,
   ) {}
 
+  private async prepareConsultationData(doctorId: string) {
+    try {
+      const doctorConsultations =
+        await this.consultationService.getDoctorConsultationTypes({
+          doctorId,
+        });
+
+      if (
+        !doctorConsultations ||
+        !doctorConsultations.data ||
+        doctorConsultations.data.length === 0
+      ) {
+        return {
+          consultationOffered: 'none',
+          consultationId: null,
+          price: null,
+          description: null,
+        };
+      }
+
+      const doctorConsultationData = doctorConsultations.data[0];
+      const consultationNameResponse =
+        await this.consultationService.fetchConsultationType(
+          doctorConsultationData.consultationType,
+        );
+
+      if (!consultationNameResponse || !consultationNameResponse.data) {
+        throw new DoctorError('Consultation type not found');
+      }
+
+      return {
+        consultationOffered: consultationNameResponse.data.name,
+        consultationId: doctorConsultationData.id,
+        price: consultationNameResponse.data.price,
+        description: consultationNameResponse.data.description,
+      };
+    } catch (e) {
+      throw new InternalServerErrorException(
+        new DoctorError(
+          e.message || 'An error occurred while preparing consultation data',
+        ),
+      );
+    }
+  }
+
+  private async prepareAvailabilityData(userId: string) {
+    try {
+      const availability =
+        await this.availabilityService.fetchDoctorAvailability(userId);
+
+      if (!availability || !availability.data) {
+        return [];
+      }
+
+      return availability.data;
+    } catch (e) {
+      throw new InternalServerErrorException(
+        new DoctorError(
+          e.message || 'An error occurred while preparing availability data',
+        ),
+      );
+    }
+  }
+
   async fetchDoctor(userId: string) {
     try {
-      const doctor = await this.db
-        .select()
-        .from(schema.doctors)
-        .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-        .where(
-          and(
-            eq(schema.doctors.userId, userId),
-            eq(schema.user.role, 'DOCTOR'),
-          ),
-        )
-        .limit(1);
+      const [doctor, consultation, availability] = await Promise.all([
+        this.db
+          .select()
+          .from(schema.doctors)
+          .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+          .where(
+            and(
+              eq(schema.doctors.userId, userId),
+              eq(schema.user.role, 'DOCTOR'),
+            ),
+          )
+          .limit(1),
+
+        this.prepareConsultationData(userId),
+        this.prepareAvailabilityData(userId),
+      ]);
 
       if (!doctor || doctor.length === 0) {
         throw new NotFoundException(DEM.DOCTOR_NOT_FOUND);
@@ -80,6 +155,8 @@ export class DoctorProvider {
         yearsOfExperience: doctor[0].doctors.yearsOfExperience || 1,
         availability: doctor[0].doctors.availability as string,
         isVerified: doctor[0].doctors.isVerified,
+        consultationData: consultation,
+        availabilityData: availability,
       };
 
       return this.handler.handleReturn({
@@ -140,7 +217,14 @@ export class DoctorProvider {
   }
 
   async fetchAllDoctors(ctx: IFetchDoctors) {
-    const { page = 1, limit = 12, sort = 'desc', query } = ctx;
+    const {
+      page = 1,
+      limit = 12,
+      sort = 'desc',
+      query,
+      filter,
+      fetchAvailability = false,
+    } = ctx;
     const skip = (page - 1) * limit;
     const sortFn = sort === 'desc' ? desc : asc;
     const sortColumn = schema.user.createdAt;
@@ -148,6 +232,7 @@ export class DoctorProvider {
       const whereClauses = [
         eq(schema.user.role, USER_ROLE.DOCTOR),
         ne(schema.user.status, USER_STATUS.SUSPENDED),
+        eq(schema.doctors.isVerified, true),
       ];
 
       if (query && query.trim()) {
@@ -155,50 +240,107 @@ export class DoctorProvider {
         whereClauses.push(ilike(schema.user.fullName, searchQuery));
       }
 
-      const whereConditions = and(...whereClauses);
+      const filterWhereClauses = [...whereClauses];
+      if (filter && filter.trim()) {
+        filterWhereClauses.push(
+          ilike(schema.consultationTypes.name, filter.trim()),
+        );
+      }
+      const filterWhereConditions = and(...filterWhereClauses);
 
       const totalDoctorsResult = await this.db
-        .select({ count: sql`count(*)`.as('count') })
+        .select({
+          count: sql`count(DISTINCT ${schema.doctors.userId})`.as('count'),
+        })
         .from(schema.doctors)
         .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-        .where(whereConditions);
+        .leftJoin(
+          schema.doctorConsultationTypes,
+          and(
+            eq(schema.doctorConsultationTypes.doctorId, schema.doctors.userId),
+            eq(schema.doctorConsultationTypes.isActive, true),
+          ),
+        )
+        .leftJoin(
+          schema.consultationTypes,
+          eq(
+            schema.consultationTypes.id,
+            schema.doctorConsultationTypes.consultationType,
+          ),
+        )
+        .where(filterWhereConditions);
 
       const totalCount = Number(totalDoctorsResult[0]?.count ?? 0);
       const totalPages = Math.ceil(totalCount / limit);
 
       const doctors = await this.db
-        .select()
+        .select({
+          doctors: schema.doctors,
+          users: schema.user,
+        })
         .from(schema.doctors)
         .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
-        .where(whereConditions)
+        .leftJoin(
+          schema.doctorConsultationTypes,
+          and(
+            eq(schema.doctorConsultationTypes.doctorId, schema.doctors.userId),
+            eq(schema.doctorConsultationTypes.isActive, true),
+          ),
+        )
+        .leftJoin(
+          schema.consultationTypes,
+          eq(
+            schema.consultationTypes.id,
+            schema.doctorConsultationTypes.consultationType,
+          ),
+        )
+        .where(filterWhereConditions)
+        .groupBy(schema.doctors.id, schema.user.id)
         .orderBy(sortFn(sortColumn))
         .offset(skip)
         .limit(limit);
 
-      const parsedDoctors: IDoctorSnippet[] = doctors.map((doctor) => ({
-        userId: doctor.users.id,
-        fullName: doctor.users.fullName,
-        email: doctor.users.emailAddress,
-        gender: doctor.users.gender,
-        profilePicture: doctor.users.profilePicture as string,
-        phoneNumber: doctor.users.phoneNumber as string,
-        role: doctor.users.role,
-        status: doctor.users.status,
-        lastActive: doctor.users.lastActivity
-          ? formatDateToReadable(doctor.users.lastActivity)
-          : 'Never',
-        bio: doctor.doctors.bio || '',
-        servicesOffered: doctor.doctors.servicesOffered as string[],
-        certifications: doctor.doctors.certifications as string[],
-        hospitalAssociation: doctor.doctors.hospitalAssociation,
-        specialization: doctor.doctors.specialization,
-        languagesSpoken: doctor.doctors.languagesSpoken as string[],
-        locationOfHospital: doctor.doctors.locationOfHospital,
-        medicalLicenseNumber: doctor.doctors.medicalLicenseNumber,
-        yearsOfExperience: doctor.doctors.yearsOfExperience || 1,
-        availability: doctor.doctors.availability as string,
-        isVerified: doctor.doctors.isVerified as boolean,
-      }));
+      let availabilityData: IAvailability[] | never[];
+
+      const parsedDoctors: IDoctorSnippet[] = await Promise.all(
+        doctors.map(async (doctor) => {
+          const consultationData = await this.prepareConsultationData(
+            doctor.users.id,
+          );
+
+          if (fetchAvailability) {
+            availabilityData = await this.prepareAvailabilityData(
+              doctor.users.id,
+            );
+          }
+          return {
+            userId: doctor.users.id,
+            fullName: doctor.users.fullName,
+            email: doctor.users.emailAddress,
+            gender: doctor.users.gender,
+            profilePicture: doctor.users.profilePicture as string,
+            phoneNumber: doctor.users.phoneNumber as string,
+            role: doctor.users.role,
+            status: doctor.users.status,
+            lastActive: doctor.users.lastActivity
+              ? formatDateToReadable(doctor.users.lastActivity)
+              : 'Never',
+            bio: doctor.doctors.bio || '',
+            servicesOffered: doctor.doctors.servicesOffered as string[],
+            certifications: doctor.doctors.certifications as string[],
+            hospitalAssociation: doctor.doctors.hospitalAssociation,
+            specialization: doctor.doctors.specialization,
+            languagesSpoken: doctor.doctors.languagesSpoken as string[],
+            locationOfHospital: doctor.doctors.locationOfHospital,
+            medicalLicenseNumber: doctor.doctors.medicalLicenseNumber,
+            yearsOfExperience: doctor.doctors.yearsOfExperience || 1,
+            availability: doctor.doctors.availability as string,
+            isVerified: doctor.doctors.isVerified as boolean,
+            consultationData,
+            availabilityData,
+          };
+        }),
+      );
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,

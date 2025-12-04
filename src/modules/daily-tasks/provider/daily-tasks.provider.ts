@@ -16,9 +16,11 @@ import {
   IGetUserDailyTasks,
 } from '../interface/daily-tasks.interface';
 import { DEFAULT_TASK_TYPES } from '../data/daily-task.data';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class DailyTasksProvider {
+  private readonly logger = new MyLoggerService(DailyTasksProvider.name);
   private static readonly MAX_DAILY_TASKS = 5;
 
   constructor(
@@ -87,6 +89,7 @@ export class DailyTasksProvider {
 
       // If no tasks exist for the requested date, generate them
       if (tasks.length === 0) {
+        this.logger.log(`generating daily task for ${targetDate}`);
         await this.generateDailyTasksForDate(userId, targetDate);
 
         // Re-fetch the newly created tasks
@@ -197,6 +200,7 @@ export class DailyTasksProvider {
         .select()
         .from(schema.taskTypes)
         .where(eq(schema.taskTypes.isActive, true));
+      this.logger.log(`available task types ${availableTaskTypes}`);
 
       const applicableTaskTypes = availableTaskTypes.filter((taskType) => {
         const roles = Array.isArray(taskType.applicableRoles)
