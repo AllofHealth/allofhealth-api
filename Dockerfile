@@ -72,7 +72,9 @@ COPY . .
 # Set Sentry auth token environment variable for build
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
-ENV SENTRY_DISABLE_AUTO_UPLOAD=true
+# Disable all Sentry sourcemap uploads during Docker builds
+ENV SENTRY_SKIP_AUTO_UPLOAD=1
+ENV SENTRY_WEBPACK_DISABLE=true
 
 # Build the app
 RUN npm run build
