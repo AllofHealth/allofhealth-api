@@ -125,7 +125,7 @@ export class ConsultationProvider {
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: CSM.SUCCESS_CREATING_CONSULTATION_TYPE,
-        data: consultationType,
+        data: consultationType[0],
       });
     } catch (e) {
       this.handler.handleError(
@@ -151,10 +151,17 @@ export class ConsultationProvider {
         .from(schema.doctorConsultationTypes)
         .where(and(...conditions));
 
+      if (!consultations.length) {
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: CSM.SUCCESS_GETTING_CONSULTATION_TYPES,
+        });
+      }
+
       return this.handler.handleReturn({
         status: HttpStatus.OK,
         message: CSM.SUCCESS_GETTING_CONSULTATION_TYPES,
-        data: consultations,
+        data: consultations[0],
       });
     } catch (e) {
       this.handler.handleError(
