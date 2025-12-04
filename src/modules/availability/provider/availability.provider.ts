@@ -47,7 +47,11 @@ export class AvailabilityProvider {
         .limit(1);
 
       if (!weekAvailability || !weekAvailability.length) {
-        throw new NotFoundException(AEM.NO_WEEKDAY_AVAILABILITY_CONFIGURED);
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.SUCCESS_FETCHING_AVAILABILITY,
+          data: [],
+        });
       }
 
       return this.handler.handleReturn({
@@ -145,7 +149,11 @@ export class AvailabilityProvider {
         .where(and(eq(schema.availability.doctorId, doctorId)));
 
       if (!availability || !availability.length) {
-        throw new NotFoundException(AEM.NO_AVAILABILITY_CONFIGURED);
+        return this.handler.handleReturn({
+          status: HttpStatus.OK,
+          message: ASM.SUCCESS_FETCHING_AVAILABILITY,
+          data: [],
+        });
       }
 
       return this.handler.handleReturn({
