@@ -57,13 +57,12 @@ jobs:
       - name: SSH and Deploy
         uses: appleboy/ssh-action@master
         with:
-          key: ${{ secrets.DO_SSH_KEY}}
-          host: ${{ secrets.DO_HOST }}
-          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.STAGING_DO_SSH_KEY}}
+          host: ${{ secrets.STAGING_DO_HOST }}
+          username: ${{ secrets.STAGING_DO_USERNAME }}
           port: 22
           script: |
             export IMAGE_TAG=v${{ github.run_number }}
-
             # Deploy the application with embedded IPFS
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi_staging:$IMAGE_TAG
