@@ -47,11 +47,7 @@ export class DoctorProvider {
           doctorId,
         });
 
-      if (
-        !doctorConsultations ||
-        !doctorConsultations.data ||
-        doctorConsultations.data.length === 0
-      ) {
+      if (!doctorConsultations || !doctorConsultations.data) {
         return {
           consultationOffered: 'none',
           consultationId: null,
@@ -60,7 +56,7 @@ export class DoctorProvider {
         };
       }
 
-      const doctorConsultationData = doctorConsultations.data[0];
+      const doctorConsultationData = doctorConsultations.data;
       const consultationNameResponse =
         await this.consultationService.fetchConsultationType(
           doctorConsultationData.consultationType,
