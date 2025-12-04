@@ -72,6 +72,8 @@ COPY . .
 # Set Sentry auth token environment variable for build
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
+ENV SENTRY_DISABLE_AUTO_UPLOAD=true
+
 # Build the app
 RUN npm run build
 
