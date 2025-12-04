@@ -49,13 +49,13 @@ export class CreateDoctorConsultationTypeDto {
   @IsNotEmpty()
   price: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'The currency for the price.',
     example: 'USD',
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  currency: string;
+  currency?: string;
 }
 
 export class GetDoctorConsultationTypesDto {
