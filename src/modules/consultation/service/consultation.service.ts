@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConsultationProvider } from '../provider/consultation.provider';
 import {
   ICreateConsultationType,
+  IFindDoctorConsultation,
   IGetDoctorConsultationTypes,
   IUpdateConsultationType,
 } from '../interface/consultation.interface';
@@ -29,16 +30,16 @@ export class ConsultationService {
     return await this.consultationProvider.updateDoctorConsultationType(ctx);
   }
 
-  async findById(id: string) {
-    return await this.consultationProvider.findById(id);
+  async findById(ctx: IFindDoctorConsultation) {
+    return await this.consultationProvider.findById(ctx);
   }
 
   async findCalcomEventId(id: number) {
     return await this.consultationProvider.findByCalcomEventTypeId(id);
   }
 
-  async deleteDoctorConsultationType(id: string) {
-    return await this.consultationProvider.deleteConsultationType(id);
+  async deleteDoctorConsultationType(ctx: IFindDoctorConsultation) {
+    return await this.consultationProvider.deleteConsultationType(ctx);
   }
 
   async addNewConsultationType(name: string) {

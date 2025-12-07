@@ -398,9 +398,9 @@ export class BookingService {
         paidAt: new Date(),
       });
 
-      const consultationType = await this.consultationService.findById(
-        booking.consultationId,
-      );
+      const consultationType = await this.consultationService.findById({
+        consultationId: booking.consultationId,
+      });
 
       if (!consultationType || !consultationType.data) {
         throw new NotFoundException(

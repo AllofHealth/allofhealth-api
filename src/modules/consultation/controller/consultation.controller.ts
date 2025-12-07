@@ -157,7 +157,7 @@ export class ConsultationController {
   }
 
   @Get('fetchDoctorConsultationTypeById')
-  @UseGuards(AuthGuard, OwnerGuard)
+  // @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: 'Get a consultation type by ID' })
   @ApiOkResponse({
     description: 'Successfully retrieved consultation type.',
@@ -189,7 +189,10 @@ export class ConsultationController {
     @Query() ctx: UpdateDeleteConsultationTypeQueryDto,
   ) {
     this.logger.log(`Request to get consultation type ${ctx.id} from ${ip}`);
-    return await this.consultationService.findById(ctx.id);
+    return await this.consultationService.findById({
+      consultationId: ctx.id,
+      doctorId: ctx.userId,
+    });
   }
 
   @Patch('updateDoctorConsultationType')
@@ -252,6 +255,9 @@ export class ConsultationController {
     @Body() ctx: UpdateDeleteConsultationTypeQueryDto,
   ) {
     this.logger.log(`Request to delete consultation type ${ctx.id} from ${ip}`);
-    return await this.consultationService.deleteDoctorConsultationType(ctx.id);
+    return await this.consultationService.deleteDoctorConsultationType({
+      consultationId: ctx.id,
+      doctorId: ctx.userId,
+    });
   }
 }

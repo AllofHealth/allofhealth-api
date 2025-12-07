@@ -1,3 +1,5 @@
+import { IAvailability } from '@/modules/availability/interface/availability.interface';
+import { IConsultation } from '@/modules/consultation/interface/consultation.interface';
 import { TUserRole } from '@/modules/user/interface/user.interface';
 
 export type TPermissionLevel = 'super' | 'system';
@@ -101,6 +103,8 @@ export interface IInspectDoctorResponse {
   servicesOffered: string[];
   identityAssets: IIdentityAssets;
   doctorActivity: IDoctorActivity;
+  availabilityData?: IAvailability[];
+  consultationData?: IConsultation;
 }
 
 export interface IRejectUser {

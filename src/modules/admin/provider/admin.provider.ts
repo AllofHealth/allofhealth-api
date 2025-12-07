@@ -395,13 +395,20 @@ export class AdminProvider {
             servicesOffered = d.servicesOffered as string[];
           }
 
-          const [governmentIdUrl, medicalLicenseUrl] = await Promise.all([
+          const [
+            governmentIdUrl,
+            medicalLicenseUrl,
+            availabilityData,
+            consultationData,
+          ] = await Promise.all([
             this.assetService.generateUrlFromFileId(
               d.governmentIdUrl as string,
             ),
             this.assetService.generateUrlFromFileId(
               d.medicalLicenseUrl as string,
             ),
+            this.doctorService.prepareDoctorAvailabilityData(d.userId),
+            this.doctorService.prepareDoctorConsultationData(d.userId),
           ]);
 
           return {
@@ -432,6 +439,8 @@ export class AdminProvider {
               recordsReviewed: d.recordsReviewed || 0,
               pendingApprovals,
             },
+            availabilityData,
+            consultationData,
           } as IInspectDoctorResponse;
         }),
       );

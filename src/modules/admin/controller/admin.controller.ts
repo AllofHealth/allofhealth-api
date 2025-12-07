@@ -988,10 +988,7 @@ export class AdminController {
       message: 'Error fetching all bookings',
     },
   })
-  async fetchAllBookings(
-    @Ip() ip: string,
-    @Query() ctx: FetchAllBookingsDto,
-  ) {
+  async fetchAllBookings(@Ip() ip: string, @Query() ctx: FetchAllBookingsDto) {
     this.logger.log(`Admin fetching all bookings from ${ip}`);
     return await this.adminService.fetchAllBookings(ctx);
   }

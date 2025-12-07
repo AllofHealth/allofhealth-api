@@ -251,8 +251,10 @@ export class TelemedicineService {
   async getDoctorAvailability(ctx: IGetDoctorAvailability) {
     const { consultationTypeId, doctorId, endDate, startDate } = ctx;
     try {
-      const consultationType =
-        await this.consultationService.findById(consultationTypeId);
+      const consultationType = await this.consultationService.findById({
+        consultationId: consultationTypeId,
+        doctorId: doctorId,
+      });
 
       if (!consultationType || !consultationType.data) {
         throw new NotFoundException('Consultation type not found');
@@ -338,8 +340,10 @@ export class TelemedicineService {
   async getCalComEmbedConfig(ctx: IGetCalComEmbedConfig) {
     const { consultationTypeId } = ctx;
     try {
-      const consultationType =
-        await this.consultationService.findById(consultationTypeId);
+      const consultationType = await this.consultationService.findById({
+        consultationId: consultationTypeId,
+        doctorId: ctx.doctorId,
+      });
 
       if (!consultationType || !consultationType.data) {
         throw new NotFoundException('Consultation type not found');

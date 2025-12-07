@@ -40,7 +40,7 @@ export class DoctorProvider {
     private readonly handler: ErrorHandler,
   ) {}
 
-  private async prepareConsultationData(doctorId: string) {
+  async prepareConsultationData(doctorId: string) {
     try {
       const doctorConsultations =
         await this.consultationService.getDoctorConsultationTypes({
@@ -81,7 +81,7 @@ export class DoctorProvider {
     }
   }
 
-  private async prepareAvailabilityData(userId: string) {
+  async prepareAvailabilityData(userId: string) {
     try {
       const availability =
         await this.availabilityService.fetchDoctorAvailability(userId);

@@ -5,6 +5,7 @@ import * as schema from '@/schemas/schema';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import {
   ICreateConsultationType,
+  IFindDoctorConsultation,
   IGetDoctorConsultationTypes,
   IUpdateConsultationType,
 } from '../interface/consultation.interface';
@@ -210,12 +211,22 @@ export class ConsultationProvider {
     }
   }
 
-  async findById(id: string) {
+  async findById(ctx: IFindDoctorConsultation) {
+    const { doctorId, consultationId } = ctx;
+    let query: any = [];
+    if (consultationId) {
+      query.push(eq(schema.doctorConsultationTypes.id, consultationId));
+    }
+
+    if (doctorId) {
+      query.push(eq(schema.doctorConsultationTypes.doctorId, doctorId));
+    }
+
     try {
       const [consultationType] = await this._db
         .select()
         .from(schema.doctorConsultationTypes)
-        .where(eq(schema.doctorConsultationTypes.id, id))
+        .where(and(...query))
         .innerJoin(
           schema.consultationTypes,
           eq(
@@ -260,11 +271,19 @@ export class ConsultationProvider {
     }
   }
 
-  async deleteConsultationType(id: string) {
+  async deleteConsultationType(ctx: IFindDoctorConsultation) {
+    const { doctorId, consultationId } = ctx;
+    let query: any = [];
+    if (doctorId) {
+      query.push(eq(schema.doctorConsultationTypes.doctorId, doctorId));
+    }
+    if (consultationId) {
+      query.push(eq(schema.doctorConsultationTypes.id, consultationId));
+    }
     try {
       await this._db
         .delete(schema.doctorConsultationTypes)
-        .where(eq(schema.doctorConsultationTypes.id, id));
+        .where(and(...query));
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,

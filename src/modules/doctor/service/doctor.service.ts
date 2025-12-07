@@ -29,4 +29,12 @@ export class DoctorService {
   async updateRecordsReviewed(ctx: IUpdateRecordsReviewed) {
     return await this.doctorProvider.updateRecordsReviewed(ctx);
   }
+
+  async prepareDoctorConsultationData(doctorId: string) {
+    return await this.doctorProvider.prepareConsultationData(doctorId);
+  }
+
+  async prepareDoctorAvailabilityData(doctorId: string) {
+    return await this.doctorProvider.prepareAvailabilityData(doctorId);
+  }
 }

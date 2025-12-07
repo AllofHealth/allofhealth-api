@@ -46,3 +46,8 @@ export interface IConsultation {
   description: string | null;
   price: string | null;
 }
+
+export interface IFindDoctorConsultation {
+  doctorId?: string;
+  consultationId?: string;
+}
