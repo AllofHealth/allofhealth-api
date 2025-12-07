@@ -78,4 +78,4 @@ src/shared/modules/cal-integration/config/cal-integration.config.json
 # Cal.com integration
 
 # Seed
-src/modules/seed
+#src/modules/seed
