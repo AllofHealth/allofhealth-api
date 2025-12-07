@@ -77,3 +77,4 @@ jobs:
             -v ipfs-data:/root/.ipfs \
             --name allofhealthapi \
             ${{ secrets.DOCKERHUB_USERNAME }}/allofhealthapi:$IMAGE_TAG
+            
