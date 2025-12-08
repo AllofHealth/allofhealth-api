@@ -83,16 +83,16 @@ export class UpdateDoctorConsultationTypeDto {
     description: 'The ID of the consultation type.',
     example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
+  @IsOptional()
   @IsUUID()
-  @IsNotEmpty()
-  id: string;
+  id?: string;
 
   @ApiProperty({
     description: 'The ID of the user (doctor).',
     example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef',
   })
-  @IsUUID()
   @IsNotEmpty()
+  @IsUUID()
   userId: string;
 
   @ApiPropertyOptional({
