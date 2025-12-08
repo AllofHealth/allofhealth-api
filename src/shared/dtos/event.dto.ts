@@ -7,6 +7,7 @@ import {
   TBookingEmailContext,
   TEmailContext,
 } from '../modules/resend/interface/resend.interface';
+import { IdentityContext } from '@/modules/identity/interface/identity.interface';
 
 export class CreateDoctor {
   constructor(
@@ -36,6 +37,7 @@ export class StoreId {
     readonly governmentFileId?: string,
     readonly scannedLicenseUrl?: string,
     readonly scannedLicenseFileId?: string,
+    readonly context?: IdentityContext,
   ) {}
 }
 

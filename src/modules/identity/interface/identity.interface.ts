@@ -1,4 +1,5 @@
 import type { TRole } from '@/shared/interface/shared.interface';
+export type IdentityContext = 'register' | 'update';
 
 export interface IStoreIdentification {
   userId: string;
@@ -7,4 +8,5 @@ export interface IStoreIdentification {
   scannedLicenseFileId?: string;
   scannedLicense?: string;
   role: TRole;
+  context?: IdentityContext;
 }

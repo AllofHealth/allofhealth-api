@@ -322,7 +322,6 @@ export class UpdateUserDto {
     required: false,
   })
   @IsOptional()
-  @IsNumber()
   yearsOfExperience?: number;
 }
 

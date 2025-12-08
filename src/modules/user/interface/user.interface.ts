@@ -63,6 +63,8 @@ export interface IUpdateUser {
   lastLogin?: Date;
   lastActivity?: Date;
   authProvider?: TAuthProvider;
+  governmentIdFilePath?: string;
+  scannedLicenseFilePath?: string;
 }
 
 export interface IUserSnippet {

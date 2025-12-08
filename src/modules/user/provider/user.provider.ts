@@ -29,6 +29,7 @@ import {
   ERegisterEntity,
   ESendEmail,
   ESendOtp,
+  StoreId,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -800,6 +801,8 @@ export class UserProvider {
       fullName,
       dateOfBirth,
       profilePictureFilePath,
+      governmentIdFilePath,
+      scannedLicenseFilePath,
       emailAddress,
       bio,
       servicesOffered,
@@ -839,6 +842,7 @@ export class UserProvider {
 
       const dataToUpdate: Record<string, any> = {};
       const doctorDataToUpdate: Record<string, any> = {};
+      const identityDataToUpdate: Record<string, any> = {};
 
       if (fullName) dataToUpdate.fullName = fullName;
       if (emailAddress) dataToUpdate.emailAddress = emailAddress;
@@ -891,6 +895,34 @@ export class UserProvider {
         dataToUpdate.profilePicture = profilePicture;
       }
 
+      if (governmentIdFilePath) {
+        const result = await this.assetService.uploadProfilePicture({
+          userId,
+          profilePictureFilePath: governmentIdFilePath,
+        });
+
+        if (!result?.data) {
+          throw new Error('Failed to upload government id');
+        }
+
+        identityDataToUpdate.governmentFileId = result.data.fileId;
+        identityDataToUpdate.governmentId = result.data.url;
+      }
+
+      if (scannedLicenseFilePath) {
+        const result = await this.assetService.uploadProfilePicture({
+          userId,
+          profilePictureFilePath: scannedLicenseFilePath,
+        });
+
+        if (!result?.data) {
+          throw new Error('Failed to upload medical license');
+        }
+
+        identityDataToUpdate.scannedLicenseFileId = result.data.fileId;
+        identityDataToUpdate.scannedLicense = result.data.url;
+      }
+
       await this.db
         .update(schema.user)
         .set(dataToUpdate)
@@ -901,6 +933,23 @@ export class UserProvider {
           .update(schema.doctors)
           .set(doctorDataToUpdate)
           .where(eq(schema.doctors.userId, userId));
+      }
+
+      if (
+        identityDataToUpdate &&
+        Object.keys(identityDataToUpdate).length > 0
+      ) {
+        const eventData = new StoreId(
+          userId,
+          'DOCTOR',
+          identityDataToUpdate.governmentId || undefined,
+          identityDataToUpdate.governmentFileId || undefined,
+          identityDataToUpdate.scannedLicense || undefined,
+          identityDataToUpdate.scannedLicenseFileId || undefined,
+          'update',
+        );
+
+        this.eventEmitter.emit(SharedEvents.STORE_IDENTIFICATION, eventData);
       }
 
       return this.handler.handleReturn({

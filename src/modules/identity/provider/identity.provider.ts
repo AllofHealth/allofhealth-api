@@ -14,7 +14,6 @@ import {
 } from '../data/identity.data';
 import { IdentityError } from '../error/identity.error';
 import type { IStoreIdentification } from '../interface/identity.interface';
-import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
 
 @Injectable()
 export class IdentityProvider {
@@ -24,6 +23,7 @@ export class IdentityProvider {
   ) {}
 
   async storeId(ctx: IStoreIdentification) {
+    const { context = 'register' } = ctx;
     try {
       switch (ctx.role) {
         case 'PATIENT':
@@ -48,7 +48,7 @@ export class IdentityProvider {
             message: ISM.SUCCESS_STORING_IDENTIFICATION,
           });
         case 'DOCTOR':
-          if (ctx.scannedLicense) {
+          if (ctx.scannedLicense && context === 'register') {
             throw new BadRequestException(
               new IdentityError(
                 'Please provide a copy of your medical license',

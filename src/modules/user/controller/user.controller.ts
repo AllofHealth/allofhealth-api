@@ -7,11 +7,14 @@ import {
   Post,
   Put,
   Query,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -166,25 +169,33 @@ export class UserController {
 
   @Put('updateUser')
   @UseInterceptors(
-    FileInterceptor('profilePicture', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(
-            null,
-            file.fieldname + '-' + uniqueSuffix + extname(file.originalname),
-          );
-        },
-      }),
-    }),
+    FileFieldsInterceptor(
+      [
+        { name: 'governmentId', maxCount: 1 },
+        { name: 'scannedLicense', maxCount: 1 },
+        { name: 'profilePicture', maxCount: 1 },
+      ],
+      {
+        storage: diskStorage({
+          destination: './uploads',
+          filename: (req, file, cb) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            cb(
+              null,
+              file.fieldname + '-' + uniqueSuffix + extname(file.originalname),
+            );
+          },
+        }),
+      },
+    ),
   )
   @UseGuards(AuthGuard, SuspensionGuard, OwnerGuard)
   @ApiOperation({ summary: 'Updates an existing user' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    description: 'User update data with optional profile picture',
+    description:
+      'User update data with optional file uploads for profile picture, government ID, and scanned license.',
     schema: {
       type: 'object',
       properties: {
@@ -255,6 +266,16 @@ export class UserController {
           format: 'binary',
           description: 'Profile picture file (optional)',
         },
+        governmentId: {
+          type: 'string',
+          format: 'binary',
+          description: 'Government-issued ID file (optional)',
+        },
+        scannedLicense: {
+          type: 'string',
+          format: 'binary',
+          description: 'Scanned medical license file (optional, for doctors)',
+        },
       },
       required: ['userId'],
     },
@@ -291,17 +312,21 @@ export class UserController {
   })
   async updateUser(
     @Ip() ip: string,
-    @UploadedFile() profilePicture: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      governmentId?: Express.Multer.File[];
+      scannedLicense?: Express.Multer.File[];
+      profilePicture?: Express.Multer.File[];
+    },
     @Body() ctx: UpdateUserDto,
   ) {
     this.logger.log(`Updating user ${ctx.userId} from ${ip} `);
-    let path: string | undefined;
-    if (profilePicture) {
-      path = profilePicture.path;
-    }
+
     return this.userService.updateUser({
       ...ctx,
-      profilePictureFilePath: path,
+      profilePictureFilePath: files.profilePicture?.[0]?.path,
+      governmentIdFilePath: files.governmentId?.[0]?.path,
+      scannedLicenseFilePath: files.scannedLicense?.[0]?.path,
     });
   }
 
