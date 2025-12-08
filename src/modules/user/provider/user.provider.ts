@@ -810,6 +810,7 @@ export class UserProvider {
       availability,
       password,
       phoneNumber,
+      yearsOfExperience,
       specialization,
       lastLogin,
       lastActivity,
@@ -863,6 +864,8 @@ export class UserProvider {
       if (availability) doctorDataToUpdate.availability = availability;
       if (bio) doctorDataToUpdate.bio = bio;
       if (servicesOffered) doctorDataToUpdate.servicesOffered = servicesOffered;
+      if (yearsOfExperience)
+        doctorDataToUpdate.yearsOfExperience = yearsOfExperience;
 
       if (emailAddress && emailAddress !== userResult.data.email) {
         const emailExists = await this.validateEmailAddress(emailAddress);
