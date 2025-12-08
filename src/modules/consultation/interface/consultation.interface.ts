@@ -13,7 +13,8 @@ export interface IGetDoctorConsultationTypes {
 }
 
 export interface IUpdateConsultationType {
-  id: string;
+  userId?: string;
+  id?: string;
   data: Partial<{
     description: string;
     durationMinutes: number;
