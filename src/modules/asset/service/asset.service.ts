@@ -21,7 +21,7 @@ export class AssetService {
     return this.assetProvider.generateUrl(url);
   }
 
-  generateUrlFromFileId(fileId: string) {
+  async generateUrlFromFileId(fileId: string) {
     return this.assetProvider.generateUrlFromFileId(fileId);
   }
 }
