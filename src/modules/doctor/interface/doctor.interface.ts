@@ -32,6 +32,8 @@ export interface IDoctorSnippet extends IUserSnippet {
   languagesSpoken: string[];
   availability: string;
   isVerified: boolean;
+  governmentIdUrl?: string;
+  medicalLicenseUrl?: string;
 }
 
 export interface IFetchDoctors {
