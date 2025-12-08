@@ -245,6 +245,11 @@ export class UserController {
           description: 'The location of the hospital of the doctor',
           example: 'Location 1',
         },
+        yearsOfExperience: {
+          type: 'number',
+          description: 'Doctor years of experience',
+          example: 12,
+        },
         profilePicture: {
           type: 'string',
           format: 'binary',
