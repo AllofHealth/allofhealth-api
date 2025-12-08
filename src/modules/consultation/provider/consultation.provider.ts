@@ -174,10 +174,20 @@ export class ConsultationProvider {
 
   async updateDoctorConsultationType(ctx: IUpdateConsultationType) {
     const {
+      userId,
       id,
       data: { description, durationMinutes, isActive, price, eventTypeId },
     } = ctx;
     try {
+      let query: any = [];
+      if (id) {
+        query.push(eq(schema.doctorConsultationTypes.id, id));
+      }
+
+      if (userId) {
+        query.push(eq(schema.doctorConsultationTypes.doctorId, userId));
+      }
+
       const updateData: any = {};
 
       if (description !== undefined) updateData.description = description;
@@ -189,7 +199,7 @@ export class ConsultationProvider {
       const [consultationType] = await this._db
         .update(schema.doctorConsultationTypes)
         .set(updateData)
-        .where(eq(schema.doctorConsultationTypes.id, id))
+        .where(and(...query))
         .returning({
           id: schema.doctorConsultationTypes.id,
           description: schema.doctorConsultationTypes.description,
