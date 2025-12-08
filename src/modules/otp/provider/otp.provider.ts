@@ -1,11 +1,8 @@
-import { DRIZZLE_PROVIDER } from '@/shared/drizzle/drizzle.provider';
-import { Database } from '@/shared/drizzle/drizzle.types';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
 import {
   BadRequestException,
   HttpStatus,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,110 +12,101 @@ import {
   OTP_ERROR_MESSAGES as OEM,
   OTP_SUCCESS_MESSAGES as OSM,
 } from '../data/otp.data';
-import { ICreateOtp } from '../interface/otp.interface';
-import * as schema from '@/schemas/schema';
-import { eq } from 'drizzle-orm';
 import { EValidateOtp } from '@/shared/dtos/event.dto';
+import { MyLoggerService } from '@/modules/my-logger/service/my-logger.service';
+
+interface OtpData {
+  emailAddress: string;
+  expires: number;
+}
 
 @Injectable()
 export class OtpProvider {
-  private totp: OTPAuth.TOTP;
+  private readonly totp: OTPAuth.TOTP;
+  private readonly logger = new MyLoggerService(OtpProvider.name);
+  private readonly otpStore = new Map<string, OtpData>();
+
+  private readonly OTP_TTL = 900; // 15 mins
+  private readonly OTP_DIGITS = 6;
 
   constructor(
     private readonly handler: ErrorHandler,
     private readonly eventEmitter: EventEmitter2,
-    @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
   ) {
-    this.totp = this.initTotp();
+    this.totp = this.createTotp();
   }
 
-  async createOTP(ctx: ICreateOtp) {
-    const { emailAddress, code } = ctx;
-    try {
-      await this.db
-        .insert(schema.otp)
-        .values({
-          emailAddress,
-          otpCode: code,
-        })
-        .onConflictDoUpdate({
-          target: schema.otp.emailAddress,
-          set: {
-            otpCode: code,
-          },
-        });
-
-      return this.handler.handleReturn({
-        status: HttpStatus.OK,
-        message: OSM.SUCCESS_CREATING_OTP,
-      });
-    } catch (e) {
-      this.handler.handleError(e, e.message || OEM.ERROR_CREATING_OTP);
-    }
-  }
-
-  generateSecret() {
+  createSecret() {
     return new OTPAuth.Secret();
   }
 
-  initTotp() {
+  private createTotp() {
     return new OTPAuth.TOTP({
       issuer: 'allofhealth',
       label: 'allofhealth-api',
+      secret: this.createSecret(),
       algorithm: 'SHA1',
-      secret: this.generateSecret(),
-      digits: 6,
-      period: 900,
+      digits: this.OTP_DIGITS,
+      period: this.OTP_TTL,
     });
   }
 
-  generateOtp() {
+  generateOtp(): string {
     return this.totp.generate();
   }
 
-  async validateOtp(otp: string) {
-    let isValid: boolean = false;
-    const validation = this.totp.validate({ token: otp, window: 1 });
-    if (validation !== null && typeof validation == 'number') {
-      const otpResult = await this.db
-        .select({ emailAddress: schema.otp.emailAddress })
-        .from(schema.otp)
-        .where(eq(schema.otp.otpCode, otp));
-
-      console.log(otpResult);
-
-      if (!otpResult || otpResult.length === 0) {
-        throw new NotFoundException('Otp not found, send a new otp request');
-      }
-
-      isValid = true;
-      const emailAddress = otpResult[0].emailAddress;
-
-      this.eventEmitter.emit(
-        SharedEvents.VALIDATE_OTP,
-        new EValidateOtp(emailAddress),
-      );
-
-      return this.handler.handleReturn({
-        status: HttpStatus.OK,
-        message: 'Validation successful',
-        data: isValid,
-      });
-    }
-    if (!isValid) {
-      throw new BadRequestException('Otp validation failed');
+  async createOTP(emailAddress: string) {
+    const code = this.generateOtp();
+    try {
+      const expires = Date.now() + this.OTP_TTL * 1000;
+      this.logger.debug(`Storing OTP ${code} for ${emailAddress}`);
+      this.otpStore.set(code, { emailAddress, expires });
+      return code;
+    } catch (err) {
+      this.handler.handleError(err, OEM.ERROR_CREATING_OTP);
     }
   }
 
-  generateOtpWithSecret(secret: OTPAuth.Secret | string) {
+  async validateOtp(code: string) {
+    const otpData = this.otpStore.get(code);
+
+    if (!otpData) {
+      throw new NotFoundException('OTP not found. Request a new OTP.');
+    }
+
+    const { emailAddress, expires } = otpData;
+
+    if (Date.now() > expires) {
+      this.otpStore.delete(code);
+      throw new NotFoundException('OTP expired. Request a new OTP.');
+    }
+
+    this.logger.debug(`OTP ${code} matched for email ${emailAddress}`);
+
+    this.eventEmitter.emit(
+      SharedEvents.VALIDATE_OTP,
+      new EValidateOtp(emailAddress),
+    );
+
+    this.otpStore.delete(code);
+
+    return this.handler.handleReturn({
+      status: HttpStatus.OK,
+      message: 'Validation successful',
+      data: true,
+    });
+  }
+
+  generateOtpWithSecret(secret: OTPAuth.Secret | string): string {
     const totp = new OTPAuth.TOTP({
       issuer: 'allofhealth',
       label: 'allofhealth-api',
       algorithm: 'SHA1',
-      secret: secret,
-      digits: 6,
+      secret,
+      digits: this.OTP_DIGITS,
       period: 120,
     });
+
     return totp.generate();
   }
 
@@ -127,10 +115,11 @@ export class OtpProvider {
       issuer: 'allofhealth',
       label: 'allofhealth-api',
       algorithm: 'SHA1',
-      secret: secret,
-      digits: 6,
+      secret,
+      digits: this.OTP_DIGITS,
       period: 120,
     });
+
     return totp.validate({ token: otp, window: 1 });
   }
 }
