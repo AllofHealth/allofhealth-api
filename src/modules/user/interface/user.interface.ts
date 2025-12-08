@@ -59,6 +59,7 @@ export interface IUpdateUser {
   hospitalAssociation?: string;
   locationOfHospital?: string;
   availability?: string;
+  yearsOfExperience?: number;
   lastLogin?: Date;
   lastActivity?: Date;
   authProvider?: TAuthProvider;
