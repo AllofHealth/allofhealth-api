@@ -6,12 +6,14 @@ import { DoctorProvider } from './provider/doctor.provider';
 import { DoctorService } from './service/doctor.service';
 import { ConsultationModule } from '../consultation/consultation.module';
 import { AvailabilityModule } from '../availability/availability.module';
+import { AssetModule } from '../asset/asset.module';
 
 @Module({
   imports: [
     forwardRef(() => TokenModule),
     forwardRef(() => ConsultationModule),
     forwardRef(() => AvailabilityModule),
+    forwardRef(() => AssetModule),
   ],
   providers: [DoctorService, DoctorProvider, ErrorHandler],
   controllers: [DoctorController],
