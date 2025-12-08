@@ -315,6 +315,15 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   locationOfHospital?: string;
+
+  @ApiPropertyOptional({
+    description: 'The doctor years of experience',
+    example: 'Association 1',
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  yearsOfExperience?: number;
 }
 
 export class ResendOtpDto {
