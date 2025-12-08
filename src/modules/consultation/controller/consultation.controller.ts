@@ -157,7 +157,7 @@ export class ConsultationController {
   }
 
   @Get('fetchDoctorConsultationTypeById')
-  // @UseGuards(AuthGuard, OwnerGuard)
+  @UseGuards(AuthGuard, OwnerGuard)
   @ApiOperation({ summary: 'Get a consultation type by ID' })
   @ApiOkResponse({
     description: 'Successfully retrieved consultation type.',
@@ -222,8 +222,11 @@ export class ConsultationController {
     @Ip() ip: string,
     @Body() ctx: UpdateDoctorConsultationTypeDto,
   ) {
-    this.logger.log(`Request to update consultation type ${ctx.id} from ${ip}`);
+    this.logger.log(
+      `Request to update consultation type ${ctx.userId} from ${ip}`,
+    );
     return await this.consultationService.updateDoctorConsultationType({
+      userId: ctx.userId,
       id: ctx.id,
       data: {
         description: ctx.description,
