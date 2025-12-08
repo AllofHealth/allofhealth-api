@@ -24,10 +24,10 @@ export class OtpService {
   }
 
   generateSecret() {
-    return this.otpProvider.generateSecret();
+    return this.otpProvider.createSecret();
   }
 
   async storeOtp(ctx: ICreateOtp) {
-    return await this.otpProvider.createOTP(ctx);
+    return await this.otpProvider.createOTP(ctx.emailAddress);
   }
 }
