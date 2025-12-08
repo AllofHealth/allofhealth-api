@@ -29,6 +29,7 @@ import { DoctorError } from '../errors/doctor.errors';
 import { ConsultationService } from '@/modules/consultation/service/consultation.service';
 import { AvailabilityService } from '@/modules/availability/service/availability.service';
 import { IAvailability } from '@/modules/availability/interface/availability.interface';
+import { AssetService } from '@/modules/asset/service/asset.service';
 
 @Injectable()
 export class DoctorProvider {
@@ -37,6 +38,7 @@ export class DoctorProvider {
     @Inject(DRIZZLE_PROVIDER) private readonly db: Database,
     private readonly consultationService: ConsultationService,
     private readonly availabilityService: AvailabilityService,
+    private readonly assetService: AssetService,
     private readonly handler: ErrorHandler,
   ) {}
 
@@ -107,6 +109,7 @@ export class DoctorProvider {
           .select()
           .from(schema.doctors)
           .innerJoin(schema.user, eq(schema.doctors.userId, schema.user.id))
+          .leftJoin(schema.identity, eq(schema.identity.userId, schema.user.id))
           .where(
             and(
               eq(schema.doctors.userId, userId),
@@ -131,6 +134,14 @@ export class DoctorProvider {
         servicesOffered = doctor[0].doctors.servicesOffered as string[];
       }
 
+      const governmentIdUrl = await this.assetService.generateUrlFromFileId(
+        doctor[0].identities?.governmentFileId || '',
+      );
+
+      const medicalLicenseUrl = await this.assetService.generateUrlFromFileId(
+        doctor[0].identities?.scannedLicenseFileId || '',
+      );
+
       const parsedDoctor: IDoctorSnippet = {
         userId: doctor[0].users.id,
         fullName: doctor[0].users.fullName,
@@ -153,6 +164,8 @@ export class DoctorProvider {
         isVerified: doctor[0].doctors.isVerified,
         consultationData: consultation,
         availabilityData: availability,
+        governmentIdUrl,
+        medicalLicenseUrl,
       };
 
       return this.handler.handleReturn({
