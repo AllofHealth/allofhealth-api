@@ -13,7 +13,11 @@ import {
   IDENTITY_SUCCESS_MESSAGES as ISM,
 } from '../data/identity.data';
 import { IdentityError } from '../error/identity.error';
-import type { IStoreIdentification } from '../interface/identity.interface';
+import type {
+  IStoreIdentification,
+  IUpdateDoctorIdentity,
+} from '../interface/identity.interface';
+import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class IdentityProvider {
@@ -109,6 +113,36 @@ export class IdentityProvider {
       }
     } catch (e) {
       return this.handler.handleError(e, IEM.ERROR_STORING_IDENTIFICATION);
+    }
+  }
+
+  async updateDoctorIdentity(ctx: IUpdateDoctorIdentity) {
+    const {
+      userId,
+      governmentFileId,
+      governmentId,
+      scannedLicense,
+      scannedLicenseFileId,
+    } = ctx;
+    try {
+      let dataToUpdate: Record<string, any> = {};
+      if (governmentFileId) dataToUpdate.governmentFileId = governmentFileId;
+      if (governmentId) dataToUpdate.governmentId = governmentId;
+      if (scannedLicenseFileId)
+        dataToUpdate.scannedLicenseFileId = scannedLicenseFileId;
+      if (scannedLicense) dataToUpdate.scannedLicense = scannedLicense;
+
+      await this.db
+        .update(schema.identity)
+        .set(dataToUpdate)
+        .where(eq(schema.identity.userId, userId));
+
+      return this.handler.handleReturn({
+        status: HttpStatus.OK,
+        message: ISM.UPDATE_SUCCESSFUL,
+      });
+    } catch (e) {
+      this.handler.handleError(e, e.message || IEM.ERORR_UPDATING_ID);
     }
   }
 }
