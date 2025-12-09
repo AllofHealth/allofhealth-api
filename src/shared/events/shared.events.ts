@@ -27,4 +27,5 @@ export enum SharedEvents {
   BOOKING_CANCELLED = 'booking.cancelled',
   BOOKING_COMPLETED = 'booking.completed',
   BOOKING_CONFIRMED = 'booking.confirmed',
+  UPDATE_IDENTITY = 'update.identity',
 }
