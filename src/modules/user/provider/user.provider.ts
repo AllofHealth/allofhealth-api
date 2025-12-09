@@ -30,6 +30,7 @@ import {
   ESendEmail,
   ESendOtp,
   StoreId,
+  UpdateDoctorId,
 } from '@/shared/dtos/event.dto';
 import { ErrorHandler } from '@/shared/error-handler/error.handler';
 import { SharedEvents } from '@/shared/events/shared.events';
@@ -939,17 +940,16 @@ export class UserProvider {
         identityDataToUpdate &&
         Object.keys(identityDataToUpdate).length > 0
       ) {
-        const eventData = new StoreId(
+        const eventData = new UpdateDoctorId(
           userId,
-          'DOCTOR',
+
           identityDataToUpdate.governmentId || undefined,
           identityDataToUpdate.governmentFileId || undefined,
           identityDataToUpdate.scannedLicense || undefined,
           identityDataToUpdate.scannedLicenseFileId || undefined,
-          'update',
         );
 
-        this.eventEmitter.emit(SharedEvents.STORE_IDENTIFICATION, eventData);
+        this.eventEmitter.emit(SharedEvents.UPDATE_IDENTITY, eventData);
       }
 
       return this.handler.handleReturn({
