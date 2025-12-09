@@ -41,6 +41,16 @@ export class StoreId {
   ) {}
 }
 
+export class UpdateDoctorId {
+  constructor(
+    readonly userId: string,
+    readonly governmentId?: string,
+    readonly governmentFileId?: string,
+    readonly scannedLicenseUrl?: string,
+    readonly scannedLicenseFileId?: string,
+  ) {}
+}
+
 export class CreateSmartAccount {
   constructor(
     readonly userId: string,
