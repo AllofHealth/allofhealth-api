@@ -10,3 +10,11 @@ export interface IStoreIdentification {
   role: TRole;
   context?: IdentityContext;
 }
+
+export interface IUpdateDoctorIdentity {
+  userId: string;
+  governmentFileId?: string;
+  governmentId?: string;
+  scannedLicenseFileId?: string;
+  scannedLicense?: string;
+}
