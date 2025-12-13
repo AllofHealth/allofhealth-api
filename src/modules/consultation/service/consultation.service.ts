@@ -50,9 +50,10 @@ export class ConsultationService {
     return await this.consultationProvider.fetchAllConsultationTypes();
   }
 
-  async fetchConsultationType(consultationId: string) {
+  async fetchConsultationType(consultationId: string, doctorId: string) {
     return await this.consultationProvider.fetchConsultationType(
       consultationId,
+      doctorId,
     );
   }
 }

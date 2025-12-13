@@ -66,7 +66,10 @@ export class ConsultationProvider {
     }
   }
 
-  async fetchConsultationType(consultationTypeId: string) {
+  async fetchConsultationType(
+    consultationTypeId: string,
+    doctorId: string,
+  ) {
     try {
       const consultationType = await this._db
         .select({
@@ -78,9 +81,12 @@ export class ConsultationProvider {
         .from(schema.consultationTypes)
         .leftJoin(
           schema.doctorConsultationTypes,
-          eq(
-            schema.doctorConsultationTypes.consultationType,
-            schema.consultationTypes.id,
+          and(
+            eq(
+              schema.doctorConsultationTypes.consultationType,
+              schema.consultationTypes.id,
+            ),
+            eq(schema.doctorConsultationTypes.doctorId, doctorId),
           ),
         )
         .where(eq(schema.consultationTypes.id, consultationTypeId))

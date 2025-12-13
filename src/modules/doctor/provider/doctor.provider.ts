@@ -62,6 +62,7 @@ export class DoctorProvider {
       const consultationNameResponse =
         await this.consultationService.fetchConsultationType(
           doctorConsultationData.consultationType,
+          doctorId,
         );
 
       if (!consultationNameResponse || !consultationNameResponse.data) {
@@ -309,47 +310,53 @@ export class DoctorProvider {
         .offset(skip)
         .limit(limit);
 
-      let availabilityData: IAvailability[] | never[];
+      const parsedDoctors: IDoctorSnippet[] = [];
 
-      const parsedDoctors: IDoctorSnippet[] = await Promise.all(
-        doctors.map(async (doctor) => {
-          const consultationData = await this.prepareConsultationData(
-            doctor.users.id,
-          );
+      for (const doctor of doctors) {
+        const consultationData = await this.prepareConsultationData(
+          doctor.doctors.userId,
+        );
 
-          if (fetchAvailability) {
-            availabilityData = await this.prepareAvailabilityData(
-              doctor.users.id,
-            );
-          }
-          return {
-            userId: doctor.users.id,
-            fullName: doctor.users.fullName,
-            email: doctor.users.emailAddress,
-            gender: doctor.users.gender,
-            profilePicture: doctor.users.profilePicture as string,
-            phoneNumber: doctor.users.phoneNumber as string,
-            role: doctor.users.role,
-            status: doctor.users.status,
-            lastActive: doctor.users.lastActivity
-              ? formatDateToReadable(doctor.users.lastActivity)
-              : 'Never',
-            bio: doctor.doctors.bio || '',
-            servicesOffered: doctor.doctors.servicesOffered as string[],
-            certifications: doctor.doctors.certifications as string[],
-            hospitalAssociation: doctor.doctors.hospitalAssociation,
-            specialization: doctor.doctors.specialization,
-            languagesSpoken: doctor.doctors.languagesSpoken as string[],
-            locationOfHospital: doctor.doctors.locationOfHospital,
-            medicalLicenseNumber: doctor.doctors.medicalLicenseNumber,
-            yearsOfExperience: doctor.doctors.yearsOfExperience || 1,
-            availability: doctor.doctors.availability as string,
-            isVerified: doctor.doctors.isVerified as boolean,
+        this.logger.debug(
+          `Consultaion data for ${doctor.doctors.userId} => ${JSON.stringify(
             consultationData,
-            availabilityData,
-          };
-        }),
-      );
+          )}`,
+        );
+
+        let availabilityData: IAvailability[] | never[] = [];
+        if (fetchAvailability) {
+          availabilityData = await this.prepareAvailabilityData(
+            doctor.doctors.userId,
+          );
+        }
+
+        parsedDoctors.push({
+          userId: doctor.users.id,
+          fullName: doctor.users.fullName,
+          email: doctor.users.emailAddress,
+          gender: doctor.users.gender,
+          profilePicture: doctor.users.profilePicture as string,
+          phoneNumber: doctor.users.phoneNumber as string,
+          role: doctor.users.role,
+          status: doctor.users.status,
+          lastActive: doctor.users.lastActivity
+            ? formatDateToReadable(doctor.users.lastActivity)
+            : 'Never',
+          bio: doctor.doctors.bio || '',
+          servicesOffered: doctor.doctors.servicesOffered as string[],
+          certifications: doctor.doctors.certifications as string[],
+          hospitalAssociation: doctor.doctors.hospitalAssociation,
+          specialization: doctor.doctors.specialization,
+          languagesSpoken: doctor.doctors.languagesSpoken as string[],
+          locationOfHospital: doctor.doctors.locationOfHospital,
+          medicalLicenseNumber: doctor.doctors.medicalLicenseNumber,
+          yearsOfExperience: doctor.doctors.yearsOfExperience || 1,
+          availability: doctor.doctors.availability as string,
+          isVerified: doctor.doctors.isVerified as boolean,
+          consultationData,
+          availabilityData,
+        });
+      }
 
       return this.handler.handleReturn({
         status: HttpStatus.OK,
